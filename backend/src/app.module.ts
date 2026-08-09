@@ -51,6 +51,7 @@ import { CommunityModule } from './modules/community/community.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { CourseTopicsModule } from './modules/course-topics/course-topics.module';
 import { CertificateTemplatesModule } from './modules/certificate-templates/certificate-templates.module';
 
 @Module({
@@ -129,6 +130,7 @@ import { CertificateTemplatesModule } from './modules/certificate-templates/cert
     ScheduleModule,
     UploadsModule,
     CertificateTemplatesModule,
+    CourseTopicsModule,
   ],
   controllers: [AppController],
 })
