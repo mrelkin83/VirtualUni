@@ -16,6 +16,7 @@ import { certificatesApi } from '../api/endpoints/certificates';
 import { scheduleApi } from '../api/endpoints/schedule';
 import { liveClassesApi } from '../api/endpoints/live-classes';
 import { financeApi } from '../api/endpoints/finance';
+import { uploadsApi } from '../api/endpoints/uploads';
 import {
   StudentSectionType,
   StudentCourse,
@@ -125,6 +126,32 @@ const agruparNotasPorCurso = (notas: any[]) => {
     promedio: _peso > 0 ? _suma / _peso : null,
   }));
 };
+
+/**
+ * La API nombra los campos en inglés (title, dueDate, course) y la vista los
+ * espera en español (titulo, fechaLimite, curso, estado). Sin esta conversión
+ * el filtro por `estado` no encontraba nada y la sección mostraba tres ceros
+ * aunque llegaran 44 tareas.
+ */
+const soloFecha = (v: unknown): string => {
+  if (typeof v !== 'string' || !v) return '';
+  // La API entrega marcas ISO completas y la vista las pinta tal cual, con la
+  // hora y los milisegundos a la vista: "Límite: 2026-06-28T14:15:39.703Z".
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('es-CO');
+};
+
+const adaptarTareas = (tareas: any[]) =>
+  tareas.map((t) => ({
+    ...t,
+    titulo: t.titulo ?? t.title,
+    descripcion: t.descripcion ?? t.description,
+    curso: t.curso ?? t.course?.name ?? '',
+    fechaLimite: t.fechaLimite ?? soloFecha(t.dueDate),
+    estado: t.estado ?? 'pendiente',
+    fechaEntrega: t.fechaEntrega ?? soloFecha(t.submission?.submittedAt),
+    calificacion: t.calificacion ?? t.submission?.grade ?? undefined,
+  }));
 
 export const useStudentDashboard = () => {
   // Navigation and UI State
@@ -466,7 +493,7 @@ export const useStudentDashboard = () => {
           financialSummaryData,
         ] = await Promise.allSettled([
           coursesApi.getAll(),
-          assignmentsApi.getAll(),
+          assignmentsApi.getMy(),
           messagesApi.getInbox().catch(() => []),
           gradesApi.getMy(),
           userId ? usersApi.getById(userId) : Promise.resolve({ data: null }),
@@ -490,7 +517,9 @@ export const useStudentDashboard = () => {
         }
         if (assignmentsData.status === 'fulfilled') {
           const data = (assignmentsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setTareas(data);
+          if (Array.isArray(data) && data.length > 0) {
+            setTareas(adaptarTareas(data));
+          }
         }
         if (inboxMessages.status === 'fulfilled') {
           const data = inboxMessages.value as any;
@@ -726,10 +755,17 @@ export const useStudentDashboard = () => {
     }
 
     try {
+      // La interfaz exige adjuntar un archivo y luego lo tiraba: solo se
+      // enviaba el comentario y `fileUrl` quedaba vacío en la base. Se sube
+      // primero por el módulo de uploads y se guarda la URL con la entrega.
+      const subido = await uploadsApi.subir(archivoTarea, 'adjuntos');
+      const fileUrl = (subido as any)?.url ?? (subido as any)?.data?.url;
+
       // `content` es el nombre real del campo en el modelo Submission;
       // `comentario` no existia y se descartaba.
       await assignmentsApi.submit(String(tareaId), {
         content: comentarioTarea,
+        fileUrl,
       });
 
       setTareas(tareas.map(t =>

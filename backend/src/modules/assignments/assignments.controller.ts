@@ -54,6 +54,23 @@ export class AssignmentsController {
     return this.assignmentsService.findAll(tenantId, courseId);
   }
 
+  @Get('my')
+  @Roles('STUDENT')
+  @ApiOperation({ summary: 'Mis tareas, con el estado de mi entrega' })
+  async findMine(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const studentId = await this.assignmentsService.estudianteDelUsuario(
+      user.userId,
+      tenantId,
+    );
+    if (!studentId) {
+      throw new ForbiddenException('El usuario no tiene ficha de estudiante');
+    }
+    return this.assignmentsService.findMineForStudent(studentId, tenantId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de una tarea' })
   async findOne(

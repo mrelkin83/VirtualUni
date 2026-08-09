@@ -24,6 +24,13 @@ export const assignmentsApi = {
     const response = await apiClient.get(`/api/v1/assignments/${id}`);
     return { data: response.data };
   },
+  // Solo las tareas de los cursos en los que está matriculado, con el estado
+  // de su propia entrega. `/assignments` a secas devuelve las del tenant
+  // entero y sin entrega, así que el panel no podía clasificarlas.
+  getMy: async () => {
+    const response = await apiClient.get('/api/v1/assignments/my');
+    return { data: response.data };
+  },
   // El autor lo pone el backend a partir del token. Antes se enviaba
   // `studentId` en el cuerpo, con la cadena literal 'current-user': ninguna
   // entrega llegaba a guardarse, fallaba por clave foranea.

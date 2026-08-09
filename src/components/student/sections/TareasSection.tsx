@@ -162,8 +162,11 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                     <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">
                       Calificada
                     </span>
-                    {tarea.calificacion && (
-                      <p className="text-lg font-bold text-green-600 mt-1">{tarea.calificacion}/10</p>
+                    {tarea.calificacion != null && (
+                      // La escala real de las notas es 0-100, igual que en
+                      // Exámenes; el "/10" venía de los datos de ejemplo y
+                      // producía marcadores imposibles como "90.4/10".
+                      <p className="text-lg font-bold text-green-600 mt-1">{tarea.calificacion}/100</p>
                     )}
                   </div>
                 </div>

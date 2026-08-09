@@ -35,6 +35,16 @@ class ApiClient {
           config.headers['X-Tenant-ID'] = tenantId;
         }
 
+        // La instancia se crea con `Content-Type: application/json` por
+        // defecto, y ese valor pisaba el multipart de las subidas: el
+        // navegador ya no añadía el boundary y el backend respondía "No se
+        // recibió ningún archivo en el campo file". Ninguna subida de archivo
+        // podía funcionar. Se retira la cabecera cuando el cuerpo es
+        // FormData para que el navegador la genere él.
+        if (config.data instanceof FormData && config.headers) {
+          delete config.headers['Content-Type'];
+        }
+
         return config;
       },
       (error) => {

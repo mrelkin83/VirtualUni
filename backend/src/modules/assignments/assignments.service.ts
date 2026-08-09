@@ -43,6 +43,52 @@ export class AssignmentsService {
   }
 
   /**
+   * Tareas del alumno: solo las de los cursos en los que está matriculado, y
+   * con su propia entrega incluida para poder derivar el estado.
+   *
+   * El panel llamaba a `/assignments` a secas, que devuelve las 44 tareas del
+   * tenant --incluidas las de cursos ajenos-- y sin ninguna referencia a la
+   * entrega, así que la vista no podía saber qué estaba pendiente, entregado o
+   * calificado y mostraba tres ceros.
+   */
+  async findMineForStudent(studentId: string, tenantId: string) {
+    const asignaciones = await this.prisma.assignment.findMany({
+      where: {
+        tenantId,
+        course: { enrollments: { some: { studentId, tenantId } } },
+      },
+      include: {
+        course: { select: { id: true, name: true, code: true } },
+        submissions: {
+          where: { studentId },
+          select: {
+            id: true,
+            submittedAt: true,
+            grade: true,
+            feedback: true,
+            content: true,
+            fileUrl: true,
+          },
+        },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    return asignaciones.map(({ submissions, ...tarea }) => {
+      const entrega = submissions[0] ?? null;
+      return {
+        ...tarea,
+        submission: entrega,
+        estado: !entrega
+          ? 'pendiente'
+          : entrega.grade === null
+            ? 'entregada'
+            : 'calificada',
+      };
+    });
+  }
+
+  /**
    * @param soloDeEstudiante limita las entregas devueltas a las de ese
    * estudiante. Se usa con el alumnado: la tarea llegaba con las entregas de
    * todo el grupo, con nota, comentarios y correo de cada autor.
