@@ -18,6 +18,17 @@ export const proceduresApi = {
     const response = await apiClient.get(`/api/v1/procedures/${id}`);
     return { data: response.data };
   },
+  // Trámites del propio solicitante: listar todos sigue siendo de la
+  // administración, así que sin esta ruta el estudiante enviaba un trámite y
+  // no volvía a verlo nunca.
+  getMy: async () => {
+    const response = await apiClient.get('/api/v1/procedures/my');
+    return { data: response.data };
+  },
+  cancelarPropio: async (id: string) => {
+    const response = await apiClient.patch(`/api/v1/procedures/my/${id}/cancel`);
+    return { data: response.data };
+  },
   create: async (data: ProcedureCreateDto) => {
     const response = await apiClient.post('/api/v1/procedures', data);
     return { data: response.data };

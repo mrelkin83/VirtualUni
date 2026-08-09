@@ -736,10 +736,7 @@ async function main() {
           duracion: plantilla.duracion,
           estado: idx === 0 ? 'ACTIVO' : 'PROGRAMADO',
           puntajeTotal,
-          // El servicio califica sobre 10: (puntos obtenidos / puntaje total)
-          // * 10. Poner 60 aquí dejaba todos los exámenes imposibles de
-          // aprobar. Es el mismo valor que trae por defecto el esquema.
-          notaMinima: 6,
+          notaMinima: 60,
           intentosPermitidos: 1,
           mostrarResultados: true,
         },

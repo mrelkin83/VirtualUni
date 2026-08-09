@@ -17,6 +17,7 @@ import { scheduleApi } from '../api/endpoints/schedule';
 import { liveClassesApi } from '../api/endpoints/live-classes';
 import { financeApi } from '../api/endpoints/finance';
 import { uploadsApi } from '../api/endpoints/uploads';
+import { proceduresApi } from '../api/endpoints/procedures';
 import {
   StudentSectionType,
   StudentCourse,
@@ -152,6 +153,24 @@ const adaptarTareas = (tareas: any[]) =>
     fechaEntrega: t.fechaEntrega ?? soloFecha(t.submission?.submittedAt),
     calificacion: t.calificacion ?? t.submission?.grade ?? undefined,
   }));
+
+/**
+ * El backend nombra los campos del trámite en su propio vocabulario
+ * (fechaSolicitud, estado en mayúsculas) y la vista los espera en el del panel.
+ */
+const adaptarTramite = (t: any) => ({
+  id: t?.id,
+  tipo: t?.tipo ?? "",
+  fecha: t?.fechaSolicitud ? new Date(t.fechaSolicitud).toLocaleDateString("es-CO") : "",
+  estado:
+    t?.estado === "PENDIENTE" ? "Pendiente"
+    : t?.estado === "EN_PROCESO" ? "En proceso"
+    : t?.estado === "COMPLETADO" ? "Completado"
+    : t?.estado === "RECHAZADO" ? "Cancelado"
+    : (t?.estado ?? ""),
+  observaciones: t?.respuesta ?? t?.descripcion ?? "",
+  descripcion: t?.descripcion ?? "",
+});
 
 export const useStudentDashboard = () => {
   // Navigation and UI State
@@ -491,6 +510,7 @@ export const useStudentDashboard = () => {
           liveClassesData,
           invoicesData,
           financialSummaryData,
+          tramitesRes,
         ] = await Promise.allSettled([
           coursesApi.getAll(),
           assignmentsApi.getMy(),
@@ -509,7 +529,16 @@ export const useStudentDashboard = () => {
           liveClassesApi.getMy(),
           financeApi.getMyInvoices(),
           financeApi.getMyFinancialSummary(),
+          proceduresApi.getMy(),
         ]);
+
+        if (tramitesRes.status === 'fulfilled') {
+          const data = (tramitesRes.value as any)?.data;
+          // Se aplica siempre, también cuando viene vacío: si no, la sección
+          // seguiría mostrando los tres trámites de ejemplo y el alumno vería
+          // solicitudes que nunca hizo.
+          if (Array.isArray(data)) setTramitesData(data.map(adaptarTramite) as any);
+        }
 
         if (coursesData.status === 'fulfilled') {
           const data = (coursesData.value as any)?.data;
@@ -811,32 +840,46 @@ export const useStudentDashboard = () => {
     setTipoSolicitud('');
   };
 
-  const enviarTramite = () => {
+  const enviarTramite = async () => {
     if (!tipoTramite) {
       alert('Por favor selecciona un tipo de trámite');
       return;
     }
 
-    const nuevoTramite = {
-      id: tramitesData.length + 1,
-      tipo: tipoTramite,
-      fecha: new Date().toISOString().split('T')[0],
-      estado: 'Pendiente',
-      observaciones: observacionesTramite || 'Sin observaciones',
-      descripcion: tramitesDisponiblesData.find(t => t.nombre === tipoTramite)?.descripcion || ''
-    };
+    // Antes esto solo añadía una fila a la lista en memoria y anunciaba
+    // "Trámite enviado exitosamente": al recargar la página no quedaba rastro
+    // y la administración no recibía nada.
+    const descripcion =
+      tramitesDisponiblesData.find(t => t.nombre === tipoTramite)?.descripcion || tipoTramite;
 
-    setTramitesData([nuevoTramite, ...tramitesData]);
-    alert('Trámite enviado exitosamente!');
-    setModalTramite(false);
-    setTipoTramite('');
-    setObservacionesTramite('');
+    try {
+      const { data } = await proceduresApi.create({
+        tipo: tipoTramite,
+        descripcion: observacionesTramite || descripcion,
+        prioridad: 'MEDIA',
+      });
+      setTramitesData([adaptarTramite(data), ...tramitesData] as any);
+      alert('Trámite enviado exitosamente!');
+      setModalTramite(false);
+      setTipoTramite('');
+      setObservacionesTramite('');
+    } catch (err: any) {
+      alert('No se pudo enviar el trámite: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const cancelarTramite = (tramiteId: number) => {
-    if (window.confirm('¿Estás seguro de que deseas cancelar este trámite?')) {
-      setTramitesData(tramitesData.filter(t => t.id !== tramiteId));
+  const cancelarTramite = async (tramiteId: number | string) => {
+    if (!window.confirm('¿Estás seguro de que deseas cancelar este trámite?')) return;
+    try {
+      await proceduresApi.cancelarPropio(String(tramiteId));
+      setTramitesData(
+        tramitesData.map((t: any) =>
+          t.id === tramiteId ? { ...t, estado: 'Cancelado' } : t,
+        ) as any,
+      );
       alert('Trámite cancelado');
+    } catch (err: any) {
+      alert('No se pudo cancelar: ' + (err?.message || 'error de conexión'));
     }
   };
 

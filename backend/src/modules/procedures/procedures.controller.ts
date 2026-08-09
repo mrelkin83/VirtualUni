@@ -78,6 +78,35 @@ export class ProceduresController {
     );
   }
 
+  @Get('my')
+  @Roles('STUDENT', 'TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Mis trámites',
+    description:
+      'Trámites solicitados por el usuario autenticado. Listar todos los del tenant sigue reservado a la administración.',
+  })
+  findMine(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.proceduresService.findMine(tenantId, user.userId ?? user.id);
+  }
+
+  @Patch('my/:id/cancel')
+  @Roles('STUDENT', 'TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Cancelar un trámite propio que siga pendiente' })
+  cancelarPropio(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.proceduresService.cancelarPropio(
+      tenantId,
+      user.userId ?? user.id,
+      id,
+    );
+  }
+
   /**
    * Obtener todos los trámites con filtros
    * Accesible por TENANT_ADMIN y SUPER_ADMIN

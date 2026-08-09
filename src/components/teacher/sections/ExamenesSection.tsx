@@ -75,7 +75,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
     preguntas: [],
     instrucciones: '',
     puntajeTotal: 0,
-    notaMinima: 6,
+    notaMinima: 60,
     intentosPermitidos: 1,
     mostrarResultados: true,
     mezclarPreguntas: false
@@ -126,7 +126,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       preguntas: [],
       instrucciones: '',
       puntajeTotal: 0,
-      notaMinima: 6,
+      notaMinima: 60,
       intentosPermitidos: 1,
       mostrarResultados: true,
       mezclarPreguntas: false
@@ -142,7 +142,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       preguntas: [],
       instrucciones: '',
       puntajeTotal: 0,
-      notaMinima: 6,
+      notaMinima: 60,
       intentosPermitidos: 1,
       mostrarResultados: true,
       mezclarPreguntas: false
@@ -713,7 +713,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         min="0"
                         max="10"
                         step="0.1"
-                        value={nuevoExamen.notaMinima || 6}
+                        value={nuevoExamen.notaMinima || 60}
                         onChange={(e) => setNuevoExamen({ ...nuevoExamen, notaMinima: parseFloat(e.target.value) })}
                         className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
                       />

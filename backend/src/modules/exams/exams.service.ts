@@ -234,10 +234,14 @@ export class ExamsService {
       }
     }
 
+    // Escala 0-100, la misma que usan las notas del expediente y las entregas
+    // de tareas. Antes esto calificaba sobre 10 y era el único punto del
+    // sistema que lo hacía: un examen perfecto valía 10 y el panel lo pintaba
+    // junto a notas de 0 a 100, con lo que parecía un suspenso.
     const puntajeTotal = attempt.exam.puntajeTotal;
     const calificacion =
       puntajeTotal > 0
-        ? Math.round((puntosObtenidos / puntajeTotal) * 10 * 10) / 10
+        ? Math.round((puntosObtenidos / puntajeTotal) * 100 * 10) / 10
         : 0;
 
     const updated = await this.prisma.examAttempt.update({

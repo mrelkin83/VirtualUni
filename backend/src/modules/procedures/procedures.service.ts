@@ -23,6 +23,43 @@ export class ProceduresService {
   /**
    * Crear un nuevo trámite
    */
+  /**
+   * Trámites del propio solicitante.
+   *
+   * Listar trámites estaba reservado a la administración, así que un
+   * estudiante podía crear uno y no tenía ninguna forma de volver a verlo ni
+   * de saber en qué estado quedaba.
+   */
+  async findMine(tenantId: string, solicitanteId: string) {
+    return this.prisma.procedure.findMany({
+      where: { tenantId, solicitanteId },
+      orderBy: { fechaSolicitud: 'desc' },
+    });
+  }
+
+  /**
+   * Cancela un trámite propio. Solo mientras siga pendiente: una vez que la
+   * administración lo ha tomado, retirarlo por detrás dejaría trabajo hecho
+   * sobre un expediente que ya no existe.
+   */
+  async cancelarPropio(tenantId: string, solicitanteId: string, id: string) {
+    const tramite = await this.prisma.procedure.findFirst({
+      where: { id, tenantId, solicitanteId },
+    });
+    if (!tramite) {
+      throw new NotFoundException('Trámite no encontrado');
+    }
+    if (tramite.estado !== ProcedureStatus.PENDIENTE) {
+      throw new BadRequestException(
+        'Solo puedes cancelar un trámite que siga pendiente',
+      );
+    }
+    return this.prisma.procedure.update({
+      where: { id },
+      data: { estado: ProcedureStatus.RECHAZADO, respuesta: 'Cancelado por el solicitante' },
+    });
+  }
+
   async create(
     tenantId: string,
     solicitanteId: string,

@@ -374,7 +374,7 @@ model Exam {
   duracion           Int // minutos
   estado             ExamStatus @default(PROGRAMADO)
   puntajeTotal       Float      @default(0) @map("puntaje_total")
-  notaMinima         Float      @default(6) @map("nota_minima")
+  notaMinima         Float      @default(60) @map("nota_minima") // escala 0-100
   intentosPermitidos Int        @default(1) @map("intentos_permitidos")
   mostrarResultados  Boolean    @default(true) @map("mostrar_resultados")
   mezclarPreguntas   Boolean    @default(false) @map("mezclar_preguntas")
