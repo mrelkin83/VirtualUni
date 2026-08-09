@@ -11,6 +11,8 @@ import { materialsApi, MaterialType } from '../api/endpoints/materials';
 import { liveClassesApi } from '../api/endpoints/live-classes';
 import { groupsApi } from '../api/endpoints/groups';
 import { uploadsApi } from '../api/endpoints/uploads';
+import { announcementsApi } from '../api/endpoints/announcements';
+import { massMessagesApi } from '../api/endpoints/mass-messages';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -1310,14 +1312,33 @@ export const useTeacherDashboard = () => {
   };
 
   // Comunicación masiva y anuncios
-  const enviarMensajeMasivo = (mensajeData: any) => {
-    const curso = cursos.find(c => c.id === parseInt(mensajeData.cursoId));
+  /**
+   * Igual que los anuncios: el mensaje solo se apuntaba en la lista local y se
+   * informaba de cuántos estudiantes lo recibirían, cuando no lo recibía
+   * ninguno. El backend reserva POST /mass-messages a la administración
+   * --403 para un docente, comprobado--, así que se hace la llamada real y se
+   * muestra el motivo si la rechaza, en lugar de fingir el envío.
+   */
+  const enviarMensajeMasivo = async (mensajeData: any) => {
+    const curso: any = cursos.find((c: any) => String(c.id) === String(mensajeData.cursoId));
     if (!curso) {
       alert('Curso no encontrado');
       return;
     }
 
-    const estudiantesCurso = estudiantes.filter(e => e.curso === curso.nombre);
+    try {
+      await massMessagesApi.create({
+        asunto: mensajeData.asunto,
+        contenido: mensajeData.mensaje,
+        destinatarios: 'ESTUDIANTES',
+        cursoId: curso.id,
+      } as any);
+    } catch (err: any) {
+      alert('No se pudo enviar el mensaje masivo: ' + (err?.message || 'error de conexión'));
+      return;
+    }
+
+    const estudiantesCurso = estudiantes.filter((e: any) => e.curso === curso.nombre);
 
     const nuevoMensaje = {
       id: mensajes.length + 1,
@@ -1339,10 +1360,32 @@ export const useTeacherDashboard = () => {
     alert(`Mensaje masivo enviado exitosamente!\n\nDestinatarios: ${estudiantesCurso.length} estudiantes de ${curso.nombre}\nAsunto: ${mensajeData.asunto}${adjuntosTexto}`);
   };
 
-  const crearAnuncio = (anuncioData: any) => {
-    const curso = cursos.find(c => c.id === parseInt(anuncioData.cursoId));
+  /**
+   * El anuncio se anadia solo a la lista en memoria y se anunciaba que se
+   * notificaria a N estudiantes: nadie recibia nada y al recargar desaparecia.
+   *
+   * OJO: el backend reserva POST /announcements a TENANT_ADMIN y SUPER_ADMIN
+   * -- comprobado contra el sistema, un docente recibe 403 --, asi que aqui no
+   * se inventa el permiso: se hace la llamada real y, si el servidor la
+   * rechaza, se muestra su motivo en vez de un exito falso. Habilitar los
+   * anuncios al profesorado es una decision de producto, no un arreglo.
+   */
+  const crearAnuncio = async (anuncioData: any) => {
+    const curso: any = cursos.find((c: any) => String(c.id) === String(anuncioData.cursoId));
     if (!curso) {
       alert('Curso no encontrado');
+      return;
+    }
+
+    try {
+      await announcementsApi.create({
+        titulo: anuncioData.titulo,
+        contenido: anuncioData.contenido,
+        prioridad: String(anuncioData.prioridad || 'MEDIA').toUpperCase(),
+        dirigidoA: 'ESTUDIANTES',
+      } as any);
+    } catch (err: any) {
+      alert('No se pudo publicar el anuncio: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1559,18 +1602,34 @@ export const useTeacherDashboard = () => {
     alert('Carpeta eliminada exitosamente.');
   };
 
-  const editarCarpeta = (carpetaId: number, carpetaData: Partial<CarpetaMaterial>) => {
-    setCarpetas(carpetas.map(c =>
-      c.id === carpetaId ? { ...c, ...carpetaData } : c
-    ));
-    alert('Carpeta actualizada exitosamente!');
+  /**
+   * Las carpetas y la pertenencia de cada material a una carpeta solo se
+   * movían en memoria: al recargar volvía la organización anterior. En la base
+   * la relación vive en `Material.folderId`, así que mover un material es
+   * actualizar ese campo, no tocar una lista dentro de la carpeta.
+   */
+  const editarCarpeta = async (carpetaId: number | string, carpetaData: Partial<CarpetaMaterial>) => {
+    try {
+      await materialsApi.updateFolder(String(carpetaId), carpetaData as any);
+      setCarpetas(carpetas.map(c => (c.id === carpetaId ? { ...c, ...carpetaData } : c)));
+      alert('Carpeta actualizada exitosamente!');
+    } catch (err: any) {
+      alert('No se pudo actualizar la carpeta: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const agregarMaterialCarpeta = (carpetaId: number, materialId: number) => {
-    const carpeta = carpetas.find(c => c.id === carpetaId);
+  const agregarMaterialCarpeta = async (carpetaId: number | string, materialId: number | string) => {
+    const carpeta: any = carpetas.find((c: any) => c.id === carpetaId);
 
-    if (carpeta?.materiales.includes(materialId)) {
+    if (carpeta?.materiales?.includes(materialId as any)) {
       alert('Material ya está en la carpeta');
+      return;
+    }
+
+    try {
+      await materialsApi.update(String(materialId), { folderId: String(carpetaId) } as any);
+    } catch (err: any) {
+      alert('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1578,11 +1637,18 @@ export const useTeacherDashboard = () => {
       c.id === carpetaId
         ? { ...c, materiales: [...c.materiales, materialId] }
         : c
-    ));
+    ) as any);
     alert('Material agregado exitosamente!');
   };
 
-  const removerMaterialCarpeta = (carpetaId: number, materialId: number) => {
+  const removerMaterialCarpeta = async (carpetaId: number | string, materialId: number | string) => {
+    try {
+      // Sacar de la carpeta es dejar el material sin carpeta, no borrarlo.
+      await materialsApi.update(String(materialId), { folderId: null } as any);
+    } catch (err: any) {
+      alert('No se pudo sacar el material: ' + (err?.message || 'error de conexión'));
+      return;
+    }
     setCarpetas(carpetas.map(c =>
       c.id === carpetaId
         ? { ...c, materiales: c.materiales.filter(mId => mId !== materialId) }
@@ -1591,11 +1657,23 @@ export const useTeacherDashboard = () => {
     alert('Material removido exitosamente!');
   };
 
-  const moverMaterial = (
-    materialId: number,
-    carpetaIdOrigen: number | null,
-    carpetaIdDestino: number | null
+  const moverMaterial = async (
+    materialId: number | string,
+    carpetaIdOrigen: number | string | null,
+    carpetaIdDestino: number | string | null
   ) => {
+    try {
+      // Un solo campo decide dónde está el material: la carpeta destino, o
+      // ninguna si se saca a la raíz. Antes solo se reordenaban dos listas en
+      // memoria y al recargar todo volvía a su sitio anterior.
+      await materialsApi.update(String(materialId), {
+        folderId: carpetaIdDestino ? String(carpetaIdDestino) : null,
+      } as any);
+    } catch (err: any) {
+      alert('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
+      return;
+    }
+
     if (carpetaIdOrigen) {
       setCarpetas(carpetas.map(c =>
         c.id === carpetaIdOrigen
@@ -1609,7 +1687,7 @@ export const useTeacherDashboard = () => {
         c.id === carpetaIdDestino
           ? { ...c, materiales: [...c.materiales, materialId] }
           : c
-      ));
+      ) as any);
     }
 
     alert('Material movido exitosamente!');
