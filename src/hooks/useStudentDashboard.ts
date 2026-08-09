@@ -406,7 +406,7 @@ export const useStudentDashboard = () => {
           coursesApi.getAll(),
           assignmentsApi.getAll(),
           messagesApi.getInbox().catch(() => []),
-          userId ? gradesApi.getByStudent(userId) : Promise.resolve({ data: null }),
+          gradesApi.getMy(),
           userId ? usersApi.getById(userId) : Promise.resolve({ data: null }),
           examsApi.getAll(),
           examsApi.getMyAttempts().catch(() => ({ data: [] })),
@@ -662,9 +662,10 @@ export const useStudentDashboard = () => {
     }
 
     try {
+      // `content` es el nombre real del campo en el modelo Submission;
+      // `comentario` no existia y se descartaba.
       await assignmentsApi.submit(String(tareaId), {
-        studentId: 'current-user',
-        comentario: comentarioTarea,
+        content: comentarioTarea,
       });
 
       setTareas(tareas.map(t =>
@@ -734,10 +735,13 @@ export const useStudentDashboard = () => {
     try {
       const userId = (useAuthStore as any).getState?.()?.user?.id;
       if (userId) {
+        // `phone` y `career` no son campos del modelo User -- el telefono vive
+        // en la ficha de estudiante y el programa tambien -- asi que la
+        // peticion entera fallaba y no se guardaba ni el nombre. Hasta que
+        // exista una ruta para que el alumnado edite su propia ficha, aqui
+        // solo se actualiza lo que la cuenta de usuario realmente contiene.
         await usersApi.update(userId, {
           firstName: datosPerfil.nombre,
-          phone: datosPerfil.telefono,
-          career: datosPerfil.carrera,
         });
       }
       alert('Perfil actualizado!');

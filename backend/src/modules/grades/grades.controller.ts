@@ -57,6 +57,28 @@ export class GradesController {
     return this.gradesService.create(data, tenantId);
   }
 
+  @Get('my')
+  @Roles('STUDENT')
+  @ApiOperation({ summary: 'Mis notas' })
+  // El panel del estudiante llamaba a /grades/student/:id pasando el id de
+  // USUARIO, que nunca coincide con el de estudiante: la consulta devolvia
+  // siempre una lista vacia y las notas jamas se mostraban. Con esta ruta el
+  // frontend no tiene que conocer su ficha, igual que en /attendance/my o
+  // /certificates/my.
+  async findMine(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const studentId = await this.gradesService.estudianteDelUsuario(
+      user.userId,
+      tenantId,
+    );
+    if (!studentId) {
+      throw new ForbiddenException('El usuario no tiene ficha de estudiante');
+    }
+    return this.gradesService.findByStudent(studentId, tenantId);
+  }
+
   @Get('student/:studentId')
   @ApiOperation({ summary: 'Notas de un estudiante' })
   async findByStudent(

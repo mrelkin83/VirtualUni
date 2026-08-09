@@ -24,13 +24,24 @@ export const assignmentsApi = {
     const response = await apiClient.get(`/api/v1/assignments/${id}`);
     return { data: response.data };
   },
-  submit: async (id: string, data: { studentId: string; [key: string]: any }) => {
+  // El autor lo pone el backend a partir del token. Antes se enviaba
+  // `studentId` en el cuerpo, con la cadena literal 'current-user': ninguna
+  // entrega llegaba a guardarse, fallaba por clave foranea.
+  submit: async (id: string, data: { content?: string; fileUrl?: string }) => {
     const response = await apiClient.post(`/api/v1/assignments/${id}/submit`, data);
     return { data: response.data };
   },
 };
 
 export const gradesApi = {
+  // Las notas del propio alumno: el backend resuelve su ficha a partir del
+  // token. Antes se llamaba a /grades/student/:id con el id de USUARIO, que
+  // nunca coincide con el de estudiante, asi que la respuesta venia vacia
+  // siempre y el panel de notas aparecia en blanco.
+  getMy: async () => {
+    const response = await apiClient.get('/api/v1/grades/my');
+    return { data: response.data };
+  },
   getByStudent: async (studentId: string) => {
     const response = await apiClient.get(`/api/v1/grades/student/${studentId}`);
     return { data: response.data };

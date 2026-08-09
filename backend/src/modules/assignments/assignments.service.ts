@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 
 @Injectable()
@@ -94,7 +98,40 @@ export class AssignmentsService {
     return { message: 'Assignment deleted successfully' };
   }
 
-  async submitAssignment(assignmentId: string, studentId: string, data: any, tenantId: string) {
+  /**
+   * Entrega o reentrega. Existe una restriccion de unicidad sobre
+   * (assignment_id, student_id): al volver a entregar, Prisma lanzaba
+   * P2002 sin capturar y el alumno recibia un 500 "Internal server error" sin
+   * saber que su primera entrega ya estaba ahi.
+   */
+  async submitAssignment(
+    assignmentId: string,
+    studentId: string,
+    data: { content?: string; fileUrl?: string },
+    tenantId: string,
+  ) {
+    const previa = await this.prisma.submission.findFirst({
+      where: { assignmentId, studentId, tenantId },
+    });
+
+    if (previa) {
+      // Una entrega ya calificada no se pisa: cambiaria el trabajo sobre el
+      // que el docente ya puso nota.
+      if (previa.grade !== null) {
+        throw new ConflictException(
+          'Esta tarea ya fue calificada y no admite una nueva entrega',
+        );
+      }
+      return this.prisma.submission.update({
+        where: { id: previa.id },
+        data: { ...data, submittedAt: new Date() },
+        include: {
+          assignment: true,
+          student: { include: { user: true } },
+        },
+      });
+    }
+
     return this.prisma.submission.create({
       data: {
         assignmentId,
