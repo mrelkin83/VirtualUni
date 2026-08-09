@@ -738,6 +738,42 @@ model IDCard {
 /// La seccion existia con un compositor visual completo --texto, campos
 /// dinamicos, firma, codigo QR, tamano y margenes-- pero no habia modelo
 /// alguno: todo vivia en memoria y se perdia al recargar.
+/// Banco de preguntas reutilizables del profesorado.
+/// El panel tenia el editor completo --tipos, opciones, puntaje, categoria--
+/// pero las preguntas solo existen en la base atadas a un examen concreto
+/// (ExamQuestion). Sin este modelo, el banco se perdia al recargar.
+model QuestionBank {
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  teacherId         String?  @map("teacher_id")
+  tipo              String   @default("multiple")
+  pregunta          String   @db.Text
+  opciones          String[]
+  respuestaCorrecta Int?     @map("respuesta_correcta")
+  puntos            Float    @default(1)
+  categoria         String   @default("General")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("question_bank")
+}
+
+/// Plantillas de mensaje del profesorado y la administracion.
+model MessageTemplate {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  autorId    String?  @map("autor_id")
+  nombre     String
+  categoria  String   @default("general")
+  contenido  String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("message_templates")
+}
+
 model CertificateTemplate {
   id            String   @id @default(uuid())
   tenantId      String   @map("tenant_id")

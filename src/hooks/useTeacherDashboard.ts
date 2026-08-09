@@ -14,6 +14,8 @@ import { uploadsApi } from '../api/endpoints/uploads';
 import { announcementsApi } from '../api/endpoints/announcements';
 import { massMessagesApi } from '../api/endpoints/mass-messages';
 import { scheduleApi } from '../api/endpoints/schedule';
+import { bancoPreguntasApi } from '../api/endpoints/question-bank';
+import { plantillasMensajeApi } from '../api/endpoints/message-templates';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -130,6 +132,8 @@ export const useTeacherDashboard = () => {
           foldersData,
           liveClassesData,
           groupsData,
+          bancoRes,
+          plantillasRes,
         ] = await Promise.allSettled([
           teacherCoursesApi.getAll(),
           teacherStudentsApi.getAll(),
@@ -141,9 +145,21 @@ export const useTeacherDashboard = () => {
           materialsApi.getFolders(),
           liveClassesApi.getAll(),
           groupsApi.getAll(),
+          bancoPreguntasApi.getAll(),
+          plantillasMensajeApi.getAll(),
         ]);
 
-        if (coursesData.status === 'fulfilled') {
+        if (bancoRes.status === "fulfilled") {
+          const d = (bancoRes.value as any)?.data;
+          // Se aplica aunque venga vacio: si no, seguirian a la vista las
+          // preguntas y plantillas de ejemplo, que no existen en la base.
+          if (Array.isArray(d)) setBancoPreguntas(d as any);
+        }
+        if (plantillasRes.status === "fulfilled") {
+          const d = (plantillasRes.value as any)?.data;
+          if (Array.isArray(d)) setPlantillas(d as any);
+        }
+        if (coursesData.status === "fulfilled") {
           const data = (coursesData.value as any)?.data;
           if (Array.isArray(data) && data.length > 0) setCursos(data);
         }
@@ -1412,17 +1428,28 @@ export const useTeacherDashboard = () => {
     alert(`${prioridadEmoji}Anuncio creado exitosamente!\n\nTítulo: ${anuncioData.titulo}\nCurso: ${curso.nombre}\nPrioridad: ${anuncioData.prioridad}${adjuntosTexto}\n\nSe notificará a ${nuevoAnuncio.totalEstudiantes} estudiantes.`);
   };
 
-  const guardarPlantilla = (plantillaData: any) => {
-    const nuevaPlantilla = {
-      id: plantillas.length + 1,
-      nombre: plantillaData.nombre,
-      categoria: plantillaData.categoria,
-      contenido: plantillaData.contenido,
-      fechaCreacion: new Date().toISOString().split('T')[0]
-    };
-
-    setPlantillas([...plantillas, nuevaPlantilla]);
-    alert(`Plantilla "${plantillaData.nombre}" guardada exitosamente!`);
+  /** Las plantillas de mensaje tampoco tenían dónde guardarse. */
+  const guardarPlantilla = async (plantillaData: any) => {
+    try {
+      const { data } = await plantillasMensajeApi.create({
+        nombre: plantillaData.nombre,
+        contenido: plantillaData.contenido,
+        categoria: plantillaData.categoria,
+      });
+      setPlantillas([
+        ...plantillas,
+        {
+          id: (data as any)?.id,
+          nombre: plantillaData.nombre,
+          categoria: plantillaData.categoria,
+          contenido: plantillaData.contenido,
+          fechaCreacion: new Date().toISOString().split('T')[0],
+        },
+      ] as any);
+      alert(`Plantilla "${plantillaData.nombre}" guardada exitosamente!`);
+    } catch (err: any) {
+      alert('No se pudo guardar la plantilla: ' + (err?.message || 'error de conexión'));
+    }
   };
 
   const eliminarPlantilla = (plantillaId: number) => {
@@ -1430,6 +1457,8 @@ export const useTeacherDashboard = () => {
     if (!plantilla) return;
 
     if (window.confirm(`¿Estás seguro de eliminar la plantilla "${plantilla.nombre}"?`)) {
+      // Sin esta llamada la plantilla reaparecía al recargar.
+      plantillasMensajeApi.remove(String(plantillaId)).catch(() => undefined);
       setPlantillas(plantillas.filter(p => p.id !== plantillaId));
       alert('Plantilla eliminada exitosamente.');
     }
@@ -1839,8 +1868,26 @@ export const useTeacherDashboard = () => {
       nuevaPregunta.respuestaCorrecta = true;
     }
 
-    setBancoPreguntas([...bancoPreguntas, nuevaPregunta]);
-    alert('Pregunta agregada al banco exitosamente!');
+    // El banco solo existía en memoria: se perdía al recargar. Ahora persiste.
+    bancoPreguntasApi
+      .create({
+        pregunta: nuevaPregunta.pregunta,
+        tipo: nuevaPregunta.tipo,
+        opciones: nuevaPregunta.opciones ?? [],
+        respuestaCorrecta:
+          typeof nuevaPregunta.respuestaCorrecta === 'number'
+            ? nuevaPregunta.respuestaCorrecta
+            : undefined,
+        puntos: nuevaPregunta.puntos,
+        categoria: nuevaPregunta.categoria,
+      })
+      .then(({ data }) => {
+        setBancoPreguntas([...bancoPreguntas, { ...nuevaPregunta, id: (data as any)?.id }] as any);
+        alert('Pregunta agregada al banco exitosamente!');
+      })
+      .catch((err: any) =>
+        alert('No se pudo guardar la pregunta: ' + (err?.message || 'error de conexión')),
+      );
     setModalBancoPreguntas(false);
   };
 
@@ -1850,6 +1897,7 @@ export const useTeacherDashboard = () => {
 
     // Si se proporciona preguntaData, usar eso (llamado desde modal)
     if (preguntaData) {
+      bancoPreguntasApi.update(String(preguntaId), (preguntaData || {}) as any).catch(() => undefined);
       setBancoPreguntas(bancoPreguntas.map(p =>
         p.id === preguntaId ? { ...p, ...preguntaData } : p
       ));
@@ -1870,6 +1918,7 @@ export const useTeacherDashboard = () => {
   const eliminarPregunta = (preguntaId: number, confirmar: boolean = true) => {
     // Si confirmar es false, eliminar directamente (llamado desde modal con confirmación previa)
     if (!confirmar) {
+      bancoPreguntasApi.remove(String(preguntaId)).catch(() => undefined);
       setBancoPreguntas(bancoPreguntas.filter(p => p.id !== preguntaId));
       alert('Pregunta eliminada exitosamente.');
       return;
@@ -1877,6 +1926,7 @@ export const useTeacherDashboard = () => {
 
     // Modo con confirmación (comportamiento por defecto)
     if (window.confirm('¿Estás seguro de que deseas eliminar esta pregunta del banco?')) {
+      bancoPreguntasApi.remove(String(preguntaId)).catch(() => undefined);
       setBancoPreguntas(bancoPreguntas.filter(p => p.id !== preguntaId));
       alert('Pregunta eliminada exitosamente.');
     }

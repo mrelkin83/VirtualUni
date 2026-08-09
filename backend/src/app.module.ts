@@ -51,6 +51,8 @@ import { CommunityModule } from './modules/community/community.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { QuestionBankModule } from './modules/question-bank/question-bank.module';
+import { MessageTemplatesModule } from './modules/message-templates/message-templates.module';
 import { CourseTopicsModule } from './modules/course-topics/course-topics.module';
 import { CertificateTemplatesModule } from './modules/certificate-templates/certificate-templates.module';
 
@@ -131,6 +133,8 @@ import { CertificateTemplatesModule } from './modules/certificate-templates/cert
     UploadsModule,
     CertificateTemplatesModule,
     CourseTopicsModule,
+    QuestionBankModule,
+    MessageTemplatesModule,
   ],
   controllers: [AppController],
 })
