@@ -40,3 +40,10 @@ scripts/.bitacora-secretos.txt
 # Estado incremental de la bitacora: depende de mtime, que cambia en cada
 # maquina. Versionarlo solo provocaria regeneraciones completas innecesarias.
 docs/bitacora/.estado.json
+
+# Respaldos generados por scripts/backup.sh. El volcado de la base contiene
+# datos personales reales del alumnado y este repositorio es publico: nunca
+# debe subirse. Los .tsx sueltos que ya habia en backups/ si se conservan.
+backups/virtualuni_backup_*.sql
+backups/virtualuni_backup_*.sql.gz
+backups/virtualuni_bitacora_*.tar.gz
