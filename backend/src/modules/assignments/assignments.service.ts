@@ -23,12 +23,33 @@ export class AssignmentsService {
     });
   }
 
-  async findOne(id: string, tenantId: string) {
+  /**
+   * Resuelve la ficha de estudiante del usuario del token. El JWT lleva el id
+   * de usuario, no el de estudiante, y son distintos.
+   */
+  async estudianteDelUsuario(
+    userId: string,
+    tenantId: string,
+  ): Promise<string | undefined> {
+    const student = await this.prisma.student.findFirst({
+      where: { userId, tenantId },
+      select: { id: true },
+    });
+    return student?.id;
+  }
+
+  /**
+   * @param soloDeEstudiante limita las entregas devueltas a las de ese
+   * estudiante. Se usa con el alumnado: la tarea llegaba con las entregas de
+   * todo el grupo, con nota, comentarios y correo de cada autor.
+   */
+  async findOne(id: string, tenantId: string, soloDeEstudiante?: string) {
     const assignment = await this.prisma.assignment.findFirst({
       where: { id, tenantId },
       include: {
         course: true,
         submissions: {
+          where: soloDeEstudiante ? { studentId: soloDeEstudiante } : undefined,
           include: {
             student: {
               include: { user: { select: { firstName: true, lastName: true, email: true } } },
