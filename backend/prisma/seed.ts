@@ -56,6 +56,8 @@ const stats = {
     submissions: 0,
     grades: 0,
     messages: 0,
+    exams: 0,
+    examQuestions: 0,
   },
   skipped: {
     tenants: 0,
@@ -404,6 +406,18 @@ async function main() {
     for (let topicIdx = 0; topicIdx < td.topics.length; topicIdx++) {
       const topicInfo = td.topics[topicIdx];
 
+      // Sin esta comprobación cada reejecución añadía otra copia del temario
+      // completo al mismo curso.
+      const temaExistente = await prisma.courseTopic.findFirst({
+        where: {
+          tenantId,
+          courseId: courses[td.courseIdx].id,
+          title: topicInfo.title,
+        },
+        select: { id: true },
+      });
+      if (temaExistente) continue;
+
       const topic = await prisma.courseTopic.create({
         data: {
           tenantId,
@@ -443,22 +457,37 @@ async function main() {
   log('\n🎓 Creating enrollments...');
 
   // Main test student (María González) enrolls in first 6 courses
+  //
+  // La cabecera de este archivo promete un comportamiento aditivo -- "if data
+  // already exists, it will be skipped" --, pero estos `create` reventaban con
+  // P2002 al reejecutar sobre una base ya sembrada, abortando todo lo que
+  // viene después. Se usa `createMany` con `skipDuplicates`, que respeta la
+  // restricción única (student_id, course_id) sin romper.
   const mainStudent = students[0];
-  for (let i = 0; i < 6; i++) {
-    await prisma.enrollment.create({
-      data: {
-        tenantId,
-        studentId: mainStudent.id,
-        courseId: courses[i].id,
-        enrolledAt: randomDate(new Date(2024, 0, 1), new Date(2024, 1, 1)),
-        status: 'active',
-      },
-    });
-    stats.created.enrollments++;
-  }
+  const matriculaPrincipal = await prisma.enrollment.createMany({
+    data: courses.slice(0, 6).map((c) => ({
+      tenantId,
+      studentId: mainStudent.id,
+      courseId: c.id,
+      enrolledAt: randomDate(new Date(2024, 0, 1), new Date(2024, 1, 1)),
+      status: 'active',
+    })),
+    skipDuplicates: true,
+  });
+  stats.created.enrollments += matriculaPrincipal.count;
 
   // Distribute other students across courses (10-20 per course)
   for (let courseIdx = 0; courseIdx < courses.length; courseIdx++) {
+    // El `try/catch` de más abajo solo evita el choque con una matrícula ya
+    // existente, pero como los estudiantes se barajan al azar cada ejecución
+    // añadía parejas nuevas: en una reejecución las matrículas pasaron de 157
+    // a 242 y, arrastradas por ellas, las notas de 628 a 968. Si el curso ya
+    // tiene alumnado, se deja como está.
+    const yaMatriculados = await prisma.enrollment.count({
+      where: { tenantId, courseId: courses[courseIdx].id },
+    });
+    if (yaMatriculados > 0) continue;
+
     const numEnrollments = Math.floor(Math.random() * 11) + 10; // 10-20
     const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
 
@@ -496,6 +525,14 @@ async function main() {
 
   const assignments = [];
   for (let courseIdx = 0; courseIdx < courses.length; courseIdx++) {
+    // El número de tareas por curso es aleatorio (3 o 4), así que comprobar
+    // solo por título hacía que una reejecución con un número mayor añadiera
+    // la tarea que faltaba. Si el curso ya tiene tareas, se deja como está.
+    const tareasDelCurso = await prisma.assignment.count({
+      where: { tenantId, courseId: courses[courseIdx].id },
+    });
+    if (tareasDelCurso > 0) continue;
+
     const numAssignments = Math.floor(Math.random() * 2) + 3; // 3-4 assignments
 
     for (let i = 0; i < numAssignments; i++) {
@@ -504,11 +541,21 @@ async function main() {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + daysOffset);
 
+      // Sin esta comprobación, cada reejecución duplicaba las tareas -- y con
+      // ellas sus entregas y notas, que se derivan de las recién creadas --
+      // pese a que la cabecera promete que lo existente se omite.
+      const tituloTarea = `${assignType.title} - ${courses[courseIdx].name}`;
+      const tareaExistente = await prisma.assignment.findFirst({
+        where: { tenantId, courseId: courses[courseIdx].id, title: tituloTarea },
+        select: { id: true },
+      });
+      if (tareaExistente) continue;
+
       const assignment = await prisma.assignment.create({
         data: {
           tenantId,
           courseId: courses[courseIdx].id,
-          title: `${assignType.title} - ${courses[courseIdx].name}`,
+          title: tituloTarea,
           description: assignType.desc,
           dueDate,
           totalPoints: assignType.points,
@@ -586,6 +633,19 @@ async function main() {
     });
 
     for (let i = 0; i < gradeTypes.length; i++) {
+      // Igual que con las tareas: sin comprobar, cada reejecución añadía otras
+      // 628 notas sobre las mismas matrículas y falseaba todos los promedios.
+      const notaExistente = await prisma.grade.findFirst({
+        where: {
+          tenantId,
+          studentId: enrollment.studentId,
+          courseId: enrollment.courseId,
+          gradeType: gradeTypes[i],
+        },
+        select: { id: true },
+      });
+      if (notaExistente) continue;
+
       await prisma.grade.create({
         data: {
           tenantId,
@@ -605,6 +665,107 @@ async function main() {
   log(`   ✅ Created ${stats.created.grades} grades`);
 
   // ============================================
+  // 8b. CREATE EXAMS
+  // ============================================
+  // El módulo de exámenes estaba completo en el backend pero la siembra no
+  // creaba ninguno: la tabla quedaba vacía, el panel del estudiante caía a los
+  // exámenes de ejemplo --con identificadores numéricos-- y al pulsar "Iniciar
+  // examen" tomaba la rama local, que anuncia "¡Buena suerte!" sin abrir nada.
+  // Sin datos, la funcionalidad nunca se podía ejercitar.
+  log('\n🧪 Creating exams...');
+
+  const plantillasExamen = [
+    {
+      titulo: 'Parcial 1',
+      instrucciones: 'Responde todas las preguntas. Solo hay una opción correcta por pregunta.',
+      duracion: 60,
+      preguntas: [
+        {
+          pregunta: '¿Cuál es el objetivo principal de esta asignatura?',
+          opciones: ['Memorizar definiciones', 'Aplicar los conceptos a problemas reales', 'Aprobar el examen', 'Ninguna de las anteriores'],
+          respuestaCorrecta: 1,
+        },
+        {
+          pregunta: 'Ante un enunciado ambiguo, lo correcto es:',
+          opciones: ['Adivinar', 'Dejarlo en blanco', 'Declarar los supuestos y resolver', 'Copiar al compañero'],
+          respuestaCorrecta: 2,
+        },
+        {
+          pregunta: 'La evaluación continua sirve para:',
+          opciones: ['Detectar dificultades a tiempo', 'Sancionar al estudiante', 'Rellenar el calendario', 'Nada en concreto'],
+          respuestaCorrecta: 0,
+        },
+      ],
+    },
+    {
+      titulo: 'Parcial 2',
+      instrucciones: 'Examen de mitad de periodo. Duración estricta.',
+      duracion: 45,
+      preguntas: [
+        {
+          pregunta: 'El trabajo en equipo dentro del curso se evalúa por:',
+          opciones: ['El resultado únicamente', 'El proceso y el resultado', 'La asistencia', 'El azar'],
+          respuestaCorrecta: 1,
+        },
+        {
+          pregunta: 'Una entrega fuera de plazo:',
+          opciones: ['Se ignora', 'Se penaliza según el reglamento', 'Vale doble', 'Se borra'],
+          respuestaCorrecta: 1,
+        },
+      ],
+    },
+  ];
+
+  for (const course of courses.slice(0, 6)) {
+    for (const [idx, plantilla] of plantillasExamen.entries()) {
+      const yaExiste = await prisma.exam.findFirst({
+        where: { courseId: course.id, titulo: plantilla.titulo, tenantId: course.tenantId },
+        select: { id: true },
+      });
+      if (yaExiste) continue;
+
+      const puntajeTotal = plantilla.preguntas.length * 10;
+      const examen = await prisma.exam.create({
+        data: {
+          tenantId: course.tenantId,
+          courseId: course.id,
+          titulo: `${plantilla.titulo} - ${course.name}`,
+          instrucciones: plantilla.instrucciones,
+          // El primero ya disponible, el segundo programado más adelante.
+          fecha: new Date(Date.now() + (idx === 0 ? -2 : 20) * 24 * 60 * 60 * 1000),
+          duracion: plantilla.duracion,
+          estado: idx === 0 ? 'ACTIVO' : 'PROGRAMADO',
+          puntajeTotal,
+          // El servicio califica sobre 10: (puntos obtenidos / puntaje total)
+          // * 10. Poner 60 aquí dejaba todos los exámenes imposibles de
+          // aprobar. Es el mismo valor que trae por defecto el esquema.
+          notaMinima: 6,
+          intentosPermitidos: 1,
+          mostrarResultados: true,
+        },
+      });
+      stats.created.exams++;
+
+      for (const [orden, p] of plantilla.preguntas.entries()) {
+        await prisma.examQuestion.create({
+          data: {
+            tenantId: course.tenantId,
+            examId: examen.id,
+            pregunta: p.pregunta,
+            opciones: p.opciones,
+            respuestaCorrecta: p.respuestaCorrecta,
+            puntaje: 10,
+            orderIndex: orden,
+          },
+        });
+        stats.created.examQuestions++;
+      }
+    }
+  }
+
+  log(`   ✅ Created ${stats.created.exams} exams with ${stats.created.examQuestions} questions`);
+
+  // ============================================
   // 9. CREATE MESSAGES
   // ============================================
   log('\n💬 Creating messages...');
@@ -618,8 +779,16 @@ async function main() {
     { subject: 'Material de estudio', body: '¿Podría compartir material adicional sobre el tema que vimos hoy?' },
   ];
 
+  // Los mensajes son de relleno y no tienen clave natural por la que
+  // reconocerlos, así que se omiten en bloque si el tenant ya tiene
+  // correspondencia: de lo contrario cada reejecución añadía otros 30.
+  const mensajesExistentes = await prisma.message.count({ where: { tenantId } });
+  if (mensajesExistentes > 0) {
+    log(`   ↷ Ya hay ${mensajesExistentes} mensajes; se omite este paso`);
+  }
+
   // Messages from students to teachers
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; mensajesExistentes === 0 && i < 20; i++) {
     const student = students[Math.floor(Math.random() * students.length)];
     const teacher = teachers[Math.floor(Math.random() * teachers.length)];
     const template = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
@@ -650,7 +819,7 @@ async function main() {
   }
 
   // Messages from teachers to students
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; mensajesExistentes === 0 && i < 10; i++) {
     const teacher = teachers[Math.floor(Math.random() * teachers.length)];
     const student = students[Math.floor(Math.random() * students.length)];
 
@@ -698,6 +867,7 @@ async function main() {
   log(`   Assignments: ${stats.created.assignments}`);
   log(`   Submissions: ${stats.created.submissions}`);
   log(`   Grades: ${stats.created.grades}`);
+  log(`   Exams: ${stats.created.exams} (${stats.created.examQuestions} questions)`);
   log(`   Messages: ${stats.created.messages}`);
 
   if (stats.errors.length > 0) {

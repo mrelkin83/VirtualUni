@@ -109,7 +109,10 @@ const ExamenCard: React.FC<{
         {examen.calificacion !== undefined && (
           <div className="flex items-center gap-2">
             <Award size={16} />
-            <span className="font-semibold text-blue-500">{examen.calificacion}/100</span>
+            {/* El backend califica los exámenes sobre 10, no sobre 100:
+                calificacion = (puntos obtenidos / puntaje total) * 10. Un
+                examen perfecto se mostraba como "10/100". */}
+            <span className="font-semibold text-blue-500">{examen.calificacion}/10</span>
           </div>
         )}
       </div>

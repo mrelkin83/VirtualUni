@@ -16,6 +16,7 @@ import { HorariosSection } from '../components/student/sections/HorariosSection'
 import { CertificadosSection } from '../components/student/sections/CertificadosSection';
 import { ClasesSection } from '../components/student/sections/ClasesSection';
 import { ExamenesSection } from '../components/student/sections/ExamenesSection';
+import { RendirExamenSection } from '../components/student/sections/RendirExamenSection';
 import { ComunidadYForosSection } from '../components/student/sections/ComunidadYForosSection';
 import { NuevoMensajeModal } from '../components/student/modals/NuevoMensajeModal';
 import { NotificacionesDropdown } from '../components/student/dropdowns/NotificacionesDropdown';
@@ -282,6 +283,28 @@ export default function StudentDashboard() {
         );
 
       case 'examenes':
+        // Mientras haya un examen en curso, esta sección muestra la pantalla
+        // para rendirlo en lugar del listado. Antes no existía tal pantalla:
+        // el intento se creaba en el servidor y el alumno se quedaba viendo
+        // la misma lista.
+        if (state.examenActivo) {
+          return (
+            <RendirExamenSection
+              examen={state.examenActivo}
+              respuestas={state.respuestasExamen}
+              setRespuestas={state.setRespuestasExamen}
+              preguntaActual={state.preguntaActual}
+              setPreguntaActual={state.setPreguntaActual}
+              tiempoRestante={state.tiempoRestante}
+              finalizarExamen={state.finalizarExamen}
+              abandonar={() => state.setExamenActivo(null)}
+              darkMode={darkMode}
+              card={card}
+              text={text}
+              border={border}
+            />
+          );
+        }
         return (
           <ExamenesSection
             examenes={state.examenesData || []}

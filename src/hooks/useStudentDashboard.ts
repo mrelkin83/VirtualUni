@@ -546,6 +546,12 @@ export const useStudentDashboard = () => {
         }
         if (examsData.status === 'fulfilled') {
           const data = (examsData.value as any)?.data;
+          // Sin el `else` de más abajo, cuando el backend no devolvía ningún
+          // examen se conservaban los cuatro de los datos de ejemplo. El panel
+          // mostraba exámenes que no existen, con identificadores numéricos, y
+          // al pulsar "Iniciar examen" caía en la rama local: enseñaba
+          // "Examen iniciado. ¡Buena suerte!" y no abría nada, porque no había
+          // preguntas ni intento en el servidor.
           if (Array.isArray(data) && data.length > 0) {
             const intentos = attemptsData.status === 'fulfilled'
               ? ((attemptsData.value as any)?.data || [])
@@ -572,6 +578,9 @@ export const useStudentDashboard = () => {
             });
             setExamenes(examenesApi as any);
             setExamenesDataState(examenesApi as any);
+          } else if (Array.isArray(data)) {
+            setExamenes([]);
+            setExamenesDataState([]);
           }
         }
         if (booksData.status === 'fulfilled') {
