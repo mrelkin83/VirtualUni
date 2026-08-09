@@ -1416,11 +1416,15 @@ export const useStudentDashboard = () => {
     const post = comunidadPostsData.find(p => p.id === postId);
     if (!post) return;
 
-    setComunidadPostsData(comunidadPostsData.map(p =>
-      p.id === postId ? { ...p, compartidos: p.compartidos + 1 } : p
-    ));
-
-    alert(`Post compartido: "${post.contenido.substring(0, 50)}..."`);
+    // "Compartir" no tiene equivalente en el backend: no hay contador de
+    // compartidos ni destino al que enviarlo. Se copia el texto al
+    // portapapeles, que es lo único que aquí puede significar compartir, en
+    // vez de subir un contador que nadie guarda.
+    const texto = post.contenido;
+    navigator.clipboard
+      ?.writeText(texto)
+      .then(() => alert('Publicación copiada al portapapeles.'))
+      .catch(() => alert('No se pudo copiar la publicación.'));
   };
 
   const crearPostComunidad = (contenido: string) => {
@@ -1441,8 +1445,22 @@ export const useStudentDashboard = () => {
       esProfesor: false
     };
 
-    setComunidadPostsData([nuevoPost, ...comunidadPostsData]);
-    alert('Post publicado exitosamente!');
+    // La publicación solo se añadía a la lista del navegador: el aviso decía
+    // "Post publicado exitosamente" y nadie más lo veía, ni el propio autor al
+    // recargar. El resto de acciones de comunidad --comentar y dar me gusta--
+    // sí llamaban a la API; esta se había quedado fuera.
+    communityApi
+      .createPost({ contenido })
+      .then(({ data }) => {
+        setComunidadPostsData([
+          { ...nuevoPost, id: (data as any)?.id ?? nuevoPost.id },
+          ...comunidadPostsData,
+        ] as any);
+        alert('Post publicado exitosamente!');
+      })
+      .catch((err: any) =>
+        alert('No se pudo publicar: ' + (err?.message || 'error de conexión')),
+      );
   };
 
   // Payment Actions
