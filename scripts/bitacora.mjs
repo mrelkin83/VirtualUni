@@ -161,6 +161,17 @@ function cargarSecretosDelProyecto() {
     // del proyecto como "virtualuni".
     const raiz = limpio.match(/^[A-Za-z0-9]{8,}/)?.[0];
     if (raiz && /[A-Za-z]/.test(raiz) && /\d/.test(raiz)) valores.add(raiz);
+
+    // Prefijo. Las transcripciones citan los secretos TRUNCADOS
+    // (`JWT_SECRET=\"Ab3xK9pQzR_Tv-W2…`), y un literal completo jamás casa
+    // con un fragmento: así se escapó el prefijo del JWT_SECRET vigente.
+    // Solo para valores de alta entropía — exigir mayúscula, minúscula y
+    // dígito evita que un secreto como "virtualuni-super-…" genere el patrón
+    // "virtualun", que arrasaría con el texto normal del proyecto.
+    if (limpio.length >= 24
+        && /[A-Z]/.test(limpio) && /[a-z]/.test(limpio) && /\d/.test(limpio)) {
+      valores.add(limpio.slice(0, 10));
+    }
   };
 
   // Secretos históricos: los que ya se rotaron siguen apareciendo en las

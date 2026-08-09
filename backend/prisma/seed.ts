@@ -30,7 +30,7 @@
  * ACCESS:
  * =======
  * Frontend: http://uniprueba.localhost:3000
- * Backend API: http://localhost:3001
+ * Backend API: http://localhost:4000
  *
  * NOTE: The seed script uses an ADDITIVE approach - it will not delete existing data.
  *       If data already exists, it will be skipped.
@@ -705,9 +705,17 @@ async function main() {
     stats.errors.forEach(err => log(`   - ${err}`));
   }
 
+  // Recolecta estadísticas para el planificador. Sin esto, las tablas pequeñas
+  // sembradas de golpe (courses: 13 filas, assignments: 44) nunca alcanzan el
+  // umbral de autoanalyze (50 cambios + 10%), así que quedan con reltuples=-1
+  // y el planificador estima a ciegas: en un join de dashboard llegó a calcular
+  // 3 filas donde salían 32.088. ANALYZE no modifica datos.
+  log('\n📊 Recolectando estadísticas del planificador (ANALYZE)...');
+  await prisma.$executeRawUnsafe('ANALYZE');
+
   log('\n🌐 Access the application at:');
   log('   Frontend: http://uniprueba.localhost:3000');
-  log('   Backend API: http://localhost:3001');
+  log('   Backend API: http://localhost:4000');
 
   log('\n🔑 Test credentials:');
   log('   Admin: admin@uniprueba.com / Admin123!');
