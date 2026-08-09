@@ -73,6 +73,7 @@ model Subscription {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@map("subscriptions")
 }
 
@@ -88,6 +89,7 @@ model Invoice {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@map("invoices")
 }
 
@@ -221,6 +223,7 @@ model Course {
   scheduleEvents  ScheduleEvent[]
 
   @@unique([tenantId, code])
+  @@index([teacherId])
   @@map("courses")
 }
 
@@ -238,6 +241,7 @@ model CourseTopic {
   course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   blocks TopicBlock[]
 
+  @@index([courseId])
   @@map("course_topics")
 }
 
@@ -254,6 +258,7 @@ model TopicBlock {
   // Relations
   topic CourseTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
+  @@index([topicId])
   @@map("topic_blocks")
 }
 
@@ -270,6 +275,7 @@ model Enrollment {
   course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, courseId])
+  @@index([courseId])
   @@map("enrollments")
 }
 
@@ -288,6 +294,7 @@ model Assignment {
   course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   submissions Submission[]
 
+  @@index([courseId])
   @@map("assignments")
 }
 
@@ -308,6 +315,7 @@ model Submission {
   student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
+  @@index([studentId])
   @@map("submissions")
 }
 
@@ -327,6 +335,9 @@ model Grade {
   course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   teacher Teacher @relation(fields: [teacherId], references: [id])
 
+  @@index([studentId])
+  @@index([courseId])
+  @@index([teacherId])
   @@map("grades")
 }
 
@@ -1323,6 +1334,7 @@ model Material {
   @@index([tenantId])
   @@index([courseId])
   @@index([tipo])
+  @@index([folderId])
   @@map("materials")
 }
 
@@ -1387,6 +1399,7 @@ model GroupMember {
 
   @@unique([groupId, studentId])
   @@index([tenantId])
+  @@index([studentId])
   @@map("group_members")
 }
 
@@ -1456,6 +1469,7 @@ model BookLoan {
   @@index([tenantId])
   @@index([studentId])
   @@index([estado])
+  @@index([bookId])
   @@map("book_loans")
 }
 
@@ -1475,6 +1489,7 @@ model BookReservation {
 
   @@index([tenantId])
   @@index([studentId])
+  @@index([bookId])
   @@map("book_reservations")
 }
 
@@ -1497,6 +1512,7 @@ model ForumTopic {
 
   @@index([tenantId])
   @@index([courseId])
+  @@index([autorId])
   @@map("forum_topics")
 }
 
@@ -1516,6 +1532,7 @@ model ForumReply {
 
   @@index([tenantId])
   @@index([topicId])
+  @@index([autorId])
   @@map("forum_replies")
 }
 
@@ -1534,6 +1551,7 @@ model CommunityPost {
   likes    CommunityLike[]
 
   @@index([tenantId])
+  @@index([autorId])
   @@map("community_posts")
 }
 
@@ -1550,6 +1568,7 @@ model CommunityComment {
 
   @@index([tenantId])
   @@index([postId])
+  @@index([autorId])
   @@map("community_comments")
 }
 
@@ -1565,6 +1584,7 @@ model CommunityLike {
 
   @@unique([postId, userId])
   @@index([tenantId])
+  @@index([userId])
   @@map("community_likes")
 }
 
