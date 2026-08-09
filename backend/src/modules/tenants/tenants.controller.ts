@@ -113,8 +113,18 @@ export class TenantsController {
   @Roles('SUPER_ADMIN', 'TENANT_ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update tenant settings' })
-  update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
-    return this.tenantsService.update(id, updateTenantDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateTenantDto: UpdateTenantDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    // El rol TENANT_ADMIN bastaba para entrar aqui con el id o el slug de
+    // CUALQUIER cliente: se podia renombrarlo, cambiarle el plan, apropiarse
+    // de su dominio propio o dejarlo en SUSPENDED, lo que impide entrar a
+    // todos sus usuarios porque TenantGuard exige estado ACTIVE.
+    const tenant = await this.tenantsService.findOne(id);
+    this.asegurarAccesoAlTenant(tenant.id, user);
+    return this.tenantsService.update(tenant.id, updateTenantDto);
   }
 
   @Patch(':id/status')
