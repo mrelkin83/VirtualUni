@@ -13,6 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -47,6 +48,10 @@ export class TenantsController {
   @Post()
   @ApiOperation({ summary: 'Create a new tenant (public endpoint)' })
   @HttpCode(HttpStatus.CREATED)
+  // Alta de cliente en autoservicio: publica a proposito, pero sin limite
+  // cualquiera podia crear instituciones en bucle.
+  @Throttle({ default: { limit: 3, ttl: 3600000 } })
+  @UseGuards(ThrottlerGuard)
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantsService.create(createTenantDto);
   }
@@ -124,6 +129,30 @@ export class TenantsController {
     // todos sus usuarios porque TenantGuard exige estado ACTIVE.
     const tenant = await this.tenantsService.findOne(id);
     this.asegurarAccesoAlTenant(tenant.id, user);
+
+    // Campos comerciales: los cambia quien cobra, no quien paga. El plan se
+    // contrata por Stripe (POST /billing/checkout) y el estado tiene su propia
+    // ruta reservada a SUPER_ADMIN, asi que permitirlos aqui dejaba a un
+    // TENANT_ADMIN subirse solo a ENTERPRISE o ampliarse los cupos sin pasar
+    // por caja.
+    if (user?.role !== 'SUPER_ADMIN') {
+      const reservados = [
+        'plan',
+        'status',
+        'maxStudents',
+        'maxTeachers',
+        'maxCourses',
+        'storageGB',
+        'customDomain',
+      ].filter((c) => updateTenantDto[c] !== undefined);
+
+      if (reservados.length) {
+        throw new ForbiddenException(
+          `Estos campos solo los puede cambiar un SUPER_ADMIN: ${reservados.join(', ')}`,
+        );
+      }
+    }
+
     return this.tenantsService.update(tenant.id, updateTenantDto);
   }
 

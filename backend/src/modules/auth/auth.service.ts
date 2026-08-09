@@ -201,6 +201,21 @@ export class AuthService {
     return this.login(result);
   }
 
+  /**
+   * Cierra la sesion de verdad. Los JWT no se pueden retirar una vez emitidos,
+   * asi que se marca el instante y se rechazan despues los refresh tokens
+   * anteriores. Afecta a todos los dispositivos del usuario, que es el
+   * comportamiento que se espera de quien cierra sesion porque sospecha que le
+   * han robado el token.
+   */
+  async logout(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { sessionsRevokedAt: new Date() },
+    });
+    return { message: 'Logged out successfully' };
+  }
+
   async refreshToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
@@ -213,6 +228,20 @@ export class AuthService {
 
       if (!user || !user.isActive) {
         throw new UnauthorizedException('User not found or inactive');
+      }
+
+      // `iat` solo tiene resolucion de segundos, asi que un token emitido a las
+      // 12:00:00.100 y un cierre de sesion a las 12:00:00.779 son
+      // indistinguibles. Se redondea el cierre al segundo siguiente para que la
+      // duda se resuelva rechazando: dejar pasar el token del mismo segundo era
+      // precisamente el hueco que detecto la primera prueba. El coste es que un
+      // inicio de sesion en ese mismo segundo tampoco podra refrescar, algo que
+      // se corrige solo al segundo siguiente.
+      if (
+        user.sessionsRevokedAt &&
+        payload.iat < Math.ceil(user.sessionsRevokedAt.getTime() / 1000)
+      ) {
+        throw new UnauthorizedException('Session was closed');
       }
 
       const newPayload = {

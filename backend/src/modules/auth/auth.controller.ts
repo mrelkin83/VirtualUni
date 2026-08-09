@@ -6,9 +6,12 @@ import {
   Request,
   Headers,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -23,7 +26,12 @@ export class AuthController {
   @ApiHeader({ name: 'X-Tenant-ID', description: 'Tenant ID', required: true })
   @ApiResponse({ status: 200, description: 'Login successful', type: LoginResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @UseGuards(AuthGuard('local'))
+  @ApiResponse({ status: 429, description: 'Too many login attempts' })
+  // Sin limite, este endpoint admitia intentos ilimitados de contrasena: 10
+  // por minuto y por IP bastan de sobra para un humano y arruinan la fuerza
+  // bruta.
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @UseGuards(ThrottlerGuard, AuthGuard('local'))
   async login(@Request() req) {
     return this.authService.login(req.user);
   }
@@ -33,6 +41,9 @@ export class AuthController {
   @ApiHeader({ name: 'X-Tenant-ID', description: 'Tenant ID', required: true })
   @ApiResponse({ status: 201, description: 'User registered successfully', type: LoginResponseDto })
   @ApiResponse({ status: 409, description: 'User already exists' })
+  @ApiResponse({ status: 429, description: 'Too many registration attempts' })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @UseGuards(ThrottlerGuard)
   async register(
     @Body() registerDto: RegisterDto,
     @Headers('x-tenant-id') tenantId: string,
@@ -56,8 +67,13 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  async logout() {
-    // In a real app, you'd invalidate the refresh token in database
-    return { message: 'Logged out successfully' };
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @HttpCode(HttpStatus.OK)
+  // Antes no pedia token y no hacia nada: respondia "sesion cerrada" mientras
+  // el refresh token seguia valido siete dias. Ahora exige saber quien cierra
+  // sesion para poder invalidar sus tokens.
+  @UseGuards(AuthGuard('jwt'))
+  async logout(@Request() req) {
+    return this.authService.logout(req.user.userId ?? req.user.id);
   }
 }

@@ -106,6 +106,9 @@ model User {
   avatarUrl    String?   @map("avatar_url")
   isActive     Boolean   @default(true) @map("is_active")
   lastLoginAt  DateTime? @map("last_login_at")
+  // Momento del ultimo cierre de sesion. Los refresh tokens emitidos antes de
+  // esta marca dejan de valer: sin ella, cerrar sesion no invalidaba nada.
+  sessionsRevokedAt DateTime? @map("sessions_revoked_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 

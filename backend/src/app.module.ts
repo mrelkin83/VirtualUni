@@ -1,5 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -57,6 +58,22 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+
+    // Limite de tasa. RATE_LIMIT_TTL y RATE_LIMIT_MAX ya figuraban en
+    // .env.production.example, pero el paquete no estaba ni instalado: quien
+    // desplegara con esa plantilla creia tener proteccion contra fuerza bruta
+    // y no tenia ninguna. Se registra aqui, pero NO como guard global: solo lo
+    // aplican los endpoints publicos con @UseGuards(ThrottlerGuard), para no
+    // alterar el comportamiento de las 317 rutas de golpe.
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: Number(config.get('RATE_LIMIT_TTL') ?? 60) * 1000,
+          limit: Number(config.get('RATE_LIMIT_MAX') ?? 100),
+        },
+      ],
     }),
 
     // Database
