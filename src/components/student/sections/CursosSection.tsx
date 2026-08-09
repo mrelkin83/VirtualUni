@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle, Circle, BookOpen, Play, FileText, Award } from 'lucide-react';
 import { StudentCourse, CourseTopic } from '../../../types/student.types';
 import { generateCertificateFromCourse } from '../../../utils/certificateGenerator';
+import { useAuthStore } from '../../../store/authStore';
 
 interface CursosSectionProps {
   cursos: StudentCourse[];
@@ -36,9 +37,19 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   setExpandirIdeasClave,
   generarCertificadoCurso
 }) => {
+  const usuario = useAuthStore((s) => s.user);
+
   const handleGenerateCertificate = (curso: StudentCourse) => {
-    // Obtener nombre del estudiante del perfil (simulado)
-    const studentName = 'Dayla Melanie Otalvaro Rodriguez';
+    // Estaba fijo a 'Dayla Melanie Otalvaro Rodriguez': cualquier alumno se
+    // descargaba un certificado expedido a nombre de otra persona.
+    const studentName = [usuario?.firstName, usuario?.lastName]
+      .filter(Boolean)
+      .join(' ');
+
+    if (!studentName) {
+      alert('No se pudo determinar tu nombre. Vuelve a iniciar sesión.');
+      return;
+    }
 
     const result = generateCertificateFromCourse(
       studentName,

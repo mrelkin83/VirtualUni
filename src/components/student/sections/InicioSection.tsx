@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, FileText, Video, Award, Calendar, TrendingUp, ChevronRight, CircleDot, Clock, AlertCircle, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { StudentCourse, StudentTask, Clase } from '../../../types/student.types';
+import { useAuthStore } from '../../../store/authStore';
 
 interface InicioSectionProps {
   cursos: StudentCourse[];
@@ -31,6 +32,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
   setActiveSection,
   unirseClase
 }) => {
+  const nombrePila = useAuthStore((s) => s.user?.firstName);
   const [anunciosExpandidos, setAnunciosExpandidos] = useState<(string | number)[]>([]);
 
   const tareasPendientes = tareas.filter(t => t.estado === 'pendiente').length;
@@ -51,7 +53,11 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={`text-2xl font-bold ${text} mb-2`}>Bienvenida, Dayla</h2>
+        {/* El saludo estaba fijo a "Bienvenida, Dayla" para todo el mundo.
+            Se usa una forma neutra porque el modelo no guarda el genero. */}
+        <h2 className={`text-2xl font-bold ${text} mb-2`}>
+          Hola{nombrePila ? `, ${nombrePila}` : ''}
+        </h2>
         <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquí está tu resumen académico
         </p>

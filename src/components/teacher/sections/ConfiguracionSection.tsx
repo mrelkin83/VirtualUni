@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Upload, Save, Eye, EyeOff } from 'lucide-react';
+import { useAuthStore } from '../../../store/authStore';
 
 interface ConfiguracionSectionProps {
   darkMode: boolean;
@@ -15,9 +16,13 @@ export const ConfiguracionSection: React.FC<ConfiguracionSectionProps> = ({
   border
 }) => {
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  // El nombre y el correo estaban escritos a mano: todo docente que abriera
+  // Configuración veía la ficha de 'Dr. Carlos Martínez', no la suya. El resto
+  // de campos siguen siendo del formulario porque no viven en el modelo User.
+  const usuario = useAuthStore((s) => s.user);
   const [perfil, setPerfil] = useState({
-    nombre: 'Dr. Carlos Martínez',
-    email: 'carlos.martinez@university.edu',
+    nombre: [usuario?.firstName, usuario?.lastName].filter(Boolean).join(' '),
+    email: usuario?.email ?? '',
     telefono: '+57 300 123 4567',
     especialidad: 'Ingeniería de Software',
     departamento: 'Ciencias de la Computación',

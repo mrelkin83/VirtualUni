@@ -64,6 +64,68 @@ import {
   comunidadPosts
 } from '../data/studentMockData';
 
+/**
+ * Nombre del usuario autenticado, para firmar lo que publica. Antes se ponia
+ * literalmente 'Dayla Otalvaro' en cada publicacion optimista, asi que el
+ * alumno veia sus propios mensajes atribuidos a otra persona hasta recargar.
+ */
+const nombreDelUsuario = (): string => {
+  const u = (useAuthStore as any).getState?.()?.user;
+  return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || 'Yo';
+};
+
+const inicialesDelUsuario = (): string =>
+  nombreDelUsuario()
+    .split(' ')
+    .map((p: string) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+/**
+ * La API devuelve una fila por nota (gradeType, grade, weight, course), pero la
+ * tabla de calificaciones espera una fila por curso con una columna por tipo.
+ * Sin esta conversión las filas llegaban en crudo, `cal.parcial1` era
+ * `undefined` y `.toFixed()` lanzaba un TypeError que desmontaba el panel
+ * entero: la sección se quedaba en blanco.
+ */
+const agruparNotasPorCurso = (notas: any[]) => {
+  const porCurso = new Map<string, any>();
+
+  for (const n of notas) {
+    const nombre = n?.course?.name ?? n?.courseId ?? 'Sin curso';
+    if (!porCurso.has(nombre)) {
+      porCurso.set(nombre, {
+        curso: nombre,
+        parcial1: null,
+        parcial2: null,
+        talleres: null,
+        proyecto: null,
+        promedio: null,
+        _suma: 0,
+        _peso: 0,
+      });
+    }
+    const fila = porCurso.get(nombre);
+    const valor = typeof n?.grade === 'number' ? n.grade : null;
+    if (valor === null) continue;
+
+    // El tipo viene tal cual del backend: parcial1, parcial2, talleres,
+    // proyecto. Si apareciera uno nuevo no se pierde, entra en el promedio.
+    if (n.gradeType in fila) fila[n.gradeType] = valor;
+
+    const peso = typeof n?.weight === 'number' && n.weight > 0 ? n.weight : 1;
+    fila._suma += valor * peso;
+    fila._peso += peso;
+  }
+
+  return [...porCurso.values()].map(({ _suma, _peso, ...fila }) => ({
+    ...fila,
+    promedio: _peso > 0 ? _suma / _peso : null,
+  }));
+};
+
 export const useStudentDashboard = () => {
   // Navigation and UI State
   const [activeSection, setActiveSection] = useState<StudentSectionType>('inicio');
@@ -436,7 +498,9 @@ export const useStudentDashboard = () => {
         }
         if (gradesData.status === 'fulfilled') {
           const data = (gradesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setCalificacionesData(data);
+          if (Array.isArray(data) && data.length > 0) {
+            setCalificacionesData(agruparNotasPorCurso(data));
+          }
         }
         if (profileData.status === 'fulfilled') {
           const data = (profileData.value as any)?.data;
@@ -935,7 +999,7 @@ export const useStudentDashboard = () => {
       id: topicosData.length + 1,
       titulo,
       descripcion,
-      autor: 'Dayla Otalvaro',
+      autor: nombreDelUsuario(),
       curso: curso || 'General',
       fechaCreacion: new Date().toISOString(),
       respuestas: 0,
@@ -970,7 +1034,7 @@ export const useStudentDashboard = () => {
     const nuevaRespuesta: ForumReply = {
       id: respuestasData.length + 1,
       topicoId,
-      autor: 'Dayla Otalvaro',
+      autor: nombreDelUsuario(),
       contenido,
       fecha: new Date().toISOString(),
       likes: 0,
@@ -1260,8 +1324,8 @@ export const useStudentDashboard = () => {
 
     const nuevoPost: ComunidadPost = {
       id: comunidadPostsData.length + 1,
-      autor: 'Dayla Otalvaro',
-      avatarAutor: 'DO',
+      autor: nombreDelUsuario(),
+      avatarAutor: inicialesDelUsuario(),
       contenido,
       fecha: 'Ahora',
       likes: 0,

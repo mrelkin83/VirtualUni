@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, Bell, Mail, Moon, Sun, User } from 'lucide-react';
+import { useAuthStore } from '../../../store/authStore';
 
 interface StudentHeaderProps {
   title: string;
@@ -27,6 +28,12 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
   card,
   text
 }) => {
+  // El nombre estaba escrito a mano: cualquier alumno que entrara veia
+  // "Dayla Otalvaro" en la cabecera, no el suyo.
+  const usuario = useAuthStore((s) => s.user);
+  const nombreCompleto = [usuario?.firstName, usuario?.lastName]
+    .filter(Boolean)
+    .join(' ') || 'Estudiante';
   return (
     <div className={`${card} shadow-md p-4 flex justify-between items-center sticky top-0 z-30`}>
       <div className="flex items-center gap-4">
@@ -82,7 +89,7 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
             <User size={20} />
           </div>
           <div className="hidden md:block">
-            <p className={`font-semibold text-sm ${text}`}>Dayla Otalvaro</p>
+            <p className={`font-semibold text-sm ${text}`}>{nombreCompleto}</p>
             <p className="text-xs text-gray-500">Estudiante</p>
           </div>
         </div>
