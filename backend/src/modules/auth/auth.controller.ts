@@ -6,12 +6,14 @@ import {
   Request,
   Headers,
   BadRequestException,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { UserRole } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -52,7 +54,22 @@ export class AuthController {
       throw new BadRequestException('Tenant ID is required');
     }
 
-    return this.authService.register(registerDto, tenantId);
+    // El rol venía en el cuerpo de una ruta PÚBLICA: bastaba enviar
+    // {"role":"SUPER_ADMIN"} sin estar autenticado para crearse una cuenta con
+    // ese rol, y SUPER_ADMIN es precisamente el que TenantGuard exime de la
+    // comprobación de tenant. El alta pública solo puede crear alumnado; las
+    // cuentas de docente y de administración se crean desde el panel, por
+    // POST /students y POST /teachers, que sí exigen ser TENANT_ADMIN.
+    if (registerDto.role && registerDto.role !== UserRole.STUDENT) {
+      throw new ForbiddenException(
+        'El registro público solo puede crear cuentas de estudiante',
+      );
+    }
+
+    return this.authService.register(
+      { ...registerDto, role: UserRole.STUDENT },
+      tenantId,
+    );
   }
 
   @Post('refresh')

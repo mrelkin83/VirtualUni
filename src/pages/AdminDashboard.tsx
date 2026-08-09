@@ -3,6 +3,7 @@ import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, Book
 import { useAuthStore } from '../store/authStore';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
 import { coursesAdminApi, teachersApi } from '../api/endpoints/courses';
+import { personasApi } from '../api/endpoints/personas';
 import { comoArreglo } from '../utils/respuestaApi';
 import {
   activos,
@@ -299,7 +300,7 @@ export default function AdminDashboard() {
     { id: 5, tipo: 'certificado', usuario: 'Elena Ramírez', asunto: 'Constancia de notas', estado: 'completado', fecha: '2025-10-01', prioridad: 'media' }
   ]);
 
-  const [usuarios, setUsuarios] = useState([
+  const [usuarios, setUsuarios] = useState<any[]>([
     { id: 1, nombre: 'María González', email: 'maria.g@university.edu', rol: 'estudiante', estado: 'activo', ultimoAcceso: '2025-10-03', carrera: 'Ingeniería' },
     { id: 2, nombre: 'Carlos Rodríguez', email: 'carlos.r@university.edu', rol: 'docente', estado: 'activo', ultimoAcceso: '2025-10-03', departamento: 'Sistemas' },
     { id: 3, nombre: 'Ana Martínez', email: 'ana.m@university.edu', rol: 'admin', estado: 'activo', ultimoAcceso: '2025-10-03', posicion: 'Coordinadora' },
@@ -499,8 +500,40 @@ export default function AdminDashboard() {
     }
   };
 
+  /**
+   * Usuarios reales del tenant. La lista estaba escrita a mano con cuatro
+   * personas inventadas (maria.g@university.edu y compañía), así que el
+   * administrador gestionaba cuentas que no existían.
+   */
+  const cargarUsuarios = async () => {
+    try {
+      const res = await personasApi.listarUsuarios();
+      setUsuarios(
+        comoArreglo((res as any).data).map((u: any) => ({
+          id: u.id,
+          nombre: [u.firstName, u.lastName].filter(Boolean).join(' '),
+          email: u.email,
+          rol:
+            u.role === 'STUDENT' ? 'estudiante'
+            : u.role === 'TEACHER' ? 'docente'
+            : 'admin',
+          estado: u.isActive ? 'activo' : 'inactivo',
+          ultimoAcceso: u.lastLoginAt
+            ? new Date(u.lastLoginAt).toLocaleDateString('es-CO')
+            : '—',
+          carrera: u.student?.program ?? '',
+          departamento: u.teacher?.department ?? '',
+          posicion: '',
+        })) as any,
+      );
+    } catch (err) {
+      console.error('Error cargando usuarios:', err);
+    }
+  };
+
   useEffect(() => {
     cargarCursos();
+    cargarUsuarios();
   }, []);
 
   // Cerrar búsqueda al hacer clic fuera
@@ -551,19 +584,45 @@ export default function AdminDashboard() {
     }));
   };
 
-  const crearUsuario = () => {
+  const crearUsuario = async () => {
     if (!nuevoUsuario.nombre || !nuevoUsuario.email) {
       alert('Por favor completa los campos obligatorios');
       return;
     }
-    
-    const usuario = {
-      id: usuarios.length + 1,
-      ...nuevoUsuario,
-      ultimoAcceso: new Date().toISOString().split('T')[0]
-    };
-    
-    setUsuarios([...usuarios, usuario as any]);
+
+    // Antes esto solo añadía una fila a la lista en memoria: la cuenta no
+    // existía, nadie podía entrar con ella y al recargar desaparecía.
+    const partes = nuevoUsuario.nombre.trim().split(/\s+/);
+    const firstName = partes[0];
+    const lastName = partes.slice(1).join(' ') || partes[0];
+    // Contraseña inicial; el usuario la cambia después. La API la exige.
+    const password = 'Cambiar123!';
+
+    try {
+      if (nuevoUsuario.rol === 'estudiante') {
+        await personasApi.crearEstudiante({
+          firstName, lastName, email: nuevoUsuario.email, password,
+          program: nuevoUsuario.carrera || undefined,
+        });
+      } else if (nuevoUsuario.rol === 'docente') {
+        await personasApi.crearDocente({
+          firstName, lastName, email: nuevoUsuario.email, password,
+          department: nuevoUsuario.departamento || undefined,
+        });
+      } else {
+        // No hay endpoint para crear administradores: el único camino era el
+        // registro público, que aceptaba el rol sin autenticación y por eso se
+        // restringió a alumnado. Se dice en claro en vez de fingir el alta.
+        alert('Las cuentas de administración no se crean desde aquí. Pídelo a soporte de la plataforma.');
+        return;
+      }
+      await cargarUsuarios();
+      alert(`Usuario creado. Contraseña inicial: ${password}`);
+    } catch (err: any) {
+      alert('No se pudo crear el usuario: ' + (err?.message || 'error de conexión'));
+      return;
+    }
+
     setCreateUserModal(false);
     setNuevoUsuario({
       nombre: '',
@@ -574,26 +633,42 @@ export default function AdminDashboard() {
       departamento: '',
       posicion: ''
     });
-    alert('Usuario creado exitosamente');
   };
 
-  const editarUsuario = () => {
+  const editarUsuario = async () => {
     if (!editUserModal.nombre || !editUserModal.email) {
       alert('Por favor completa los campos obligatorios');
       return;
     }
-    
-    setUsuarios(usuarios.map(u => 
-      u.id === editUserModal.id ? editUserModal : u
-    ));
-    setEditUserModal(null);
-    alert('Usuario actualizado exitosamente');
+
+    // Solo se editaba la fila en memoria. El correo no se toca aquí porque
+    // identifica la cuenta, y el rol lo restringe el backend a la
+    // administración por una vía propia.
+    const partes = String(editUserModal.nombre).trim().split(/\s+/);
+    try {
+      await personasApi.actualizarUsuario(String(editUserModal.id), {
+        firstName: partes[0],
+        lastName: partes.slice(1).join(' ') || partes[0],
+        isActive: editUserModal.estado === 'activo',
+      });
+      await cargarUsuarios();
+      setEditUserModal(null);
+      alert('Usuario actualizado exitosamente');
+    } catch (err: any) {
+      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const eliminarUsuario = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
-      setUsuarios(usuarios.filter(u => u.id !== id));
-      alert('Usuario eliminado exitosamente');
+  const eliminarUsuario = async (id) => {
+    // El backend hace baja lógica: desactiva la cuenta y conserva su historial
+    // académico, que es lo correcto — borrarla arrastraría notas y entregas.
+    if (!window.confirm('¿Desactivar este usuario? Conservará su historial pero no podrá entrar.')) return;
+    try {
+      await personasApi.desactivarUsuario(String(id));
+      await cargarUsuarios();
+      alert('Usuario desactivado');
+    } catch (err: any) {
+      alert('No se pudo desactivar: ' + (err?.message || 'error de conexión'));
     }
   };
 
