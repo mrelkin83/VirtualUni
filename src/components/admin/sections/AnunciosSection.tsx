@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { announcementsApi } from '../../../api/endpoints/announcements';
 import type { Announcement } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 interface AnnouncementFormData {
   titulo: string;
@@ -50,7 +51,7 @@ export const AnunciosSection: React.FC = () => {
         prioridad: priorityFilter || undefined,
         estado: statusFilter || undefined,
       });
-      setAnnouncements((response as any).data || []);
+      setAnnouncements(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar anuncios');
       console.error('Error loading announcements:', err);

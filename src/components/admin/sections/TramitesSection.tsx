@@ -8,6 +8,7 @@ import {
   Send,
 } from 'lucide-react';
 import { proceduresApi } from '../../../api/endpoints/procedures';
+import { comoArreglo } from '../../../utils/respuestaApi';
 import type { Procedure } from '../../../types/admin.types';
 
 interface ProcedureFormData {
@@ -59,7 +60,12 @@ export const TramitesSection: React.FC = () => {
         estado: statusFilter || undefined,
         prioridad: priorityFilter || undefined,
       });
-      setProcedures((response as any).data || []);
+      // El endpoint responde con sobre de paginación, `{ data, pagination }`,
+      // y el cliente lo envuelve otra vez en `{ data }`. Quedarse en el primer
+      // nivel dejaba un objeto donde el componente esperaba un arreglo:
+      // `procedures.map is not a function` tumbaba el panel de administración
+      // entero y dejaba en blanco las otras 19 secciones.
+      setProcedures(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar trámites');
       console.error('Error loading procedures:', err);

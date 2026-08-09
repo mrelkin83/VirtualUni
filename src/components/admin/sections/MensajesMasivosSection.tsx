@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { massMessagesApi } from '../../../api/endpoints/mass-messages';
 import type { MassMessage } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 interface MessageFormData {
   asunto: string;
@@ -53,7 +54,7 @@ export const MensajesMasivosSection: React.FC = () => {
         search: searchTerm || undefined,
         estado: statusFilter || undefined,
       });
-      setMessages((response as any).data || []);
+      setMessages(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar mensajes');
       console.error('Error loading messages:', err);

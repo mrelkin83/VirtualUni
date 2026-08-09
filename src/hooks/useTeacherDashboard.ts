@@ -150,7 +150,19 @@ export const useTeacherDashboard = () => {
         }
         if (assignmentsData.status === 'fulfilled') {
           const data = (assignmentsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setTareas(data);
+          if (Array.isArray(data) && data.length > 0) {
+            // La API no expone `entregasTotales`; el conteo viene en
+            // `_count.submissions`. Sin este mapeo la vista dividia por
+            // undefined y pintaba `width: NaN%` en la barra de progreso.
+            setTareas(
+              data.map((t: any) => ({
+                ...t,
+                titulo: t.titulo ?? t.title,
+                curso: t.curso ?? t.course?.name,
+                entregasTotales: t._count?.submissions ?? t.entregasTotales,
+              })) as any,
+            );
+          }
         }
         if (inboxMessages.status === 'fulfilled') {
           const data = inboxMessages.value as any;

@@ -13,6 +13,7 @@ import {
   PayrollEmployeeCreateDto,
 } from '../../../api/endpoints/payroll';
 import type { PayrollEmployee } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const NominaSection: React.FC = () => {
   const [employees, setEmployees] = useState<PayrollEmployee[]>([]);
@@ -45,7 +46,7 @@ export const NominaSection: React.FC = () => {
         search: searchTerm || undefined,
         departamento: departmentFilter || undefined,
       });
-      setEmployees((response as any).data || []);
+      setEmployees(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar nómina');
       console.error('Error loading payroll:', err);

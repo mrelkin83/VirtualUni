@@ -17,6 +17,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { financeApi, TransactionCreateDto } from '../../../api/endpoints/finance';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 interface Transaction {
   id: string;
@@ -135,7 +136,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       setError(null);
       setLoading(true);
       const response = await financeApi.getAllTransactions({ search: searchTerm || undefined });
-      setTransactions((response as any).data || []);
+      setTransactions(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar transacciones');
     } finally {
@@ -148,7 +149,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       setError(null);
       setLoading(true);
       const response = await financeApi.getAllAccounts({ search: searchTerm || undefined });
-      setAccounts((response as any).data || []);
+      setAccounts(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar cuentas');
     } finally {
@@ -161,7 +162,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       setError(null);
       setLoading(true);
       const response = await financeApi.getAllBudgets({ search: searchTerm || undefined });
-      setBudgets((response as any).data || []);
+      setBudgets(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar presupuestos');
     } finally {

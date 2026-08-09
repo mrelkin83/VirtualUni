@@ -13,6 +13,7 @@ import {
   InventoryItemCreateDto,
 } from '../../../api/endpoints/inventory';
 import type { InventoryItem } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const InventarioSection: React.FC = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -45,7 +46,7 @@ export const InventarioSection: React.FC = () => {
         search: searchTerm || undefined,
         categoria: categoryFilter || undefined,
       });
-      setItems((response as any).data || []);
+      setItems(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar inventario');
       console.error('Error loading inventory:', err);

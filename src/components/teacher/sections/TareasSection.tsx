@@ -1,6 +1,29 @@
 import React, { useState } from 'react';
 import { Plus, AlertCircle, CheckCircle, Clock, X, Save, Calendar as CalendarIcon, CheckSquare } from 'lucide-react';
 
+/** Devuelve el valor solo si es un número utilizable; si no, null. */
+const numero = (v: unknown): number | null =>
+  typeof v === 'number' && Number.isFinite(v) ? v : null;
+
+/**
+ * Porcentaje revisado, o null cuando el dato no está disponible. Las tareas que
+ * llegan de la API no traen `entregasRevisadas`, y la división directa
+ * producía NaN.
+ */
+const porcentajeRevisado = (t: any): number | null => {
+  const rev = numero(t?.entregasRevisadas);
+  const tot = numero(t?.entregasTotales);
+  if (rev === null || tot === null || tot <= 0) return null;
+  return (rev / tot) * 100;
+};
+
+const porRevisar = (t: any): number => {
+  const rev = numero(t?.entregasRevisadas);
+  const tot = numero(t?.entregasTotales);
+  if (rev === null || tot === null) return 0;
+  return Math.max(0, tot - rev);
+};
+
 interface TareasSectionProps {
   tareas: any[];
   setTareaEnRevision: (tarea: any) => void;
@@ -138,7 +161,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
             </div>
             <div>
               <p className="text-2xl font-bold text-orange-600">
-                {tareas.reduce((sum, t) => sum + (t.entregasTotales - t.entregasRevisadas), 0)}
+                {tareas.reduce((sum, t) => sum + porRevisar(t), 0)}
               </p>
               <p className="text-sm text-gray-500">Por revisar</p>
             </div>
@@ -152,7 +175,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
             </div>
             <div>
               <p className="text-2xl font-bold text-green-600">
-                {tareas.reduce((sum, t) => sum + t.entregasRevisadas, 0)}
+                {tareas.reduce((sum, t) => sum + (numero(t.entregasRevisadas) ?? 0), 0)}
               </p>
               <p className="text-sm text-gray-500">Revisadas</p>
             </div>
@@ -192,7 +215,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                         📅 Límite: {tarea.fechaLimite}
                       </span>
                       <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-                        📊 Entregas: {tarea.entregasTotales}
+                        📊 Entregas: {numero(tarea.entregasTotales) ?? '—'}
                       </span>
                     </div>
                   </div>
@@ -200,25 +223,25 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                   <div className="text-right">
                     <p className="text-sm text-gray-500 mb-1">Progreso de revisión</p>
                     <div className="flex items-center gap-3">
+                      {/* Con datos de la API `entregasRevisadas` puede no venir:
+                          la division daba NaN y llegaba al atributo `width`. */}
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
-                            (tarea.entregasRevisadas / tarea.entregasTotales) * 100 === 100
-                              ? 'bg-green-600'
-                              : 'bg-blue-600'
+                            porcentajeRevisado(tarea) === 100 ? 'bg-green-600' : 'bg-blue-600'
                           }`}
-                          style={{ width: `${(tarea.entregasRevisadas / tarea.entregasTotales) * 100}%` }}
+                          style={{ width: `${porcentajeRevisado(tarea) ?? 0}%` }}
                         ></div>
                       </div>
                       <span className={`text-sm font-bold ${
-                        tarea.entregasRevisadas === tarea.entregasTotales ? 'text-green-600' : 'text-orange-600'
+                        porcentajeRevisado(tarea) === 100 ? 'text-green-600' : 'text-orange-600'
                       }`}>
-                        {tarea.entregasRevisadas}/{tarea.entregasTotales}
+                        {numero(tarea.entregasRevisadas) ?? '—'}/{numero(tarea.entregasTotales) ?? '—'}
                       </span>
                     </div>
-                    {tarea.entregasRevisadas < tarea.entregasTotales && (
+                    {porRevisar(tarea) > 0 && (
                       <p className="text-xs text-orange-500 mt-1">
-                        {tarea.entregasTotales - tarea.entregasRevisadas} por revisar
+                        {porRevisar(tarea)} por revisar
                       </p>
                     )}
                   </div>

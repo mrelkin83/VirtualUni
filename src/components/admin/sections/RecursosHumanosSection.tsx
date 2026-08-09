@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { hrApi, EmployeeCreateDto } from '../../../api/endpoints/hr';
 import type { Employee } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const RecursosHumanosSection: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -52,7 +53,7 @@ export const RecursosHumanosSection: React.FC = () => {
         search: searchTerm || undefined,
         departamento: departmentFilter || undefined,
       });
-      setEmployees((response as any).data || []);
+      setEmployees(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar empleados');
       console.error('Error loading employees:', err);

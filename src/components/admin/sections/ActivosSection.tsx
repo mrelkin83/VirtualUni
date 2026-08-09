@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { assetsApi, AssetCreateDto } from '../../../api/endpoints/assets';
 import type { Asset } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const ActivosSection: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -40,7 +41,7 @@ export const ActivosSection: React.FC = () => {
         search: searchTerm || undefined,
         categoria: categoryFilter || undefined,
       });
-      setAssets((response as any).data || []);
+      setAssets(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar activos');
       console.error('Error loading assets:', err);

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { idCardsApi, IDCardCreateDto } from '../../../api/endpoints/idcards';
 import type { IDCard } from '../../../types/admin.types';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const CarnetizacionSection: React.FC = () => {
   const [idCards, setIdCards] = useState<IDCard[]>([]);
@@ -47,7 +48,7 @@ export const CarnetizacionSection: React.FC = () => {
         tipoUsuario: typeFilter || undefined,
         estado: stateFilter || undefined,
       });
-      setIdCards((response as any).data || []);
+      setIdCards(comoArreglo(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar carnés');
       console.error('Error loading ID cards:', err);
