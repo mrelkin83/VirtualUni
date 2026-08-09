@@ -16,6 +16,22 @@ export class GradesService {
     });
   }
 
+  /**
+   * ¿El expediente consultado es el del propio usuario? El token lleva el id
+   * de usuario, no el de estudiante, asi que hay que resolverlo contra la BD.
+   */
+  async esExpedienteDelUsuario(
+    userId: string,
+    studentId: string,
+    tenantId: string,
+  ): Promise<boolean> {
+    const student = await this.prisma.student.findFirst({
+      where: { id: studentId, tenantId },
+      select: { userId: true },
+    });
+    return !!student && student.userId === userId;
+  }
+
   async findByStudent(studentId: string, tenantId: string) {
     return this.prisma.grade.findMany({
       where: { studentId, tenantId },

@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  CurrentUser,
+  CurrentUserData,
+} from '@/common/decorators/current-user.decorator';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -56,15 +61,46 @@ export class StudentsController {
     return this.studentsService.findAll(tenantId, pageNum, limitNum, search);
   }
 
+  /**
+   * El listado general ya estaba reservado a docentes y administracion, pero
+   * la ficha individual y sus estadisticas no llevaban @Roles: cualquier
+   * estudiante podia consultar el expediente de un companero pasando su id.
+   */
+  private async asegurarFichaPropia(
+    user: CurrentUserData,
+    studentId: string,
+    tenantId: string,
+  ) {
+    if (user?.role !== 'STUDENT') return;
+    const propio = await this.studentsService.esFichaDelUsuario(
+      user.userId,
+      studentId,
+      tenantId,
+    );
+    if (!propio) {
+      throw new ForbiddenException('Solo puedes consultar tu propia ficha');
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get student by ID' })
-  findOne(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+  async findOne(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    await this.asegurarFichaPropia(user, id, tenantId);
     return this.studentsService.findOne(id, tenantId);
   }
 
   @Get(':id/stats')
   @ApiOperation({ summary: 'Get student statistics' })
-  getStats(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+  async getStats(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    await this.asegurarFichaPropia(user, id, tenantId);
     return this.studentsService.getStudentStats(id, tenantId);
   }
 
