@@ -10,6 +10,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TenantsService } from './tenants.service';
@@ -18,13 +19,30 @@ import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
+import {
+  CurrentUser,
+  CurrentUserData,
+} from '@/common/decorators/current-user.decorator';
 import { TenantStatus } from '@prisma/client';
 
 @ApiTags('tenants')
 @Controller('tenants')
 export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
+
+  /**
+   * Estas rutas reciben el tenant por la ruta o la cabecera, no por el token,
+   * asi que TenantGuard (que compara cabecera contra JWT) no las cubre. Sin
+   * esta comprobacion, cualquier usuario autenticado podia leer el registro
+   * comercial y el consumo de cualquier otro cliente con solo saber su id o
+   * su slug.
+   */
+  private asegurarAccesoAlTenant(tenantId: string, user: CurrentUserData) {
+    if (user?.role === 'SUPER_ADMIN') return;
+    if (user?.tenantId !== tenantId) {
+      throw new ForbiddenException('Access denied for the requested tenant');
+    }
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new tenant (public endpoint)' })
@@ -61,7 +79,10 @@ export class TenantsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the tenant of the authenticated user' })
-  findCurrent(@CurrentTenant() tenantId: string) {
+  findCurrent(@CurrentUser('tenantId') tenantId: string) {
+    // Se lee del token, NO de @CurrentTenant(): ese decorador prioriza
+    // request.tenantId, que el middleware rellena con la cabecera
+    // X-Tenant-ID, de modo que cambiarla devolvia el tenant de otro cliente.
     return this.tenantsService.findOne(tenantId);
   }
 
@@ -69,16 +90,22 @@ export class TenantsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get tenant by ID or slug' })
-  findOne(@Param('id') id: string) {
-    return this.tenantsService.findOne(id);
+  async findOne(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+    // Se resuelve primero porque `id` admite tambien el slug: comparar el
+    // parametro en crudo contra user.tenantId dejaria pasar el slug.
+    const tenant = await this.tenantsService.findOne(id);
+    this.asegurarAccesoAlTenant(tenant.id, user);
+    return tenant;
   }
 
   @Get(':id/usage')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get tenant usage statistics' })
-  getUsage(@Param('id') id: string) {
-    return this.tenantsService.getUsageStats(id);
+  async getUsage(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+    const tenant = await this.tenantsService.findOne(id);
+    this.asegurarAccesoAlTenant(tenant.id, user);
+    return this.tenantsService.getUsageStats(tenant.id);
   }
 
   @Patch(':id')

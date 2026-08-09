@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -225,7 +226,13 @@ export class MassMessagesController {
   ) {
     const validStates = ['BORRADOR', 'PROGRAMADO', 'ENVIADO', 'FALLIDO'];
     if (!validStates.includes(status)) {
-      throw new Error('Estado inválido');
+      // Un `Error` pelado no lo reconoce el filtro de excepciones de Nest y
+      // acaba en 500 "Internal server error": un dato mal escrito por el
+      // cliente se reportaba como caida del servidor, sin decirle que valores
+      // son validos y ensuciando las metricas de error.
+      throw new BadRequestException(
+        `Estado inválido. Valores permitidos: ${validStates.join(', ')}`,
+      );
     }
     return this.massMessagesService.findByStatus(tenantId, status as any);
   }

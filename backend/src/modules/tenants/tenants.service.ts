@@ -176,12 +176,13 @@ export class TenantsService {
         enableVideoConf: true,
         enablePayments: true,
         enableCertificates: true,
-        maxStudents: true,
-        maxTeachers: true,
-        maxCourses: true,
-        currentStudents: true,
-        currentTeachers: true,
-        currentCourses: true,
+        // Los cupos (maxStudents/maxTeachers/maxCourses) y el uso real
+        // (currentStudents/currentTeachers/currentCourses) NO se devuelven
+        // aqui: este endpoint es publico, se resuelve antes del login y solo
+        // necesita la identidad visual y los modulos activos para pintar la
+        // pantalla de acceso. Incluirlos permitia a cualquiera que conociera
+        // un subdominio saber cuantos alumnos y profesores tiene esa
+        // institucion. Las rutas autenticadas de tenants si los exponen.
       },
     });
 

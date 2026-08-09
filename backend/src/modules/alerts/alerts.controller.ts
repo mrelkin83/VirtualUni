@@ -10,12 +10,16 @@ import {
 } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 
 @Controller('alerts')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// Sin TenantGuard, @CurrentTenant() resuelve la cabecera X-Tenant-ID sin
+// contrastarla con el token: cambiarla daba acceso a las alertas de otro
+// cliente. Solo devolvia vacio porque el tenant de prueba no tenia ninguna.
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 

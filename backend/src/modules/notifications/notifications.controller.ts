@@ -12,11 +12,16 @@
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 
 @Controller('notifications')
-@UseGuards(JwtAuthGuard)
+// TenantGuard es imprescindible aqui porque los metodos toman el tenant de
+// @CurrentTenant(), que resuelve la cabecera X-Tenant-ID. Solo con
+// JwtAuthGuard, un usuario podia listar y CREAR notificaciones en el tenant
+// de otro cliente cambiando esa cabecera.
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

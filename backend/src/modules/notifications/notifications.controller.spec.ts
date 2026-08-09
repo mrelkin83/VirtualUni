@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
@@ -19,7 +21,15 @@ describe('NotificationsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [{ provide: NotificationsService, useValue: serviceMock }],
-    }).compile();
+    })
+      // Este spec comprueba el cableado del controlador, no los guards. Sin
+      // sustituirlos, Nest intenta construir TenantGuard y falla al no
+      // encontrar PrismaService en el modulo de prueba.
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(TenantGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<NotificationsController>(NotificationsController);
   });
