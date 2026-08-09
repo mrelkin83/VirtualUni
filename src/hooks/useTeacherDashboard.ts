@@ -13,6 +13,7 @@ import { groupsApi } from '../api/endpoints/groups';
 import { uploadsApi } from '../api/endpoints/uploads';
 import { announcementsApi } from '../api/endpoints/announcements';
 import { massMessagesApi } from '../api/endpoints/mass-messages';
+import { scheduleApi } from '../api/endpoints/schedule';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -1699,30 +1700,57 @@ export const useTeacherDashboard = () => {
   };
 
   // Calendario Actions
-  const crearEvento = () => {
+  /**
+   * Los eventos del calendario se anunciaban como creados y no se guardaban en
+   * ningún sitio: ni siquiera se añadían a la lista local. El horario del
+   * backend trabaja por día de la semana y franja horaria, no por fecha
+   * suelta, así que se pide el día y las horas de inicio y fin.
+   */
+  const crearEvento = async () => {
     const titulo = prompt('Título del evento:');
     if (!titulo?.trim()) return;
 
-    const fecha = prompt('Fecha (YYYY-MM-DD):');
-    if (!fecha?.trim()) return;
+    const dia = prompt('Día de la semana (1 = lunes … 7 = domingo):');
+    const diaSemana = parseInt(String(dia), 10);
+    if (!Number.isFinite(diaSemana) || diaSemana < 1 || diaSemana > 7) {
+      alert('Día inválido. Debe ser un número del 1 al 7.');
+      return;
+    }
 
-    const hora = prompt('Hora (HH:MM):');
-    if (!hora?.trim()) return;
+    const horaInicio = prompt('Hora de inicio (HH:MM):');
+    if (!horaInicio?.trim()) return;
+    const horaFin = prompt('Hora de fin (HH:MM):');
+    if (!horaFin?.trim()) return;
 
-    alert(`Evento "${titulo}" creado para el ${fecha} a las ${hora}!`);
-    setModalEvento(false);
-  };
-
-  const editarEvento = (eventoId: number) => {
-    const nuevaFecha = prompt('Nueva fecha (YYYY-MM-DD):');
-    if (nuevaFecha && nuevaFecha.trim()) {
-      alert('Evento actualizado exitosamente!');
+    try {
+      await scheduleApi.create({ titulo, diaSemana, horaInicio, horaFin });
+      alert(`Evento "${titulo}" creado.`);
+      setModalEvento(false);
+    } catch (err: any) {
+      alert('No se pudo crear el evento: ' + (err?.message || 'error de conexión'));
     }
   };
 
-  const eliminarEvento = (eventoId: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+  const editarEvento = async (eventoId: number | string) => {
+    const horaInicio = prompt('Nueva hora de inicio (HH:MM):');
+    if (!horaInicio?.trim()) return;
+    const horaFin = prompt('Nueva hora de fin (HH:MM):');
+    if (!horaFin?.trim()) return;
+    try {
+      await scheduleApi.update(String(eventoId), { horaInicio, horaFin });
+      alert('Evento actualizado exitosamente!');
+    } catch (err: any) {
+      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+    }
+  };
+
+  const eliminarEvento = async (eventoId: number | string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este evento?')) return;
+    try {
+      await scheduleApi.delete(String(eventoId));
       alert('Evento eliminado exitosamente.');
+    } catch (err: any) {
+      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
