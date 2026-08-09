@@ -56,6 +56,7 @@ export default function TeacherDashboard() {
     setConversacionActiva,
     setCrearTareaModal,
     calificarEntrega,
+    abrirRevisionTarea,
     verPerfilEstudiante,
     enviarMensajeEstudiante,
     exportarDatosEstudiante,
@@ -78,7 +79,7 @@ export default function TeacherDashboard() {
             tareas={tareas}
             setCursoDetalle={setCursoDetalle}
             setEstudianteDetalle={setEstudianteDetalle}
-            setTareaEnRevision={setTareaEnRevision}
+            setTareaEnRevision={abrirRevisionTarea}
             setActiveSection={setActiveSection}
             darkMode={darkMode}
             card={card}
@@ -124,7 +125,7 @@ export default function TeacherDashboard() {
         return (
           <TareasSection
             tareas={tareas}
-            setTareaEnRevision={setTareaEnRevision}
+            setTareaEnRevision={abrirRevisionTarea}
             setCrearTareaModal={setCrearTareaModal}
             darkMode={darkMode}
             card={card}
@@ -295,7 +296,7 @@ export default function TeacherDashboard() {
             tareas={tareas}
             setCursoDetalle={setCursoDetalle}
             setEstudianteDetalle={setEstudianteDetalle}
-            setTareaEnRevision={setTareaEnRevision}
+            setTareaEnRevision={abrirRevisionTarea}
             setActiveSection={setActiveSection}
             darkMode={darkMode}
             card={card}

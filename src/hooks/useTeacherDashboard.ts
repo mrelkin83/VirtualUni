@@ -158,7 +158,13 @@ export const useTeacherDashboard = () => {
               data.map((t: any) => ({
                 ...t,
                 titulo: t.titulo ?? t.title,
+                descripcion: t.descripcion ?? t.description,
                 curso: t.curso ?? t.course?.name,
+                // La vista lee `fechaLimite`; la API la llama `dueDate`, así
+                // que la tarjeta mostraba "📅 Límite:" sin fecha alguna.
+                fechaLimite:
+                  t.fechaLimite ??
+                  (t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-CO') : ''),
                 entregasTotales: t._count?.submissions ?? t.entregasTotales,
               })) as any,
             );
@@ -750,6 +756,46 @@ export const useTeacherDashboard = () => {
       alert('Error al crear tarea: ' + (err.message || 'Error desconocido'));
     } finally {
       setCrearTareaModal(false);
+    }
+  };
+
+  /**
+   * Abre el modal de revisión con las entregas cargadas.
+   *
+   * El listado `/assignments` solo trae el conteo (`_count.submissions`), no
+   * las entregas, así que al pulsar una tarea el modal se abría con "Todas
+   * (0)" y el docente no tenía nada que calificar. El detalle sí las incluye.
+   */
+  const abrirRevisionTarea = async (tarea: any) => {
+    setTareaEnRevision(tarea);
+    if (!tarea?.id) return;
+    try {
+      const { data } = (await teacherAssignmentsApi.getById(String(tarea.id))) as { data: any };
+      const entregas = (data?.submissions || []).map((s: any) => ({
+        id: s.id,
+        estudianteId: s.studentId,
+        estudianteNombre: [s.student?.user?.firstName, s.student?.user?.lastName]
+          .filter(Boolean)
+          .join(' '),
+        estudianteEmail: s.student?.user?.email ?? '',
+        fechaEntrega: s.submittedAt,
+        archivo: s.fileUrl ?? undefined,
+        comentario: s.content ?? '',
+        calificacion: s.grade ?? undefined,
+        feedback: s.feedback ?? '',
+        estado: s.grade === null || s.grade === undefined ? 'pendiente' : 'revisada',
+      }));
+      setTareaEnRevision({
+        ...tarea,
+        titulo: tarea.titulo ?? data?.title,
+        curso: tarea.curso ?? data?.course?.name,
+        submissions: entregas,
+        entregasTotales: entregas.length,
+        entregasRevisadas: entregas.filter((e: any) => e.estado === 'revisada').length,
+      });
+    } catch (err: any) {
+      console.error('Error cargando entregas:', err);
+      alert('No se pudieron cargar las entregas: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1986,6 +2032,7 @@ export const useTeacherDashboard = () => {
 
     // Modals
     tareaEnRevision,
+    abrirRevisionTarea,
     calificacionModal,
     crearTareaModal,
     crearExamenModal,

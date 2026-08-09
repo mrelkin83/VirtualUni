@@ -67,8 +67,10 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
   const handleSaveGrade = () => {
     if (!selectedSubmission) return;
 
-    if (calificacion < 0 || calificacion > 10) {
-      alert('La calificación debe estar entre 0 y 10');
+    if (calificacion < 0 || calificacion > 100) {
+      // Las entregas se califican sobre 100, igual que el resto de notas del
+      // sistema; el límite de 10 venía de los datos de ejemplo.
+      alert('La calificación debe estar entre 0 y 100');
       return;
     }
 
@@ -208,7 +210,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
                     {submission.estado === 'revisada' && submission.calificacion !== undefined && (
                       <div className="mt-2 text-xs">
                         <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
-                          Calificación: {submission.calificacion.toFixed(1)}/10
+                          Calificación: {submission.calificacion.toFixed(1)}/100
                         </span>
                       </div>
                     )}
@@ -279,12 +281,12 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
 
                   <div className="mb-4">
                     <label className={`block ${text} mb-2 font-medium`}>
-                      Calificación (0-10) *
+                      Calificación (0-100) *
                     </label>
                     <input
                       type="number"
                       min="0"
-                      max="10"
+                      max="100"
                       step="0.1"
                       value={calificacion}
                       onChange={(e) => setCalificacion(parseFloat(e.target.value) || 0)}
