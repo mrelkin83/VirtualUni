@@ -18,6 +18,7 @@ import { liveClassesApi } from '../api/endpoints/live-classes';
 import { financeApi } from '../api/endpoints/finance';
 import { uploadsApi } from '../api/endpoints/uploads';
 import { proceduresApi } from '../api/endpoints/procedures';
+import { comoArreglo } from '../utils/respuestaApi';
 import {
   StudentSectionType,
   StudentCourse,
@@ -903,22 +904,31 @@ export const useStudentDashboard = () => {
     }
   };
 
-  const subirFotoPerfil = (archivo: File) => {
-    // Simular procesamiento y redimensionamiento
+  /**
+   * La foto solo se leía en el navegador y se anunciaba "Foto de perfil
+   * actualizada": nunca salía del equipo y al recargar volvía la anterior. El
+   * propio código lo reconocía con un TODO. Ahora se sube por el módulo de
+   * uploads y la URL queda en la cuenta.
+   */
+  const subirFotoPerfil = async (archivo: File) => {
+    // Vista previa inmediata mientras viaja el archivo.
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-
-      // TODO: En producción, enviar al backend para:
-      // 1. Redimensionar a 300x300
-      // 2. Optimizar imagen
-      // 3. Guardar en servidor/cloud storage
-      // 4. Devolver URL de la imagen
-
-      setFotoPerfil(result);
-      alert(`Foto de perfil actualizada!\n\nTamaño: ${(archivo.size / 1024).toFixed(2)} KB\nFormato: ${archivo.type}\n\nEn producción se redimensionará a 300x300px.`);
-    };
+    reader.onloadend = () => setFotoPerfil(reader.result as string);
     reader.readAsDataURL(archivo);
+
+    try {
+      const subido = await uploadsApi.subir(archivo, 'avatares');
+      const url = (subido as any)?.url ?? (subido as any)?.data?.url;
+      if (!url) throw new Error('El servidor no devolvió la URL del archivo');
+
+      const userId = (useAuthStore as any).getState?.()?.user?.id;
+      if (userId) await usersApi.update(userId, { avatarUrl: url } as any);
+
+      setFotoPerfil(uploadsApi.urlAbsoluta(url));
+      alert('Foto de perfil actualizada');
+    } catch (err: any) {
+      alert('No se pudo guardar la foto: ' + (err?.message || 'error de conexión'));
+    }
   };
 
   // Library Actions
@@ -1189,32 +1199,40 @@ export const useStudentDashboard = () => {
     }
   };
 
-  const descargarCertificado = (solicitudId: number) => {
-    const solicitud = solicitudesCertificadosData.find(s => s.id === solicitudId);
-    if (!solicitud || !solicitud.archivoUrl) {
+  /**
+   * Antes esto solo mostraba un aviso con la ruta del archivo: no descargaba
+   * nada. Ahora abre la URL real que devuelve el servidor.
+   */
+  const descargarCertificado = (solicitudId: number | string) => {
+    const solicitud: any = solicitudesCertificadosData.find((s: any) => s.id === solicitudId);
+    if (!solicitud?.archivoUrl) {
       alert('El certificado aún no está disponible para descargar.');
       return;
     }
-
-    alert(`Descargando certificado: ${solicitud.tipoCertificado}\nArchivo: ${solicitud.archivoUrl}`);
+    window.open(uploadsApi.urlAbsoluta(solicitud.archivoUrl), '_blank', 'noopener');
   };
 
-  const generarCertificadoCurso = (cursoId: number, nombreArchivo: string) => {
-    // Registrar el certificado generado en la base de datos
-    const curso = cursos.find(c => c.id === cursoId);
+  /**
+   * El certificado se anotaba solo en la lista en memoria: desaparecía al
+   * recargar y la administración nunca se enteraba de la solicitud.
+   */
+  const generarCertificadoCurso = async (cursoId: number | string, nombreArchivo: string) => {
+    const curso: any = cursos.find((c: any) => c.id === cursoId);
     if (!curso) return;
 
-    const nuevaSolicitud: CertificateRequest = {
-      id: solicitudesCertificadosData.length + 1,
-      tipoCertificado: `Certificado de Finalización - ${curso.nombre}`,
-      fechaSolicitud: new Date().toISOString().split('T')[0],
-      estado: 'completado',
-      observaciones: 'Certificado generado automáticamente al completar el curso',
-      fechaEstimada: new Date().toISOString().split('T')[0],
-      archivoUrl: `/certificados/${nombreArchivo}`
-    };
-
-    setSolicitudesCertificadosData([nuevaSolicitud, ...solicitudesCertificadosData]);
+    const tipo = `Certificado de Finalización - ${curso.nombre ?? curso.name}`;
+    try {
+      await certificatesApi.create({
+        tipo,
+        motivo: 'Generado al completar el curso',
+        archivoUrl: `/certificados/${nombreArchivo}`,
+      } as any);
+      const { data } = await certificatesApi.getMy();
+      const lista = comoArreglo(data);
+      if (lista.length) setSolicitudesCertificadosData(lista as any);
+    } catch (err: any) {
+      alert('No se pudo registrar el certificado: ' + (err?.message || 'error de conexión'));
+    }
   };
 
   // Classes Actions
@@ -1269,8 +1287,9 @@ export const useStudentDashboard = () => {
     }
 
     if (clase.grabacionUrl) {
-      alert(`Reproduciendo: ${clase.titulo}\n\nURL: ${clase.grabacionUrl}\n\nEn un caso real, se reproduciría el video.`);
-      // En producción: window.open(clase.grabacionUrl, '_blank');
+      // Mostraba un aviso con la URL y el texto "en un caso real se
+      // reproduciría el video". Se abre la grabación.
+      window.open(uploadsApi.urlAbsoluta(clase.grabacionUrl), '_blank', 'noopener');
     } else {
       alert('La grabación no está disponible.');
     }
@@ -1427,37 +1446,33 @@ export const useStudentDashboard = () => {
   };
 
   // Payment Actions
-  const realizarPago = (deudaId: number, metodoPago: string, datosPago: any) => {
-    const deuda = deudasPendientesData.find(d => d.id === deudaId);
+  /**
+   * NO se finge un cobro.
+   *
+   * Esto marcaba la deuda como pagada en la lista del navegador: el alumno
+   * veía saldo cero y comprobante emitido, la institución no recibía nada y la
+   * base de datos no cambiaba. Un estado financiero inventado es el peor dato
+   * falso que puede mostrar la plataforma.
+   *
+   * La pasarela de pago (Stripe) no está conectada en este despliegue -- el
+   * webhook responde "Stripe not configured" -- y la sesión de pago que existe
+   * en el backend es para que la institución contrate su plan, no para que un
+   * alumno abone su matrícula. Mientras no exista esa vía, la acción avisa en
+   * lugar de mentir.
+   */
+  const realizarPago = async (deudaId: number | string, _metodoPago: string, _datosPago: any) => {
+    const deuda: any = deudasPendientesData.find((d: any) => d.id === deudaId);
     if (!deuda) {
       alert('Deuda no encontrada.');
       return;
     }
 
-    // Crear nuevo pago en el historial
-    const nuevoPago = {
-      id: historialPagosData.length + 1,
-      fecha: new Date().toISOString().split('T')[0],
-      concepto: deuda.concepto,
-      monto: deuda.monto,
-      metodoPago: metodoPago,
-      estado: 'completado' as const,
-      referencia: `REF-${Date.now()}`,
-      comprobante: `COMP-${Date.now()}`
-    };
-
-    setHistorialPagosData([nuevoPago, ...historialPagosData]);
-
-    // Eliminar la deuda de pendientes
-    setDeudasPendientesData(deudasPendientesData.filter(d => d.id !== deudaId));
-
-    // Actualizar resumen financiero
-    setResumenFinancieroData({
-      ...resumenFinancieroData,
-      totalPagado: resumenFinancieroData.totalPagado + deuda.monto,
-      saldoPendiente: resumenFinancieroData.saldoPendiente - deuda.monto,
-      ultimoPago: deuda.monto
-    });
+    alert(
+      'El pago en línea todavía no está habilitado en esta institución.\n\n' +
+      `Concepto: ${deuda.concepto}\nImporte: ${deuda.monto}\n\n` +
+      'Acércate a la oficina de cartera o solicita los datos de transferencia. ' +
+      'Tu deuda seguirá figurando como pendiente hasta que el pago se registre.',
+    );
   };
 
   // Message Actions
