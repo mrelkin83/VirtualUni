@@ -16,6 +16,7 @@ import { massMessagesApi } from '../api/endpoints/mass-messages';
 import { scheduleApi } from '../api/endpoints/schedule';
 import { bancoPreguntasApi } from '../api/endpoints/question-bank';
 import { plantillasMensajeApi } from '../api/endpoints/message-templates';
+import { temarioApi } from '../api/endpoints/course-topics';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -1943,11 +1944,30 @@ export const useTeacherDashboard = () => {
       temas: []
     };
 
-    setModulosCurso([...modulosCurso, nuevoModulo]);
+    // Sin esta llamada el temario solo existia en memoria y se perdia al
+    // recargar. En la base un "modulo" es un CourseTopic.
+    temarioApi
+      .crearModulo({
+        courseId: String(moduloData.cursoId),
+        title: moduloData.titulo,
+        description: moduloData.descripcion,
+        orderIndex: moduloData.orden,
+      })
+      .then(({ data }) => setModulosCurso([...modulosCurso, { ...nuevoModulo, id: (data as any)?.id }] as any))
+      .catch((err) => alert("No se pudo crear el modulo: " + ((err && err.message) || "error de conexion")));
     alert(`Módulo "${moduloData.titulo}" creado exitosamente!`);
   };
 
-  const editarModulo = (moduloId: number, moduloData: any) => {
+  const editarModulo = (moduloId: number | string, moduloData: any) => {
+    temarioApi
+      .actualizarModulo(String(moduloId), {
+        title: moduloData.titulo,
+        description: moduloData.descripcion,
+        orderIndex: moduloData.orden,
+      })
+      .catch((err: any) =>
+        alert('No se pudo actualizar el módulo: ' + (err?.message || 'error de conexión')),
+      );
     setModulosCurso(modulosCurso.map(m =>
       m.id === moduloId
         ? { ...m, titulo: moduloData.titulo, descripcion: moduloData.descripcion, orden: moduloData.orden }
@@ -1961,6 +1981,8 @@ export const useTeacherDashboard = () => {
     if (!modulo) return;
 
     if (window.confirm(`¿Estás seguro de que deseas eliminar el módulo "${modulo.titulo}"?\n\nEsta acción eliminará también todos sus temas.`)) {
+      // El borrado arrastra sus temas por la cascada del esquema.
+      temarioApi.eliminarModulo(String(moduloId)).catch(() => undefined);
       setModulosCurso(modulosCurso.filter(m => m.id !== moduloId));
       alert('Módulo eliminado exitosamente.');
     }
@@ -1982,16 +2004,33 @@ export const useTeacherDashboard = () => {
       materiales: []
     };
 
-    setModulosCurso(modulosCurso.map(m =>
-      m.id === moduloId
-        ? { ...m, temas: [...m.temas, nuevoTema as any] }
-        : m
-    ));
+    temarioApi
+      .crearTema(String(moduloId), {
+        title: temaData.titulo,
+        content: temaData.descripcion || '',
+      })
+      .then(({ data }) => {
+        const conId = { ...nuevoTema, id: (data as any)?.id ?? nuevoTema.id };
+        setModulosCurso(modulosCurso.map(m =>
+          m.id === moduloId ? { ...m, temas: [...m.temas, conId as any] } : m
+        ));
+      })
+      .catch((err: any) =>
+        alert('No se pudo crear el tema: ' + (err?.message || 'error de conexión')),
+      );
 
     alert(`Tema "${temaData.titulo}" creado exitosamente!`);
   };
 
-  const editarTema = (temaId: number, temaData: any) => {
+  const editarTema = (temaId: number | string, temaData: any) => {
+    temarioApi
+      .actualizarTema(String(temaId), {
+        title: temaData.titulo,
+        content: temaData.descripcion,
+      })
+      .catch((err: any) =>
+        alert('No se pudo actualizar el tema: ' + (err?.message || 'error de conexión')),
+      );
     setModulosCurso(modulosCurso.map(modulo => ({
       ...modulo,
       temas: modulo.temas.map(tema =>
@@ -2005,6 +2044,7 @@ export const useTeacherDashboard = () => {
 
   const eliminarTema = (temaId: number) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este tema?')) {
+      temarioApi.eliminarTema(String(temaId)).catch(() => undefined);
       setModulosCurso(modulosCurso.map(modulo => ({
         ...modulo,
         temas: modulo.temas.filter(tema => tema.id !== temaId)
