@@ -282,6 +282,30 @@ export const useTeacherDashboard = () => {
     const mensaje = prompt(`Enviar mensaje a todos los estudiantes del ${grupo.nombre}:\n\n(Escribe tu mensaje)`);
     if (mensaje && mensaje.trim()) {
       alert(`Mensaje enviado a ${grupo.estudiantesActivos} estudiantes del ${grupo.nombre}:\n\n"${mensaje}"`);
+      // El aviso decía "mensaje enviado a N estudiantes" y no salía ninguno.
+      // No hay envío a grupo en la API, así que se manda uno por integrante.
+      const integrantes: any[] = (grupo as any).estudiantes ?? [];
+      const destinatarios = integrantes
+        .map((e: any) => e.userId ?? e.user?.id)
+        .filter(Boolean);
+
+      if (destinatarios.length === 0) {
+        alert('Este grupo no tiene integrantes con cuenta a los que escribir.');
+      } else {
+        Promise.allSettled(
+          destinatarios.map((id: string) =>
+            teacherMessagesApi.create({
+              recipientId: id,
+              subject: `Mensaje a ${grupo.nombre}`,
+              body: mensaje,
+            }),
+          ),
+        ).then((res) => {
+          const fallos = res.filter((r) => r.status === 'rejected').length;
+          if (fallos) alert(`${fallos} de ${destinatarios.length} mensajes no se pudieron enviar.`);
+        });
+      }
+
       const nuevoMensaje = {
         id: mensajes.length + 1,
         para: grupo.nombre,
@@ -401,6 +425,14 @@ export const useTeacherDashboard = () => {
 
     const estudiantesAsignados = estudiantes.filter(e => estudianteIds.includes(e.id));
 
+    // La asignación solo se reflejaba en la lista del navegador: el grupo
+    // seguía vacío en la base y al recargar no quedaba nadie dentro.
+    groupsApi
+      .addMembers(String(grupoId), estudiantesAsignados.map((e: any) => String(e.id)))
+      .catch((err: any) =>
+        alert('No se pudieron asignar los estudiantes: ' + (err?.message || 'error de conexión')),
+      );
+
     setGrupos(grupos.map(g =>
       g.id === grupoId
         ? {
@@ -421,6 +453,12 @@ export const useTeacherDashboard = () => {
 
     const estudiante = estudiantes.find(e => e.id === estudianteId);
     if (!estudiante) return;
+
+    groupsApi
+      .removeMember(String(grupoId), String(estudianteId))
+      .catch((err: any) =>
+        alert('No se pudo sacar del grupo: ' + (err?.message || 'error de conexión')),
+      );
 
     setGrupos(grupos.map(g =>
       g.id === grupoId
@@ -453,6 +491,25 @@ export const useTeacherDashboard = () => {
       entregadas: 0,
       pendientes: grupo.estudiantesActivos
     };
+
+    // La tarea grupal solo se apuntaba en memoria: el alumnado del grupo nunca
+    // la veía. Se crea como tarea del curso del grupo; el backend no distingue
+    // aún entre tarea individual y grupal, así que el matiz queda en el título.
+    const courseId = resolverCourseId(grupo.curso);
+    if (courseId) {
+      teacherAssignmentsApi
+        .create({
+          courseId,
+          titulo: tareaData.titulo,
+          descripcion: tareaData.descripcion,
+          fechaLimite: tareaData.fechaEntrega,
+        } as any)
+        .catch((err: any) =>
+          alert('No se pudo crear la tarea: ' + (err?.message || 'error de conexión')),
+        );
+    } else {
+      alert('No se pudo identificar el curso del grupo; la tarea no se guardó.');
+    }
 
     setTareas([...tareas, nuevaTarea as any]);
 
@@ -572,10 +629,16 @@ export const useTeacherDashboard = () => {
     const estudiante = estudiantes.find(e => e.id === estudianteId);
     if (!estudiante) return;
 
-    if (window.confirm(`¿Estás seguro de que deseas eliminar a "${estudiante.nombre}"?`)) {
-      setEstudiantes(estudiantes.filter(e => e.id !== estudianteId));
-      alert('Estudiante eliminado exitosamente.');
-    }
+    // Esto decía "Estudiante eliminado exitosamente" y solo lo quitaba de la
+    // lista del navegador: el alumno seguía matriculado y reaparecía al
+    // recargar. Dar de baja a alguien de la institución es competencia de la
+    // administración -- el backend responde 403 a un docente --, así que se
+    // dice en claro en lugar de aparentar una baja que no ocurre.
+    alert(
+      `Los docentes no pueden dar de baja a un estudiante de la institución.\n\n` +
+      `Si "${estudiante.nombre}" debe salir de tu curso, pide a la administración ` +
+      `que lo retire de la matrícula; si debe salir de un grupo, usa la gestión de grupos.`,
+    );
   };
 
   /**
@@ -2130,8 +2193,32 @@ export const useTeacherDashboard = () => {
       grabacionDisponible: true
     };
 
-    setClasesVivo([...clasesVivo, nuevaClase as any]);
-    alert(`Clase pregrabada "${claseData.titulo}" subida exitosamente!`);
+    // Solo se añadía a la lista del navegador: la clase no existía para nadie
+    // más y desaparecía al recargar.
+    const courseId = resolverCourseId(claseData.curso);
+    if (!courseId) {
+      alert('No se pudo identificar el curso; la clase no se guardó.');
+      return;
+    }
+
+    liveClassesApi
+      .create({
+        courseId,
+        titulo: claseData.titulo,
+        descripcion: claseData.descripcion,
+        // Una grabación no tiene franja horaria: se registra con la fecha
+        // indicada y se marca como finalizada, que es su estado real.
+        fechaHora: combinarFechaHora(claseData.fecha, '00:00'),
+        duracion: Number(claseData.duracion) || 60,
+        grabacionUrl: claseData.grabacionUrl,
+      } as any)
+      .then(({ data }) => {
+        setClasesVivo([...clasesVivo, { ...nuevaClase, id: (data as any)?.id ?? nuevaClase.id }] as any);
+        alert(`Clase pregrabada "${claseData.titulo}" subida exitosamente!`);
+      })
+      .catch((err: any) =>
+        alert('No se pudo guardar la clase: ' + (err?.message || 'error de conexión')),
+      );
   };
 
   const iniciarClaseEnVivo = async (claseId: number | string) => {
