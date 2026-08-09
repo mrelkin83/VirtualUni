@@ -2,6 +2,8 @@ import React, { useState, createContext, useContext, useRef, useEffect } from 'r
 import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Shield, Palette, Building2, Upload, Mail, Calendar, AlertCircle, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, Inbox, MessageSquare, Filter, BarChart3, TrendingDown, CreditCard, Megaphone, Paperclip, Circle, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
+import { coursesAdminApi, teachersApi } from '../api/endpoints/courses';
+import { comoArreglo } from '../utils/respuestaApi';
 import {
   activos,
   empleados,
@@ -305,7 +307,8 @@ export default function AdminDashboard() {
     { id: 5, nombre: 'Elena Ramírez', email: 'elena.r@university.edu', rol: 'docente', estado: 'activo', ultimoAcceso: '2025-10-02', departamento: 'Matemáticas' }
   ]);
 
-  const [cursos, setCursos] = useState([
+  const [docentes, setDocentes] = useState<{id:string;nombre:string}[]>([]);
+  const [cursos, setCursos] = useState<any[]>([
     { id: 1, nombre: 'Programación Avanzada', codigo: 'CS301', estudiantes: 45, docente: 'Carlos Rodríguez', estado: 'activo', descripcion: 'Curso avanzado de programación orientada a objetos', duracion: '16 semanas', creditos: '4' },
     { id: 2, nombre: 'Base de Datos', codigo: 'CS302', estudiantes: 38, docente: 'Elena Ramírez', estado: 'activo', descripcion: 'Fundamentos de bases de datos relacionales', duracion: '16 semanas', creditos: '4' },
     { id: 3, nombre: 'Diseño de Interfaces', codigo: 'DG201', estudiantes: 52, docente: 'Ana Torres', estado: 'activo', descripcion: 'Principios de diseño UX/UI', duracion: '12 semanas', creditos: '3' },
@@ -454,6 +457,52 @@ export default function AdminDashboard() {
     setSearchOpen(false);
   };
 
+  /**
+   * Cursos y docentes reales.
+   *
+   * La lista de cursos estaba escrita a mano en el propio archivo y los
+   * botones de crear, editar y eliminar solo modificaban ese arreglo: el
+   * administrador veía "Curso creado exitosamente" y al recargar la página no
+   * quedaba nada. Tampoco había forma de elegir docente, porque el formulario
+   * pedía su nombre en texto libre y la API necesita su identificador.
+   */
+  const cargarCursos = async () => {
+    try {
+      const [cursosRes, docentesRes] = await Promise.all([
+        coursesAdminApi.getAll({ limit: 100 }),
+        teachersApi.getAll().catch(() => ({ data: [] })),
+      ]);
+
+      const listaDocentes = comoArreglo((docentesRes as any).data).map((d: any) => ({
+        id: d.id,
+        nombre: [d.user?.firstName, d.user?.lastName].filter(Boolean).join(' ') || d.employeeCode,
+      }));
+      setDocentes(listaDocentes);
+
+      setCursos(
+        comoArreglo((cursosRes as any).data).map((c: any) => ({
+          id: c.id,
+          nombre: c.name,
+          codigo: c.code,
+          estudiantes: c._count?.enrollments ?? 0,
+          docente:
+            [c.teacher?.user?.firstName, c.teacher?.user?.lastName].filter(Boolean).join(' ') || '',
+          teacherId: c.teacherId,
+          estado: c.status === 'active' ? 'activo' : 'inactivo',
+          descripcion: c.description ?? '',
+          duracion: c.semester ?? '',
+          creditos: String(c.credits ?? ''),
+        })) as any,
+      );
+    } catch (err) {
+      console.error('Error cargando cursos:', err);
+    }
+  };
+
+  useEffect(() => {
+    cargarCursos();
+  }, []);
+
   // Cerrar búsqueda al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -548,50 +597,73 @@ export default function AdminDashboard() {
     }
   };
 
-  const crearCurso = () => {
+  const crearCurso = async () => {
     if (!nuevoCurso.nombre || !nuevoCurso.codigo || !nuevoCurso.docente) {
       alert('Por favor completa los campos obligatorios');
       return;
     }
-    
-    const curso = {
-      id: cursos.length + 1,
-      ...nuevoCurso,
-      estudiantes: parseInt(nuevoCurso.estudiantes as any) || 0
-    };
-    
-    setCursos([...cursos, curso]);
-    setCreateCursoModal(false);
-    setNuevoCurso({
-      nombre: '',
-      codigo: '',
-      estudiantes: 0,
-      docente: '',
-      estado: 'activo',
-      descripcion: '',
-      duracion: '',
-      creditos: ''
-    });
-    alert('Curso creado exitosamente');
+
+    try {
+      await coursesAdminApi.create({
+        name: nuevoCurso.nombre,
+        code: nuevoCurso.codigo,
+        // `docente` guarda ahora el identificador del docente, no su nombre:
+        // la API relaciona el curso por teacherId.
+        teacherId: nuevoCurso.docente,
+        description: nuevoCurso.descripcion || undefined,
+        semester: nuevoCurso.duracion || undefined,
+        credits: nuevoCurso.creditos ? parseInt(nuevoCurso.creditos, 10) : undefined,
+      });
+      await cargarCursos();
+      setCreateCursoModal(false);
+      setNuevoCurso({
+        nombre: '',
+        codigo: '',
+        estudiantes: 0,
+        docente: '',
+        estado: 'activo',
+        descripcion: '',
+        duracion: '',
+        creditos: ''
+      });
+      alert('Curso creado exitosamente');
+    } catch (err: any) {
+      alert('No se pudo crear el curso: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const editarCurso = () => {
+  const editarCurso = async () => {
     if (!editCursoModal.nombre || !editCursoModal.codigo || !editCursoModal.docente) {
       alert('Por favor completa los campos obligatorios');
       return;
     }
-    
-    setCursos(cursos.map(c => 
-      c.id === editCursoModal.id ? {...editCursoModal, estudiantes: parseInt(editCursoModal.estudiantes) || 0} : c
-    ));
-    setEditCursoModal(null);
-    alert('Curso actualizado exitosamente');
+
+    try {
+      await coursesAdminApi.update(String(editCursoModal.id), {
+        name: editCursoModal.nombre,
+        code: editCursoModal.codigo,
+        teacherId: editCursoModal.teacherId || editCursoModal.docente,
+        description: editCursoModal.descripcion || undefined,
+        semester: editCursoModal.duracion || undefined,
+        credits: editCursoModal.creditos ? parseInt(editCursoModal.creditos, 10) : undefined,
+        status: editCursoModal.estado === 'activo' ? 'active' : 'inactive',
+      });
+      await cargarCursos();
+      setEditCursoModal(null);
+      alert('Curso actualizado exitosamente');
+    } catch (err: any) {
+      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const eliminarCurso = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este curso?')) {
-      setCursos(cursos.filter(c => c.id !== id));
+  const eliminarCurso = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este curso?')) return;
+    try {
+      await coursesAdminApi.remove(String(id));
+      await cargarCursos();
       alert('Curso eliminado exitosamente');
+    } catch (err: any) {
+      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -2073,8 +2145,12 @@ export default function AdminDashboard() {
                     className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
                   >
                     <option value="">Seleccionar docente...</option>
-                    {usuarios.filter(u => u.rol === 'docente').map(doc => (
-                      <option key={doc.id} value={doc.nombre}>{doc.nombre}</option>
+                    {/* Docentes reales del tenant. El valor es su
+                        identificador, que es lo que la API relaciona con el
+                        curso; antes se enviaba el nombre y no correspondía a
+                        ningún registro. */}
+                    {docentes.map(doc => (
+                      <option key={doc.id} value={doc.id}>{doc.nombre}</option>
                     ))}
                   </select>
                 </div>
@@ -2194,13 +2270,17 @@ export default function AdminDashboard() {
                 <div>
                   <label className="block text-sm font-semibold mb-2">Docente *</label>
                   <select
-                    value={editCursoModal.docente}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, docente: e.target.value})}
+                    value={editCursoModal.teacherId || editCursoModal.docente}
+                    onChange={(e) => setEditCursoModal({...editCursoModal, teacherId: e.target.value, docente: e.target.value})}
                     className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
                   >
                     <option value="">Seleccionar docente...</option>
-                    {usuarios.filter(u => u.rol === 'docente').map(doc => (
-                      <option key={doc.id} value={doc.nombre}>{doc.nombre}</option>
+                    {/* Docentes reales del tenant. El valor es su
+                        identificador, que es lo que la API relaciona con el
+                        curso; antes se enviaba el nombre y no correspondía a
+                        ningún registro. */}
+                    {docentes.map(doc => (
+                      <option key={doc.id} value={doc.id}>{doc.nombre}</option>
                     ))}
                   </select>
                 </div>
