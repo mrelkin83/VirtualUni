@@ -12,6 +12,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  CurrentUser,
+  CurrentUserData,
+} from '@/common/decorators/current-user.decorator';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -58,14 +62,49 @@ export class CoursesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get course by ID' })
-  findOne(@Param('id') id: string, @CurrentTenant() tenantId: string) {
-    return this.coursesService.findOne(id, tenantId);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    // El catalogo sigue abierto: cualquiera puede consultar un curso. Lo que
+    // deja de ver el alumnado es la lista de matriculados de cursos ajenos,
+    // que era la via para recolectar los datos de toda la institucion.
+    return this.coursesService.findOne(
+      id,
+      tenantId,
+      await this.filtroDeMatricula(user, tenantId),
+    );
   }
 
   @Get(':id/stats')
   @ApiOperation({ summary: 'Get course statistics' })
-  getStats(@Param('id') id: string, @CurrentTenant() tenantId: string) {
-    return this.coursesService.getCourseStats(id, tenantId);
+  async getStats(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    // Mismo criterio que el detalle: las cifras son publicas dentro del
+    // tenant, la lista de matriculados no.
+    return this.coursesService.getCourseStats(
+      id,
+      tenantId,
+      await this.filtroDeMatricula(user, tenantId),
+    );
+  }
+
+  /** Devuelve el id de estudiante por el que filtrar, o undefined si no aplica. */
+  private async filtroDeMatricula(
+    user: CurrentUserData,
+    tenantId: string,
+  ): Promise<string | undefined> {
+    if (user?.role !== 'STUDENT') return undefined;
+    const propio = await this.coursesService.estudianteDelUsuario(
+      user.userId,
+      tenantId,
+    );
+    // Sin ficha, un filtro vacio devolveria la matricula entera.
+    return propio ?? 'sin-ficha-de-estudiante';
   }
 
   @Patch(':id')

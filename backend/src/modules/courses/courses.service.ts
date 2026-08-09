@@ -144,7 +144,28 @@ export class CoursesService {
     };
   }
 
-  async findOne(id: string, tenantId: string) {
+  /** El token lleva el id de usuario, no el de estudiante: hay que resolverlo. */
+  async estudianteDelUsuario(
+    userId: string,
+    tenantId: string,
+  ): Promise<string | undefined> {
+    const student = await this.prisma.student.findFirst({
+      where: { userId, tenantId },
+      select: { id: true },
+    });
+    return student?.id;
+  }
+
+  /**
+   * @param paraEstudiante limita la lista de matriculados a la del propio
+   * alumno. El detalle del curso incluia la matricula completa con el registro
+   * `student` entero: correo, y en produccion tambien numero de identificacion,
+   * telefono, fecha de nacimiento, direccion, barrio y estrato de cada
+   * companero. Recorriendo el catalogo se recolectaban los correos de toda la
+   * institucion, lo que dejaba sin efecto la restriccion del directorio
+   * /users.
+   */
+  async findOne(id: string, tenantId: string, paraEstudiante?: string) {
     const course = await this.prisma.course.findFirst({
       where: { id, tenantId },
       include: {
@@ -162,15 +183,27 @@ export class CoursesService {
           },
         },
         enrollments: {
-          include: {
+          where: paraEstudiante ? { studentId: paraEstudiante } : undefined,
+          select: {
+            id: true,
+            studentId: true,
+            courseId: true,
+            enrolledAt: true,
+            status: true,
+            // Solo lo que necesita una lista de clase. El registro completo
+            // del estudiante se consulta por /students/:id, que si comprueba
+            // quien pregunta.
             student: {
-              include: {
+              select: {
+                id: true,
+                studentCode: true,
+                program: true,
+                semester: true,
                 user: {
                   select: {
                     id: true,
                     firstName: true,
                     lastName: true,
-                    email: true,
                     avatarUrl: true,
                   },
                 },
@@ -355,8 +388,14 @@ export class CoursesService {
     return { message: 'Student unenrolled successfully' };
   }
 
-  async getCourseStats(courseId: string, tenantId: string) {
-    const course = await this.findOne(courseId, tenantId);
+  // Las cifras agregadas salen de `_count` y de consultas aparte, asi que no
+  // se ven afectadas por filtrar la lista de matriculados que viaja dentro.
+  async getCourseStats(
+    courseId: string,
+    tenantId: string,
+    paraEstudiante?: string,
+  ) {
+    const course = await this.findOne(courseId, tenantId, paraEstudiante);
 
     // Get assignment statistics
     const totalAssignments = course.assignments.length;
