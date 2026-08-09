@@ -13,6 +13,8 @@ import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../../common/guards/tenant.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 
@@ -21,11 +23,17 @@ import { CurrentTenant } from '../../common/decorators/current-tenant.decorator'
 // @CurrentTenant(), que resuelve la cabecera X-Tenant-ID. Solo con
 // JwtAuthGuard, un usuario podia listar y CREAR notificaciones en el tenant
 // de otro cliente cambiando esa cabecera.
-@UseGuards(JwtAuthGuard, TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
+  // El DTO lleva el userId del destinatario, asi que sin control de rol
+  // cualquier alumno podia hacer llegar al administrador una notificacion con
+  // el aspecto de un aviso oficial de la plataforma: phishing interno con la
+  // credibilidad del propio sistema. Las notificaciones automaticas no pasan
+  // por aqui, se crean desde los servicios.
+  @Roles('TENANT_ADMIN', 'TEACHER', 'SUPER_ADMIN')
   create(
     @CurrentTenant() tenantId: string,
     @Body() createNotificationDto: CreateNotificationDto,
