@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -58,7 +58,27 @@ export class NotificationsService {
     });
   }
 
+  /**
+   * Prisma lanza P2025 cuando `update` o `delete` no encuentran la fila, y sin
+   * capturarlo Nest lo traduce a 500: pedir una notificacion inexistente --o
+   * ajena-- se reportaba como caida del servidor en vez de un 404.
+   */
+  private async asegurarQueExiste(
+    tenantId: string,
+    userId: string,
+    id: string,
+  ) {
+    const existe = await this.prisma.notification.findFirst({
+      where: { id, tenantId, userId },
+      select: { id: true },
+    });
+    if (!existe) {
+      throw new NotFoundException('Notificación no encontrada');
+    }
+  }
+
   async markAsRead(tenantId: string, userId: string, id: string) {
+    await this.asegurarQueExiste(tenantId, userId, id);
     return this.prisma.notification.update({
       where: {
         id,
@@ -85,6 +105,7 @@ export class NotificationsService {
   }
 
   async remove(tenantId: string, userId: string, id: string) {
+    await this.asegurarQueExiste(tenantId, userId, id);
     return this.prisma.notification.delete({
       where: {
         id,
