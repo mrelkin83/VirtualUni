@@ -1,0 +1,1574 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// SHARED SCHEMA (public) - System Level
+// ============================================
+
+model Tenant {
+  id           String       @id @default(uuid())
+  slug         String       @unique
+  name         String
+  subdomain    String       @unique
+  customDomain String?      @unique @map("custom_domain")
+  plan         Plan         @default(FREE)
+  status       TenantStatus @default(TRIAL)
+
+  // Settings
+  logo           String?
+  primaryColor   String  @default("#3B82F6") @map("primary_color")
+  secondaryColor String  @default("#8B5CF6") @map("secondary_color")
+
+  // Features
+  enableMessaging    Boolean @default(true) @map("enable_messaging")
+  enableVideoConf    Boolean @default(false) @map("enable_video_conf")
+  enablePayments     Boolean @default(false) @map("enable_payments")
+  enableCertificates Boolean @default(false) @map("enable_certificates")
+
+  // Limits
+  maxStudents Int @default(20) @map("max_students")
+  maxTeachers Int @default(2) @map("max_teachers")
+  maxCourses  Int @default(5) @map("max_courses")
+  storageGB   Int @default(1) @map("storage_gb")
+
+  // Current Usage
+  currentStudents  Int   @default(0) @map("current_students")
+  currentTeachers  Int   @default(0) @map("current_teachers")
+  currentCourses   Int   @default(0) @map("current_courses")
+  currentStorageGB Float @default(0) @map("current_storage_gb")
+
+  // Metadata
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  trialEndsAt DateTime? @map("trial_ends_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  subscriptions Subscription[]
+  invoices      Invoice[]
+  users         User[]
+
+  @@map("tenants")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  tenantId             String             @map("tenant_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  plan                 Plan
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime           @map("current_period_start")
+  currentPeriodEnd     DateTime           @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  tenantId        String        @map("tenant_id")
+  stripeInvoiceId String?       @unique @map("stripe_invoice_id")
+  amountCents     Int           @map("amount_cents")
+  currency        String        @default("USD")
+  status          InvoiceStatus
+  pdfUrl          String?       @map("pdf_url")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+// ============================================
+// TENANT SCHEMA - User Level
+// ============================================
+
+model User {
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  email        String
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  role         UserRole
+  avatarUrl    String?   @map("avatar_url")
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student Student?
+  teacher Teacher?
+
+  forumTopics       ForumTopic[]
+  forumReplies      ForumReply[]
+  communityPosts    CommunityPost[]
+  communityComments CommunityComment[]
+  communityLikes    CommunityLike[]
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+model Student {
+  id             String    @id @default(uuid())
+  userId         String    @unique @map("user_id")
+  tenantId       String    @map("tenant_id")
+  studentCode    String    @map("student_code")
+  program        String?
+  semester       String?
+  enrollmentDate DateTime? @map("enrollment_date")
+  status         String    @default("active")
+
+  // Personal Info (from original PerfilSection)
+  tipoIdentificacion   String?   @map("tipo_identificacion")
+  numeroIdentificacion String?   @map("numero_identificacion")
+  sexo                 String?
+  telefono             String?
+  celular              String?
+  fechaNacimiento      DateTime? @map("fecha_nacimiento")
+  lugarNacimiento      String?   @map("lugar_nacimiento")
+  direccion            String?
+  lugarResidencia      String?   @map("lugar_residencia")
+  barrio               String?
+  zona                 String?
+  estrato              String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  submissions  Submission[]
+  grades       Grade[]
+  examAttempts ExamAttempt[]
+  attendances  Attendance[]
+  groupMembers GroupMember[]
+  bookLoans        BookLoan[]
+  bookReservations BookReservation[]
+  certificateRequests CertificateRequest[]
+  invoices         StudentInvoice[]
+
+  @@unique([tenantId, studentCode])
+  @@map("students")
+}
+
+model Teacher {
+  id             String    @id @default(uuid())
+  userId         String    @unique @map("user_id")
+  tenantId       String    @map("tenant_id")
+  employeeCode   String    @map("employee_code")
+  department     String?
+  specialization String?
+  hireDate       DateTime? @map("hire_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+  grades  Grade[]
+
+  @@unique([tenantId, employeeCode])
+  @@map("teachers")
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  teacherId   String   @map("teacher_id")
+  code        String
+  name        String
+  description String?
+  credits     Int?
+  semester    String?
+  color       String   @default("bg-blue-500")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  enrollments Enrollment[]
+  assignments Assignment[]
+  topics      CourseTopic[]
+  grades      Grade[]
+  exams       Exam[]
+  attendances Attendance[]
+
+  materials       Material[]
+  materialFolders MaterialFolder[]
+  liveClasses     LiveClass[]
+  groups          CourseGroup[]
+  scheduleEvents  ScheduleEvent[]
+
+  @@unique([tenantId, code])
+  @@map("courses")
+}
+
+model CourseTopic {
+  id          String   @id @default(uuid())
+  courseId    String   @map("course_id")
+  tenantId    String   @map("tenant_id")
+  title       String
+  description String?
+  orderIndex  Int      @map("order_index")
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  blocks TopicBlock[]
+
+  @@map("course_topics")
+}
+
+model TopicBlock {
+  id         String   @id @default(uuid())
+  topicId    String   @map("topic_id")
+  tenantId   String   @map("tenant_id")
+  title      String
+  content    String?  @db.Text
+  objectives String[]
+  keyIdeas   String[] @map("key_ideas")
+  orderIndex Int      @map("order_index")
+
+  // Relations
+  topic CourseTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("topic_blocks")
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  studentId  String   @map("student_id")
+  courseId   String   @map("course_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+  status     String   @default("active")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@map("enrollments")
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  courseId    String   @map("course_id")
+  title       String
+  description String?  @db.Text
+  dueDate     DateTime @map("due_date")
+  totalPoints Int      @default(100) @map("total_points")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  assignmentId String    @map("assignment_id")
+  studentId    String    @map("student_id")
+  fileUrl      String?   @map("file_url")
+  content      String?   @db.Text
+  submittedAt  DateTime  @default(now()) @map("submitted_at")
+  grade        Float?
+  feedback     String?   @db.Text
+  gradedAt     DateTime? @map("graded_at")
+
+  // Relations
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@map("submissions")
+}
+
+model Grade {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  studentId String   @map("student_id")
+  courseId  String   @map("course_id")
+  teacherId String   @map("teacher_id")
+  gradeType String   @map("grade_type") // 'parcial1', 'parcial2', 'talleres', 'proyecto'
+  grade     Float
+  weight    Float?
+  gradedAt  DateTime @default(now()) @map("graded_at")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+
+  @@map("grades")
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  senderId    String    @map("sender_id")
+  recipientId String    @map("recipient_id")
+  subject     String
+  body        String    @db.Text
+  readAt      DateTime? @map("read_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("messages")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  tenantId  String           @map("tenant_id")
+  userId    String           @map("user_id")
+  titulo    String
+  mensaje   String           @db.Text
+  tipo      NotificationType
+  icono     String?
+  leida     Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId, leida])
+  @@index([tenantId])
+  @@map("notifications")
+}
+
+// ============================================
+// EXAMS & ATTENDANCE
+// ============================================
+
+model Exam {
+  id                 String     @id @default(uuid())
+  tenantId           String     @map("tenant_id")
+  courseId           String     @map("course_id")
+  titulo             String
+  instrucciones      String?    @db.Text
+  fecha              DateTime
+  duracion           Int // minutos
+  estado             ExamStatus @default(PROGRAMADO)
+  puntajeTotal       Float      @default(0) @map("puntaje_total")
+  notaMinima         Float      @default(6) @map("nota_minima")
+  intentosPermitidos Int        @default(1) @map("intentos_permitidos")
+  mostrarResultados  Boolean    @default(true) @map("mostrar_resultados")
+  mezclarPreguntas   Boolean    @default(false) @map("mezclar_preguntas")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  preguntas ExamQuestion[]
+  intentos  ExamAttempt[]
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@index([estado])
+  @@map("exams")
+}
+
+model ExamQuestion {
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  examId            String   @map("exam_id")
+  pregunta          String   @db.Text
+  opciones          String[]
+  respuestaCorrecta Int      @map("respuesta_correcta") // índice en opciones
+  puntaje           Float    @default(1)
+  orderIndex        Int      @default(0) @map("order_index")
+
+  // Relations
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([examId])
+  @@map("exam_questions")
+}
+
+model ExamAttempt {
+  id           String        @id @default(uuid())
+  tenantId     String        @map("tenant_id")
+  examId       String        @map("exam_id")
+  studentId    String        @map("student_id")
+  estado       AttemptStatus @default(EN_CURSO)
+  respuestas   Json          @default("{}") // { [questionId]: indiceSeleccionado }
+  calificacion Float?
+  correctas    Int?
+  iniciadoAt   DateTime      @default(now()) @map("iniciado_at")
+  enviadoAt    DateTime?     @map("enviado_at")
+
+  // Relations
+  exam    Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([examId])
+  @@index([studentId])
+  @@map("exam_attempts")
+}
+
+model Attendance {
+  id            String           @id @default(uuid())
+  tenantId      String           @map("tenant_id")
+  courseId      String           @map("course_id")
+  studentId     String           @map("student_id")
+  fecha         DateTime         @db.Date
+  estado        AttendanceStatus
+  observacion   String?
+  registradoPor String           @map("registrado_por") // userId del docente
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, studentId, fecha])
+  @@index([tenantId])
+  @@index([courseId, fecha])
+  @@index([studentId])
+  @@map("attendances")
+}
+
+enum ExamStatus {
+  PROGRAMADO
+  ACTIVO
+  FINALIZADO
+}
+
+enum AttemptStatus {
+  EN_CURSO
+  ENVIADO
+  CALIFICADO
+}
+
+enum AttendanceStatus {
+  PRESENTE
+  AUSENTE
+  TARDE
+  JUSTIFICADO
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Plan {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
+}
+
+// ============================================
+// ADMIN MODULES - Assets, Inventory, Payroll, HR, ID Cards
+// ============================================
+
+// Gestión de Activos
+model Asset {
+  id          String        @id @default(uuid())
+  tenantId    String        @map("tenant_id")
+  codigo      String
+  nombre      String
+  categoria   AssetCategory
+  descripcion String        @db.Text
+  valorCompra Float         @map("valor_compra")
+  valorActual Float         @map("valor_actual")
+  fechaCompra DateTime      @map("fecha_compra")
+  estado      AssetStatus
+  ubicacion   String
+  responsable String
+  imagenUrl   String?       @map("imagen_url")
+  numeroSerie String?       @map("numero_serie")
+  proveedor   String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@index([categoria])
+  @@index([estado])
+  @@map("assets")
+}
+
+// Inventario
+model InventoryItem {
+  id                String          @id @default(uuid())
+  tenantId          String          @map("tenant_id")
+  codigo            String
+  nombre            String
+  categoria         String
+  cantidad          Int
+  cantidadMinima    Int             @map("cantidad_minima")
+  unidadMedida      String          @map("unidad_medida")
+  precioUnitario    Float           @map("precio_unitario")
+  ubicacion         String
+  proveedor         String
+  fechaUltimaCompra DateTime        @map("fecha_ultima_compra")
+  estado            InventoryStatus
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  movements InventoryMovement[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@index([categoria])
+  @@index([estado])
+  @@map("inventory_items")
+}
+
+model InventoryMovement {
+  id          String       @id @default(uuid())
+  tenantId    String       @map("tenant_id")
+  itemId      String       @map("item_id")
+  tipo        MovementType
+  cantidad    Int
+  motivo      String
+  responsable String
+  fecha       DateTime     @default(now())
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([itemId])
+  @@map("inventory_movements")
+}
+
+// Nómina
+model PayrollEmployee {
+  id             String         @id @default(uuid())
+  tenantId       String         @map("tenant_id")
+  nombre         String
+  identificacion String
+  cargo          String
+  departamento   String
+  salarioBase    Float          @map("salario_base")
+  cuentaBancaria String         @map("cuenta_bancaria")
+  banco          String
+  estado         EmployeeStatus
+  fechaIngreso   DateTime       @map("fecha_ingreso")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  payrollRecords PayrollRecord[]
+
+  @@unique([tenantId, identificacion])
+  @@index([tenantId])
+  @@index([estado])
+  @@map("payroll_employees")
+}
+
+model PayrollRecord {
+  id             String        @id @default(uuid())
+  tenantId       String        @map("tenant_id")
+  empleadoId     String        @map("empleado_id")
+  periodo        String
+  fechaInicio    DateTime      @map("fecha_inicio")
+  fechaFin       DateTime      @map("fecha_fin")
+  fechaPago      DateTime      @map("fecha_pago")
+  salarioBase    Float         @map("salario_base")
+  bonificaciones Float         @default(0)
+  deducciones    Float         @default(0)
+  salarioNeto    Float         @map("salario_neto")
+  estado         PayrollStatus
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  empleado PayrollEmployee @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([empleadoId])
+  @@index([periodo])
+  @@map("payroll_records")
+}
+
+// Recursos Humanos
+model Employee {
+  id                         String         @id @default(uuid())
+  tenantId                   String         @map("tenant_id")
+  nombre                     String
+  identificacion             String
+  email                      String
+  telefono                   String
+  cargo                      String
+  departamento               String
+  fechaIngreso               DateTime       @map("fecha_ingreso")
+  tipoContrato               ContractType   @map("tipo_contrato")
+  salario                    Float
+  estado                     EmployeeStatus
+  direccion                  String
+  fechaNacimiento            DateTime       @map("fecha_nacimiento")
+  genero                     Gender
+  estadoCivil                CivilStatus    @map("estado_civil")
+  contactoEmergenciaNombre   String         @map("contacto_emergencia_nombre")
+  contactoEmergenciaTelefono String         @map("contacto_emergencia_telefono")
+  contactoEmergenciaRelacion String         @map("contacto_emergencia_relacion")
+  createdAt                  DateTime       @default(now()) @map("created_at")
+  updatedAt                  DateTime       @updatedAt @map("updated_at")
+
+  vacationRequests VacationRequest[]
+
+  @@unique([tenantId, identificacion])
+  @@index([tenantId])
+  @@index([departamento])
+  @@index([estado])
+  @@map("employees")
+}
+
+model VacationRequest {
+  id              String         @id @default(uuid())
+  tenantId        String         @map("tenant_id")
+  empleadoId      String         @map("empleado_id")
+  fechaInicio     DateTime       @map("fecha_inicio")
+  fechaFin        DateTime       @map("fecha_fin")
+  diasSolicitados Int            @map("dias_solicitados")
+  motivo          String         @db.Text
+  estado          VacationStatus
+  fechaSolicitud  DateTime       @default(now()) @map("fecha_solicitud")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  empleado Employee @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([empleadoId])
+  @@index([estado])
+  @@map("vacation_requests")
+}
+
+// Carnetización
+model IDCard {
+  id               String       @id @default(uuid())
+  tenantId         String       @map("tenant_id")
+  usuarioId        String       @map("usuario_id")
+  nombre           String
+  identificacion   String
+  tipoUsuario      UserCardType @map("tipo_usuario")
+  numeroCarnet     String       @map("numero_carnet")
+  fechaEmision     DateTime     @map("fecha_emision")
+  fechaVencimiento DateTime     @map("fecha_vencimiento")
+  estado           CardStatus
+  fotoUrl          String       @map("foto_url")
+  qrCode           String?      @map("qr_code")
+
+  // Relación con plantilla y expedición
+  templateId String? @map("template_id")
+  issuanceId String? @map("issuance_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  template CardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  issuance CardIssuance? @relation(fields: [issuanceId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, numeroCarnet])
+  @@index([tenantId])
+  @@index([usuarioId])
+  @@index([estado])
+  @@index([templateId])
+  @@index([issuanceId])
+  @@map("id_cards")
+}
+
+// Plantillas de carnets
+model CardTemplate {
+  id          String  @id @default(uuid())
+  tenantId    String  @map("tenant_id")
+  nombre      String
+  descripcion String? @db.Text
+
+  // Tipos de usuario que pueden usar esta plantilla
+  tiposUsuario String[] @map("tipos_usuario") // Array de UserCardType como strings
+
+  // Diseño de la plantilla (JSON)
+  layoutConfig Json @map("layout_config") // Configuración del layout: posición de elementos
+  campos       Json // Campos dinámicos y su configuración
+
+  // Dimensiones en milímetros (tamaño tarjeta estándar CR80)
+  ancho       Float  @default(85.6) // mm
+  alto        Float  @default(53.98) // mm
+  orientacion String @default("horizontal") // horizontal o vertical
+
+  // Estilo y diseño
+  colorPrimario    String @default("#3B82F6") @map("color_primario")
+  colorSecundario  String @default("#1E40AF") @map("color_secundario")
+  colorTexto       String @default("#FFFFFF") @map("color_texto")
+  fuentePrincipal  String @default("Arial") @map("fuente_principal")
+  fuenteSecundaria String @default("Arial") @map("fuente_secundaria")
+
+  // Recursos visuales
+  logoUrl           String? @map("logo_url")
+  fondoFrontalUrl   String? @map("fondo_frontal_url")
+  fondoPosteriorUrl String? @map("fondo_posterior_url")
+
+  // Estado y configuración
+  esActiva            Boolean @default(true) @map("es_activa")
+  esPredeterminada    Boolean @default(false) @map("es_predeterminada")
+  incluirQR           Boolean @default(true) @map("incluir_qr")
+  incluirCodigoBarras Boolean @default(false) @map("incluir_codigo_barras")
+  doblesCara          Boolean @default(true) @map("dobles_cara")
+
+  // Metadata
+  version   Int      @default(1)
+  creadoPor String?  @map("creado_por")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  carnets      IDCard[]
+  expediciones CardIssuance[]
+
+  @@index([tenantId])
+  @@index([esActiva])
+  @@index([esPredeterminada])
+  @@map("card_templates")
+}
+
+// Registro de expediciones de carnets
+model CardIssuance {
+  id         String  @id @default(uuid())
+  tenantId   String  @map("tenant_id")
+  templateId String? @map("template_id")
+
+  // Información de expedición
+  lote            String // Número de lote (auto-generado)
+  tipoExpedicion  IssuanceType @map("tipo_expedicion")
+  cantidad        Int
+  cantidadExitosa Int          @default(0) @map("cantidad_exitosa")
+  cantidadFallida Int          @default(0) @map("cantidad_fallida")
+
+  // Usuario que realizó la expedición
+  expedidoPor       String @map("expedido_por") // userId
+  expedidoPorNombre String @map("expedido_por_nombre")
+
+  // Detalles
+  motivo        String? @db.Text
+  observaciones String? @db.Text
+
+  // Estado de procesamiento
+  estado IssuanceStatus @default(PROCESANDO)
+
+  // Archivos generados
+  pdfUrl        String? @map("pdf_url")
+  archivoZipUrl String? @map("archivo_zip_url")
+
+  // Metadata de carnets generados
+  carnetsGenerados String[] @map("carnets_generados") // Array de IDs de carnets
+  errores          Json? // Errores durante la generación
+
+  fechaExpedicion DateTime  @default(now()) @map("fecha_expedicion")
+  fechaCompletado DateTime? @map("fecha_completado")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relaciones
+  template CardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  carnets  IDCard[]
+
+  @@index([tenantId])
+  @@index([lote])
+  @@index([estado])
+  @@index([tipoExpedicion])
+  @@index([fechaExpedicion])
+  @@index([expedidoPor])
+  @@map("card_issuances")
+}
+
+// ============================================
+// ENUMS FOR ADMIN MODULES
+// ============================================
+
+enum AssetCategory {
+  TECNOLOGIA
+  MOBILIARIO
+  EQUIPAMIENTO
+  VEHICULO
+  OTRO
+}
+
+enum AssetStatus {
+  EXCELENTE
+  BUENO
+  REGULAR
+  MALO
+  DANADO
+}
+
+enum InventoryStatus {
+  DISPONIBLE
+  AGOTADO
+  BAJO
+  DESCONTINUADO
+}
+
+enum MovementType {
+  ENTRADA
+  SALIDA
+  AJUSTE
+}
+
+enum EmployeeStatus {
+  ACTIVO
+  INACTIVO
+  VACACIONES
+  INCAPACIDAD
+}
+
+enum PayrollStatus {
+  BORRADOR
+  PROCESADO
+  PAGADO
+}
+
+enum ContractType {
+  INDEFINIDO
+  FIJO
+  PRESTACION
+  PASANTIA
+}
+
+enum Gender {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+
+enum CivilStatus {
+  SOLTERO
+  CASADO
+  UNION_LIBRE
+  DIVORCIADO
+  VIUDO
+}
+
+enum VacationStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+enum UserCardType {
+  ESTUDIANTE
+  DOCENTE
+  ADMINISTRATIVO
+}
+
+enum CardStatus {
+  ACTIVO
+  VENCIDO
+  BLOQUEADO
+  PERDIDO
+}
+
+enum IssuanceType {
+  NUEVA_EMISION
+  RENOVACION
+  REEMPLAZO
+  MASIVA
+}
+
+enum IssuanceStatus {
+  PROCESANDO
+  COMPLETADO
+  COMPLETADO_CON_ERRORES
+  FALLIDO
+  CANCELADO
+}
+
+// ============================================
+// ADMIN MODULES - Announcements, Procedures, Mass Messages
+// ============================================
+
+// Anuncios Institucionales
+model Announcement {
+  id          String               @id @default(uuid())
+  tenantId    String               @map("tenant_id")
+  titulo      String
+  contenido   String               @db.Text
+  autor       String
+  prioridad   AnnouncementPriority
+  estado      AnnouncementStatus
+  adjuntos    String[]
+  targetRoles String[]             @map("target_roles")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  publishedAt DateTime?            @map("published_at")
+
+  @@index([tenantId])
+  @@index([estado])
+  @@index([prioridad])
+  @@map("announcements")
+}
+
+// Trámites
+model Procedure {
+  id             String          @id @default(uuid())
+  tenantId       String          @map("tenant_id")
+  tipo           String
+  solicitanteId  String          @map("solicitante_id")
+  solicitante    String
+  descripcion    String          @db.Text
+  estado         ProcedureStatus
+  prioridad      Priority
+  asignadoA      String?         @map("asignado_a")
+  adjuntos       String[]
+  respuesta      String?         @db.Text
+  fechaSolicitud DateTime        @default(now()) @map("fecha_solicitud")
+  fechaRespuesta DateTime?       @map("fecha_respuesta")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([estado])
+  @@index([solicitanteId])
+  @@map("procedures")
+}
+
+// Mensajes Masivos
+model MassMessage {
+  id          String        @id @default(uuid())
+  tenantId    String        @map("tenant_id")
+  asunto      String
+  contenido   String        @db.Text
+  remitente   String
+  targetRoles String[]      @map("target_roles")
+  targetUsers String[]      @map("target_users")
+  adjuntos    String[]
+  estado      MessageStatus
+  programado  DateTime?
+  enviadoAt   DateTime?     @map("enviado_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([estado])
+  @@map("mass_messages")
+}
+
+// ============================================
+// FINANZAS Y CONTABILIDAD MODELS
+// ============================================
+
+model Transaction {
+  id          String            @id @default(uuid())
+  tenantId    String            @map("tenant_id")
+  codigo      String
+  tipo        TransactionType
+  categoria   String
+  concepto    String
+  monto       Float
+  fecha       DateTime
+  metodoPago  String?           @map("metodo_pago")
+  referencia  String?
+  estudiante  String?
+  descripcion String?           @db.Text
+  comprobante String?
+  estado      TransactionStatus
+  creadoPor   String            @map("creado_por")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([tipo])
+  @@index([estado])
+  @@index([fecha])
+  @@map("transactions")
+}
+
+model Account {
+  id          String          @id @default(uuid())
+  tenantId    String          @map("tenant_id")
+  codigo      String
+  nombre      String
+  tipo        AccountType
+  categoria   AccountCategory
+  saldo       Float           @default(0)
+  moneda      String          @default("COP")
+  descripcion String?         @db.Text
+  activa      Boolean         @default(true)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([tipo])
+  @@index([activa])
+  @@map("accounts")
+}
+
+model Budget {
+  id          String       @id @default(uuid())
+  tenantId    String       @map("tenant_id")
+  nombre      String
+  categoria   String
+  monto       Float
+  gastado     Float        @default(0)
+  periodo     String
+  fechaInicio DateTime     @map("fecha_inicio")
+  fechaFin    DateTime     @map("fecha_fin")
+  estado      BudgetStatus
+  descripcion String?      @db.Text
+  alertaEn    Int          @default(80) @map("alerta_en")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([estado])
+  @@index([periodo])
+  @@map("budgets")
+}
+
+model StudentInvoice {
+  id               String               @id @default(uuid())
+  tenantId         String               @map("tenant_id")
+  numero           String
+  // Nombre mostrado en la factura; studentId es el vinculo real con el alumno.
+  estudiante       String
+  studentId        String?              @map("student_id")
+  conceptos        String[]
+  subtotal         Float
+  descuento        Float                @default(0)
+  impuestos        Float                @default(0)
+  total            Float
+  fechaEmision     DateTime             @map("fecha_emision")
+  fechaVencimiento DateTime             @map("fecha_vencimiento")
+  estado           StudentInvoiceStatus
+  notas            String?              @db.Text
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  payments StudentPayment[]
+  student  Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([estado])
+  @@index([estudiante])
+  @@index([studentId])
+  @@map("student_invoices")
+}
+
+model StudentPayment {
+  id          String        @id @default(uuid())
+  tenantId    String        @map("tenant_id")
+  invoiceId   String        @map("invoice_id")
+  monto       Float
+  metodoPago  PaymentMethod @map("metodo_pago")
+  referencia  String?
+  fecha       DateTime
+  comprobante String?
+  notas       String?       @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  invoice StudentInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([metodoPago])
+  @@map("student_payments")
+}
+
+// ============================================
+// ENUMS FOR ADDITIONAL MODULES
+// ============================================
+
+enum AnnouncementPriority {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+enum AnnouncementStatus {
+  BORRADOR
+  PUBLICADO
+  ARCHIVADO
+}
+
+enum ProcedureStatus {
+  PENDIENTE
+  EN_PROCESO
+  COMPLETADO
+  RECHAZADO
+}
+
+enum Priority {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+enum MessageStatus {
+  BORRADOR
+  PROGRAMADO
+  ENVIADO
+  FALLIDO
+}
+
+enum TransactionType {
+  INGRESO
+  EGRESO
+}
+
+enum TransactionStatus {
+  PENDIENTE
+  COMPLETADO
+  CANCELADO
+  RECHAZADO
+}
+
+enum AccountType {
+  ACTIVO
+  PASIVO
+  PATRIMONIO
+  INGRESO
+  EGRESO
+}
+
+enum AccountCategory {
+  EFECTIVO
+  BANCO
+  CUENTAS_POR_COBRAR
+  CUENTAS_POR_PAGAR
+  MATRICULAS
+  CERTIFICADOS
+  NOMINA
+  SERVICIOS
+  INFRAESTRUCTURA
+  OTROS
+}
+
+enum BudgetStatus {
+  ACTIVO
+  COMPLETADO
+  EXCEDIDO
+  CANCELADO
+}
+
+enum StudentInvoiceStatus {
+  PENDIENTE
+  PAGADA
+  VENCIDA
+  CANCELADA
+  PARCIAL
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TRANSFERENCIA
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  PSE
+  OTRO
+}
+
+// ============================================================================
+// MODULO DOCENTE: MATERIALES, CLASES EN VIVO Y GRUPOS
+// ============================================================================
+
+model MaterialFolder {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  courseId    String?  @map("course_id")
+  nombre      String
+  descripcion String?  @db.Text
+  color       String   @default("bg-blue-500")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  course    Course?    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  materials Material[]
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@map("material_folders")
+}
+
+model Material {
+  id          String       @id @default(uuid())
+  tenantId    String       @map("tenant_id")
+  courseId    String       @map("course_id")
+  folderId    String?      @map("folder_id")
+  nombre      String
+  descripcion String?      @db.Text
+  tipo        MaterialType
+  url         String
+  formato     String?
+  tamanioKb   Int?         @map("tamanio_kb")
+  visible     Boolean      @default(true)
+  descargas   Int          @default(0)
+  subidoPor   String       @map("subido_por")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  course Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  folder MaterialFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@index([tipo])
+  @@map("materials")
+}
+
+model LiveClass {
+  id              String          @id @default(uuid())
+  tenantId        String          @map("tenant_id")
+  courseId        String          @map("course_id")
+  titulo          String
+  descripcion     String?         @db.Text
+  fechaInicio     DateTime        @map("fecha_inicio")
+  fechaFin        DateTime?       @map("fecha_fin")
+  enlace          String?
+  plataforma      String?
+  aula            String?
+  estado          LiveClassStatus @default(PROGRAMADA)
+  grabacionUrl    String?         @map("grabacion_url")
+  duracionMinutos Int?            @map("duracion_minutos")
+  asistentes      Int             @default(0)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@index([estado])
+  @@index([fechaInicio])
+  @@map("live_classes")
+}
+
+model CourseGroup {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  courseId        String   @map("course_id")
+  nombre          String
+  descripcion     String?  @db.Text
+  capacidadMaxima Int?     @map("capacidad_maxima")
+  horario         String?
+  aula            String?
+  color           String   @default("bg-purple-500")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  members GroupMember[]
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@map("course_groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  groupId   String   @map("group_id")
+  studentId String   @map("student_id")
+  rol       String   @default("miembro")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  group   CourseGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, studentId])
+  @@index([tenantId])
+  @@map("group_members")
+}
+
+enum MaterialType {
+  DOCUMENTO
+  VIDEO
+  ENLACE
+  PRESENTACION
+  IMAGEN
+  AUDIO
+  OTRO
+}
+
+enum LiveClassStatus {
+  PROGRAMADA
+  EN_CURSO
+  FINALIZADA
+  CANCELADA
+}
+
+// ============================================================================
+// MODULO ESTUDIANTE: BIBLIOTECA, FOROS, COMUNIDAD, CERTIFICADOS Y HORARIO
+// ============================================================================
+
+model Book {
+  id                    String   @id @default(uuid())
+  tenantId              String   @map("tenant_id")
+  titulo                String
+  autor                 String
+  isbn                  String?
+  categoria             String
+  editorial             String?
+  anio                  Int?
+  descripcion           String?  @db.Text
+  portadaUrl            String?  @map("portada_url")
+  ubicacion             String?
+  ejemplaresTotal       Int      @default(1) @map("ejemplares_total")
+  ejemplaresDisponibles Int      @default(1) @map("ejemplares_disponibles")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  loans        BookLoan[]
+  reservations BookReservation[]
+
+  @@index([tenantId])
+  @@index([categoria])
+  @@map("books")
+}
+
+model BookLoan {
+  id               String     @id @default(uuid())
+  tenantId         String     @map("tenant_id")
+  bookId           String     @map("book_id")
+  studentId        String     @map("student_id")
+  fechaPrestamo    DateTime   @default(now()) @map("fecha_prestamo")
+  fechaVencimiento DateTime   @map("fecha_vencimiento")
+  fechaDevolucion  DateTime?  @map("fecha_devolucion")
+  estado           LoanStatus @default(ACTIVO)
+  renovaciones     Int        @default(0)
+  observaciones    String?    @db.Text
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([estado])
+  @@map("book_loans")
+}
+
+model BookReservation {
+  id              String            @id @default(uuid())
+  tenantId        String            @map("tenant_id")
+  bookId          String            @map("book_id")
+  studentId       String            @map("student_id")
+  fechaReserva    DateTime          @default(now()) @map("fecha_reserva")
+  fechaExpiracion DateTime          @map("fecha_expiracion")
+  estado          ReservationStatus @default(PENDIENTE)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("book_reservations")
+}
+
+model ForumTopic {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  courseId  String?  @map("course_id")
+  autorId   String   @map("autor_id")
+  titulo    String
+  contenido String   @db.Text
+  categoria String   @default("general")
+  fijado    Boolean  @default(false)
+  cerrado   Boolean  @default(false)
+  vistas    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  autor   User         @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  replies ForumReply[]
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@map("forum_topics")
+}
+
+model ForumReply {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  topicId    String   @map("topic_id")
+  autorId    String   @map("autor_id")
+  contenido  String   @db.Text
+  esSolucion Boolean  @default(false) @map("es_solucion")
+  likes      Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  topic ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  autor User       @relation(fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([topicId])
+  @@map("forum_replies")
+}
+
+model CommunityPost {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  autorId    String   @map("autor_id")
+  contenido  String   @db.Text
+  imagenUrl  String?  @map("imagen_url")
+  categoria  String   @default("general")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  autor    User               @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  comments CommunityComment[]
+  likes    CommunityLike[]
+
+  @@index([tenantId])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  postId    String   @map("post_id")
+  autorId   String   @map("autor_id")
+  contenido String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post  CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  autor User          @relation(fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([postId])
+  @@map("community_comments")
+}
+
+model CommunityLike {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([tenantId])
+  @@map("community_likes")
+}
+
+model CertificateRequest {
+  id            String            @id @default(uuid())
+  tenantId      String            @map("tenant_id")
+  studentId     String            @map("student_id")
+  tipo          String
+  motivo        String?           @db.Text
+  estado        CertificateStatus @default(PENDIENTE)
+  costo         Float             @default(0)
+  fechaEmision  DateTime?         @map("fecha_emision")
+  archivoUrl    String?           @map("archivo_url")
+  observaciones String?           @db.Text
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([estado])
+  @@map("certificate_requests")
+}
+
+model ScheduleEvent {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  courseId   String?  @map("course_id")
+  titulo     String
+  tipo       String   @default("clase")
+  diaSemana  Int      @map("dia_semana")
+  horaInicio String   @map("hora_inicio")
+  horaFin    String   @map("hora_fin")
+  aula       String?
+  color      String   @default("bg-blue-500")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@map("schedule_events")
+}
+
+enum LoanStatus {
+  ACTIVO
+  DEVUELTO
+  VENCIDO
+}
+
+enum ReservationStatus {
+  PENDIENTE
+  LISTA
+  CANCELADA
+  COMPLETADA
+}
+
+enum CertificateStatus {
+  PENDIENTE
+  EN_PROCESO
+  EMITIDO
+  RECHAZADO
+}

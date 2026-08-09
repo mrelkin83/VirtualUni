@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Archivos subidos en tiempo de ejecucion
+uploads/
+backend/uploads/
+
+# Lista de secretos historicos que la bitacora debe redactar (contiene
+# credenciales rotadas en texto plano: nunca debe subirse)
+scripts/.bitacora-secretos.txt
+
+# Estado incremental de la bitacora: depende de mtime, que cambia en cada
+# maquina. Versionarlo solo provocaria regeneraciones completas innecesarias.
+docs/bitacora/.estado.json
