@@ -558,25 +558,49 @@ export const useTeacherDashboard = () => {
     }
   };
 
-  const enviarMensajeEstudiante = (estudianteId: number) => {
-    const estudiante = estudiantes.find(e => e.id === estudianteId);
+  /**
+   * El mensaje se enviaba solo a la lista en memoria: el aviso decía "Mensaje
+   * enviado" y el alumno no recibía nada. La API necesita el id de USUARIO del
+   * destinatario, que no es el id de la ficha de estudiante.
+   */
+  const enviarMensajeEstudiante = async (estudianteId: number | string) => {
+    const estudiante: any = estudiantes.find((e: any) => e.id === estudianteId);
     if (!estudiante) return;
 
-    const asunto = prompt(`Asunto del mensaje a ${estudiante.nombre}:`);
-    if (!asunto?.trim()) return;
+    const nombre =
+      estudiante.nombre ??
+      [estudiante.user?.firstName, estudiante.user?.lastName].filter(Boolean).join(' ');
+    const destinatario = estudiante.userId ?? estudiante.user?.id;
+    if (!destinatario) {
+      alert('No se pudo determinar el destinatario de este estudiante.');
+      return;
+    }
 
+    const asunto = prompt(`Asunto del mensaje a ${nombre}:`);
+    if (!asunto?.trim()) return;
     const mensaje = prompt('Contenido del mensaje:');
-    if (mensaje && mensaje.trim()) {
-      const nuevoMensaje = {
-        id: mensajes.length + 1,
-        para: estudiante.nombre,
-        asunto,
-        mensaje,
-        fecha: new Date().toISOString().split('T')[0],
-        tipo: 'enviado' as const
-      };
-      setMensajes([nuevoMensaje, ...mensajes]);
-      alert(`Mensaje enviado a ${estudiante.nombre}!`);
+    if (!mensaje?.trim()) return;
+
+    try {
+      await teacherMessagesApi.create({
+        recipientId: destinatario,
+        subject: asunto,
+        body: mensaje,
+      });
+      setMensajes([
+        {
+          id: Date.now(),
+          para: nombre,
+          asunto,
+          mensaje,
+          fecha: new Date().toISOString().split('T')[0],
+          tipo: 'enviado' as const,
+        } as any,
+        ...mensajes,
+      ]);
+      alert(`Mensaje enviado a ${nombre}!`);
+    } catch (err: any) {
+      alert('No se pudo enviar el mensaje: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -645,7 +669,31 @@ export const useTeacherDashboard = () => {
     }
   };
 
-  const responderMensaje = (mensajeId: number, respuesta: string) => {
+  /**
+   * La respuesta se añadía únicamente al hilo en memoria: el estudiante nunca
+   * la recibía y al recargar desaparecía. Se envía como mensaje real a quien
+   * escribió el original.
+   */
+  const responderMensaje = async (mensajeId: number | string, respuesta: string) => {
+    const original: any = mensajes.find((m: any) => m.id === mensajeId);
+    const destinatario = original?.senderId ?? original?.sender?.id;
+
+    if (destinatario) {
+      try {
+        await teacherMessagesApi.create({
+          recipientId: destinatario,
+          subject: original?.subject
+            ? `Re: ${original.subject}`
+            : `Re: ${original?.asunto ?? 'tu mensaje'}`,
+          body: respuesta,
+        });
+        await teacherMessagesApi.markAsRead(String(mensajeId)).catch(() => undefined);
+      } catch (err: any) {
+        alert('No se pudo enviar la respuesta: ' + (err?.message || 'error de conexión'));
+        return;
+      }
+    }
+
     setMensajes(mensajes.map(m => {
       if (m.id === mensajeId) {
         const nuevaRespuesta = {
@@ -1248,8 +1296,15 @@ export const useTeacherDashboard = () => {
     setNuevoMensajeModal(true);
   };
 
-  const marcarComoLeido = (mensajeId: number) => {
-      setMensajes(mensajes.map(m =>
+  const marcarComoLeido = async (mensajeId: number | string) => {
+    // Solo se marcaba en memoria: al recargar el mensaje volvía a aparecer
+    // como no leído y el contador de la campana nunca bajaba.
+    try {
+      await teacherMessagesApi.markAsRead(String(mensajeId));
+    } catch {
+      /* si falla, al menos no se bloquea la interfaz */
+    }
+    setMensajes(mensajes.map(m =>
       m.id === mensajeId ? { ...m, leido: true } as any : m
     ));
   };
