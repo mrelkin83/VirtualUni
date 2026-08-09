@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
 import { coursesAdminApi, teachersApi } from '../api/endpoints/courses';
 import { personasApi } from '../api/endpoints/personas';
+import { plantillasCertificadoApi } from '../api/endpoints/certificate-templates';
 import { comoArreglo } from '../utils/respuestaApi';
 import {
   activos,
@@ -122,7 +123,7 @@ export default function AdminDashboard() {
   ]);
 
   // Sistema de plantillas de certificados
-  const [plantillas, setPlantillas] = useState([
+  const [plantillas, setPlantillas] = useState<any[]>([
     {
       id: 1,
       nombre: 'Certificado de Aprobación',
@@ -308,6 +309,7 @@ export default function AdminDashboard() {
     { id: 5, nombre: 'Elena Ramírez', email: 'elena.r@university.edu', rol: 'docente', estado: 'activo', ultimoAcceso: '2025-10-02', departamento: 'Matemáticas' }
   ]);
 
+  const usuarioActual = useAuthStore((st) => st.user);
   const [docentes, setDocentes] = useState<{id:string;nombre:string}[]>([]);
   const [cursos, setCursos] = useState<any[]>([
     { id: 1, nombre: 'Programación Avanzada', codigo: 'CS301', estudiantes: 45, docente: 'Carlos Rodríguez', estado: 'activo', descripcion: 'Curso avanzado de programación orientada a objetos', duracion: '16 semanas', creditos: '4' },
@@ -534,6 +536,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     cargarCursos();
     cargarUsuarios();
+    cargarPlantillas();
   }, []);
 
   // Cerrar búsqueda al hacer clic fuera
@@ -742,18 +745,34 @@ export default function AdminDashboard() {
     }
   };
 
-  const crearPlantilla = () => {
+  /**
+   * El compositor de certificados no tenía backend: crear, editar, duplicar y
+   * eliminar solo tocaban este arreglo, así que al recargar reaparecían las
+   * dos plantillas de ejemplo y se perdía todo el diseño. Ahora persisten.
+   */
+  const cargarPlantillas = async () => {
+    try {
+      const res = await plantillasCertificadoApi.getAll();
+      setPlantillas(comoArreglo((res as any).data) as any);
+    } catch (err) {
+      console.error('Error cargando plantillas:', err);
+    }
+  };
+
+  const crearPlantilla = async () => {
     if (!nuevaPlantilla.nombre) {
       alert('Por favor ingresa un nombre para la plantilla');
       return;
     }
-    
-    const plantilla = {
-      id: plantillas.length + 1,
-      ...nuevaPlantilla
-    };
-    
-    setPlantillas([...plantillas, plantilla]);
+
+    try {
+      await plantillasCertificadoApi.create(nuevaPlantilla as any);
+      await cargarPlantillas();
+    } catch (err: any) {
+      alert('No se pudo crear la plantilla: ' + (err?.message || 'error de conexión'));
+      return;
+    }
+
     setCrearPlantillaModal(false);
     setNuevaPlantilla({
       nombre: '',
@@ -765,34 +784,46 @@ export default function AdminDashboard() {
     alert('Plantilla creada exitosamente');
   };
 
-  const actualizarPlantilla = () => {
+  const actualizarPlantilla = async () => {
     if (!editarPlantillaModal.nombre) {
       alert('Por favor ingresa un nombre para la plantilla');
       return;
     }
-    
-    setPlantillas(plantillas.map(p => 
-      p.id === editarPlantillaModal.id ? editarPlantillaModal : p
-    ));
-    setEditarPlantillaModal(null);
-    alert('Plantilla actualizada exitosamente');
+
+    try {
+      await plantillasCertificadoApi.update(String(editarPlantillaModal.id), {
+        nombre: editarPlantillaModal.nombre,
+        descripcion: editarPlantillaModal.descripcion,
+        estado: editarPlantillaModal.estado,
+        componentes: editarPlantillaModal.componentes,
+        configuracion: editarPlantillaModal.configuracion,
+      });
+      await cargarPlantillas();
+      setEditarPlantillaModal(null);
+      alert('Plantilla actualizada exitosamente');
+    } catch (err: any) {
+      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const duplicarPlantilla = (plantilla) => {
-    const nuevaPlantilla = {
-      ...plantilla,
-      id: plantillas.length + 1,
-      nombre: `${plantilla.nombre} (Copia)`,
-      estado: 'borrador'
-    };
-    setPlantillas([...plantillas, nuevaPlantilla]);
-    alert('Plantilla duplicada exitosamente');
+  const duplicarPlantilla = async (plantilla) => {
+    try {
+      await plantillasCertificadoApi.duplicate(String(plantilla.id));
+      await cargarPlantillas();
+      alert('Plantilla duplicada exitosamente');
+    } catch (err: any) {
+      alert('No se pudo duplicar: ' + (err?.message || 'error de conexión'));
+    }
   };
 
-  const eliminarPlantilla = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar esta plantilla?')) {
-      setPlantillas(plantillas.filter(p => p.id !== id));
+  const eliminarPlantilla = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta plantilla?')) return;
+    try {
+      await plantillasCertificadoApi.remove(String(id));
+      await cargarPlantillas();
       alert('Plantilla eliminada exitosamente');
+    } catch (err: any) {
+      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -3255,12 +3286,19 @@ export default function AdminDashboard() {
                 </span>
               </button>
               <div className="flex items-center gap-2">
+                {/* El nombre y el correo estaban escritos a mano
+                    ("admin@university.edu"): cualquier administrador veía la
+                    identidad de otra persona en su propia cabecera. */}
                 <div style={{ backgroundColor: platformConfig.primaryColor }} className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
-                  A
+                  {(usuarioActual?.firstName?.[0] ?? 'A').toUpperCase()}
                 </div>
                 <div className="hidden md:block">
-                  <p className={`text-sm font-semibold ${text}`}>Admin Panel</p>
-                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>admin@university.edu</p>
+                  <p className={`text-sm font-semibold ${text}`}>
+                    {[usuarioActual?.firstName, usuarioActual?.lastName].filter(Boolean).join(' ') || 'Admin Panel'}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {usuarioActual?.email ?? ''}
+                  </p>
                 </div>
               </div>
             </div>

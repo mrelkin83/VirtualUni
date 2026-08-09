@@ -734,6 +734,25 @@ model IDCard {
 }
 
 // Plantillas de carnets
+/// Plantillas del compositor de certificados del panel de administracion.
+/// La seccion existia con un compositor visual completo --texto, campos
+/// dinamicos, firma, codigo QR, tamano y margenes-- pero no habia modelo
+/// alguno: todo vivia en memoria y se perdia al recargar.
+model CertificateTemplate {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  nombre        String
+  descripcion   String?  @db.Text
+  estado        String   @default("borrador") // borrador | publicado
+  componentes   Json     @default("[]")
+  configuracion Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("certificate_templates")
+}
+
 model CardTemplate {
   id          String  @id @default(uuid())
   tenantId    String  @map("tenant_id")

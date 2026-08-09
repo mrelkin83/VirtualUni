@@ -51,6 +51,7 @@ import { CommunityModule } from './modules/community/community.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { CertificateTemplatesModule } from './modules/certificate-templates/certificate-templates.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     CertificatesModule,
     ScheduleModule,
     UploadsModule,
+    CertificateTemplatesModule,
   ],
   controllers: [AppController],
 })
