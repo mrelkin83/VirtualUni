@@ -36,7 +36,8 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const { passwordHash, ...result } = user;
+    // Se descarta el hash antes de devolver el usuario.
+    const { passwordHash: _hash, ...result } = user;
     return result;
   }
 

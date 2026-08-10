@@ -5,7 +5,18 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'backend/**', 'backups/**', 'public/**'],
+    // `docs/prototipos` guarda las maquetas previas al proyecto: son material
+    // de referencia, no código compilado por Vite, y al no estar cubiertas por
+    // el tsconfig el parser fallaba en ellas con "Unexpected token <". Eran los
+    // 4 errores que el CI venía silenciando con `|| true`.
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'backend/**',
+      'backups/**',
+      'public/**',
+      'docs/**',
+    ],
   },
   {
     files: ['src/**/*.{ts,tsx}'],

@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Run linter
-        run: npm run lint || true
+        run: npm run lint
 
       - name: Build frontend
         run: npm run build
@@ -79,11 +79,11 @@ jobs:
 
       - name: Run linter
         working-directory: ./backend
-        run: npm run lint || true
+        run: npm run lint
 
       - name: Run tests
         working-directory: ./backend
-        run: npm run test || true
+        run: npm run test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/virtualuni_test?schema=public
 

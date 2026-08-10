@@ -19,7 +19,13 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+#
+# nginx.conf es un bloque `server { ... }`, no una configuración principal: no
+# tiene `events` ni `http`. Copiarlo como /etc/nginx/nginx.conf hacía que nginx
+# abortara al arrancar con "no events section in configuration", asi que esta
+# imagen nunca podia levantarse. Va en conf.d, que es donde docker-compose ya lo
+# monta correctamente.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built application from builder
 COPY --from=builder /app/dist /usr/share/nginx/html

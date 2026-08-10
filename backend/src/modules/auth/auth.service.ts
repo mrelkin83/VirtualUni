@@ -70,7 +70,8 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
-    const { passwordHash, ...result } = user;
+    // Se descarta el hash antes de devolver el usuario.
+    const { passwordHash: _hash, ...result } = user;
     return result;
   }
 
