@@ -12,6 +12,12 @@ const LONGITUD_MINIMA_SECRETO = 32;
 const SECRETOS_CONOCIDOS = [
   'virtualuni-super-secret-jwt-key-change-in-production-2024',
   'virtualuni-super-secret-refresh-key-change-in-production-2024',
+  // Placeholders que docker-compose.yml deja como valor por defecto: superan los
+  // 32 caracteres y difieren entre sí, así que pasaban la validación de longitud
+  // y de igualdad. Quien levantara compose sin definir su .env arrancaba con una
+  // clave de firma que está escrita en el repositorio.
+  'your-production-jwt-secret-key-minimum-32-characters-long',
+  'your-production-refresh-secret-key-minimum-32-characters-long',
   'secret',
   'changeme',
 ];
@@ -38,9 +44,13 @@ export function validarEntorno(env: NodeJS.ProcessEnv = process.env): ResultadoV
       return;
     }
 
-    if (SECRETOS_CONOCIDOS.includes(valor)) {
+    // La lista explícita cubre los defaults conocidos; la heurística `your-`
+    // atrapa cualquier placeholder del estilo "your-production-..." que se
+    // añada al compose o a la documentación en el futuro sin tener que
+    // recordar actualizarla aquí.
+    if (SECRETOS_CONOCIDOS.includes(valor) || /^your-/i.test(valor)) {
       errores.push(
-        `${nombre} conserva el valor por defecto del repositorio. Genera uno nuevo: ` +
+        `${nombre} conserva un valor de ejemplo del repositorio. Genera uno nuevo: ` +
           `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`,
       );
       return;
@@ -64,6 +74,11 @@ export function validarEntorno(env: NodeJS.ProcessEnv = process.env): ResultadoV
 
   if (!env.DATABASE_URL) {
     errores.push('DATABASE_URL no está definido.');
+  } else if (/your-secure-password|your-domain|change[-_]?me/i.test(env.DATABASE_URL)) {
+    errores.push(
+      'DATABASE_URL conserva la contraseña de ejemplo de docker-compose.yml. ' +
+        'Define la real antes de arrancar en producción.',
+    );
   }
 
   if (esProduccion && !env.FRONTEND_URL) {

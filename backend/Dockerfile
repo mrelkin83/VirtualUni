@@ -24,7 +24,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install production dependencies only
+# Install production dependencies only.
+#
+# `prisma` (la CLI) es ahora una dependencia de producción, no de desarrollo, asi
+# que npm ci --only=production la instala. Antes quedaba fuera y tanto este
+# `prisma generate` como el `prisma migrate deploy` del despliegue dependian de
+# que npx la bajara de la red en cada ejecucion, dentro de un contenedor que
+# corre como usuario sin privilegios. Ahora el binario esta en node_modules.
 COPY package*.json ./
 COPY prisma ./prisma/
 
@@ -48,9 +54,14 @@ USER nestjs
 # Expose port
 EXPOSE 3001
 
-# Health check
+# Health check.
+#
+# La ruta real lleva el prefijo global api/v1: /api/health devuelve 404 (medido),
+# asi que el healthcheck anterior marcaba la imagen como unhealthy para siempre y
+# un orquestador la reiniciaria en bucle. docker-compose.yml ya usa la ruta
+# correcta; esta imagen, construida por si sola, no.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+    CMD node -e "require('http').get('http://localhost:3001/api/v1/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
 
 # Start the application
 CMD ["node", "dist/main.js"]

@@ -26,6 +26,24 @@ describe('validarEntorno', () => {
     expect(errores.some((e) => e.includes('JWT_SECRET'))).toBe(true);
   });
 
+  // Los placeholders de docker-compose.yml superan los 32 caracteres y difieren
+  // entre sí, así que pasaban la longitud y la comparación de igualdad. Antes de
+  // añadirlos a la lista / la heurística `your-`, este caso devolvía 0 errores.
+  it('detecta los placeholders de docker-compose', () => {
+    const { errores } = validarEntorno(
+      entornoValido({
+        NODE_ENV: 'production',
+        JWT_SECRET: 'your-production-jwt-secret-key-minimum-32-characters-long',
+        JWT_REFRESH_SECRET: 'your-production-refresh-secret-key-minimum-32-characters-long',
+        DATABASE_URL: 'postgresql://postgres:your-secure-password@postgres:5432/virtualuni',
+      }),
+    );
+
+    expect(errores.some((e) => e.includes('JWT_SECRET'))).toBe(true);
+    expect(errores.some((e) => e.includes('JWT_REFRESH_SECRET'))).toBe(true);
+    expect(errores.some((e) => e.includes('DATABASE_URL'))).toBe(true);
+  });
+
   it('detecta secretos demasiado cortos', () => {
     const { errores } = validarEntorno(entornoValido({ JWT_SECRET: 'corto' }));
 
