@@ -29,9 +29,13 @@ dist-ssr
 .env.production.local
 .env.development.local
 
-# Archivos subidos en tiempo de ejecucion
-uploads/
-backend/uploads/
+# Archivos subidos en tiempo de ejecucion.
+# OJO: un patron "uploads/" sin barra inicial ignora CUALQUIER carpeta llamada
+# uploads a cualquier profundidad -- incluida backend/src/modules/uploads/,
+# el codigo fuente del modulo de subidas. Con eso, ese modulo entero
+# (controller, service, DTOs, tests) nunca llego a estar versionado. Se ancla
+# a la raiz para que solo ignore el almacenamiento real.
+/backend/uploads/
 
 # Lista de secretos historicos que la bitacora debe redactar (contiene
 # credenciales rotadas en texto plano: nunca debe subirse)

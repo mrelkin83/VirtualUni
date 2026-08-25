@@ -1,0 +1,16 @@
+-- Permite que cerrar sesion invalide de verdad los refresh tokens.
+--
+-- CAUSA: POST /auth/logout devolvia "Logged out successfully" sin hacer nada.
+-- El propio codigo lo reconocia: "In a real app, you'd invalidate the refresh
+-- token in database". Los tokens son JWT sin estado, asi que no habia forma de
+-- retirarlos.
+--
+-- CONSECUENCIA: un refresh token robado seguia siendo valido hasta su
+-- caducidad (JWT_REFRESH_EXPIRES_IN=7d) aunque el usuario cerrara sesion. La
+-- accion que un usuario ejecuta precisamente cuando sospecha que le han robado
+-- la sesion no servia para nada.
+--
+-- Se guarda el instante del cierre de sesion y se rechazan los refresh tokens
+-- emitidos antes. Es NULL para las cuentas que nunca han cerrado sesion, de
+-- modo que las sesiones vigentes no se ven afectadas al desplegar.
+ALTER TABLE "users" ADD COLUMN "sessions_revoked_at" TIMESTAMP(3);
