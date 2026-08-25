@@ -5,6 +5,8 @@ import { useAuthStore } from './store/authStore';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { UserRole } from './types/api.types';
 import Login from './pages/Login';
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
+import TerminosServicio from './pages/TerminosServicio';
 
 // Cada panel se carga bajo demanda: un usuario sólo descarga el suyo, en lugar
 // de arrastrar los tres dashboards en el bundle inicial.
@@ -38,6 +40,8 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/privacidad" element={<PoliticaPrivacidad />} />
+          <Route path="/terminos" element={<TerminosServicio />} />
 
           {/* Protected Student Routes */}
           <Route element={<ProtectedRoute allowedRoles={[UserRole.STUDENT]} />}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, GraduationCap, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
@@ -292,7 +292,14 @@ export default function Login() {
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
               <p className="text-xs text-gray-500">
-                Al iniciar sesión, aceptas los Términos de Servicio y Política de Privacidad
+                Al iniciar sesión, aceptas los{' '}
+                <Link to="/terminos" className="underline hover:text-gray-700">
+                  Términos de Servicio
+                </Link>{' '}
+                y la{' '}
+                <Link to="/privacidad" className="underline hover:text-gray-700">
+                  Política de Privacidad
+                </Link>
               </p>
             </div>
           </div>
