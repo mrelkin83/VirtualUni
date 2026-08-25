@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -5,6 +6,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+    // Sin esto, vitest también recorre backend/ (su propio proyecto, con
+    // jest y el alias @/ de NestJS) y cada *.spec.ts de ahí falla al no
+    // poder resolverlo.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
