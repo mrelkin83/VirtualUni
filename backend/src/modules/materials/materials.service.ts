@@ -71,6 +71,52 @@ export class MaterialsService {
     });
   }
 
+  /**
+   * Igual que findAllFolders, pero para un estudiante: sólo carpetas
+   * generales (sin curso) o de un curso en el que esté matriculado. Antes
+   * cualquier STUDENT veía nombres y cantidades de materiales de cursos
+   * ajenos vía GET /materials/folders sin filtro.
+   */
+  async findAllFoldersForStudent(tenantId: string, userId: string, courseId?: string) {
+    const courseIds = await this.getStudentCourseIds(tenantId, userId);
+
+    if (courseId && !courseIds.includes(courseId)) {
+      return [];
+    }
+
+    const where: Prisma.MaterialFolderWhereInput = courseId
+      ? { tenantId, courseId }
+      : { tenantId, OR: [{ courseId: null }, { courseId: { in: courseIds } }] };
+
+    return this.prisma.materialFolder.findMany({
+      where,
+      include: { _count: { select: { materials: true } } },
+      orderBy: { nombre: 'asc' },
+    });
+  }
+
+  /**
+   * Un STUDENT sólo puede acceder a un material visible de un curso en el
+   * que esté matriculado. findOne()/registerDownload() no aplican este
+   * filtro por sí mismos porque tambien los usan update/remove para
+   * TEACHER/TENANT_ADMIN, que sí deben poder tocar materiales no visibles.
+   */
+  async esAccesibleParaEstudiante(
+    tenantId: string,
+    userId: string,
+    materialId: string,
+  ): Promise<boolean> {
+    const material = await this.prisma.material.findFirst({
+      where: { id: materialId, tenantId },
+      select: { visible: true, courseId: true },
+    });
+
+    if (!material || !material.visible) return false;
+
+    const courseIds = await this.getStudentCourseIds(tenantId, userId);
+    return courseIds.includes(material.courseId);
+  }
+
   async updateFolder(tenantId: string, id: string, dto: UpdateFolderDto) {
     const folder = await this.prisma.materialFolder.findFirst({
       where: { id, tenantId },

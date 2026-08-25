@@ -218,6 +218,16 @@ export class ProceduresService {
       );
     }
 
+    // `assignDto.usuarioId` lo manda el cliente y se escribía tal cual en
+    // asignadoA, sin comprobar que existiera ni que fuera del mismo tenant.
+    const usuario = await this.prisma.user.findFirst({
+      where: { id: assignDto.usuarioId, tenantId },
+      select: { id: true },
+    });
+    if (!usuario) {
+      throw new BadRequestException('El usuario a asignar no existe en este tenant');
+    }
+
     try {
       const updated = await this.prisma.procedure.update({
         where: { id },
