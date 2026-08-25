@@ -351,6 +351,11 @@ model Message {
   readAt      DateTime? @map("read_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  // findInbox/findSent (messages.service.ts) filtran exactamente por estas
+  // dos combinaciones; sin índice, cada bandeja de entrada hacía un Seq Scan
+  // completo de la tabla.
+  @@index([recipientId, tenantId])
+  @@index([senderId, tenantId])
   @@map("messages")
 }
 
@@ -884,6 +889,9 @@ model CardIssuance {
   // Metadata de carnets generados
   carnetsGenerados String[] @map("carnets_generados") // Array de IDs de carnets
   errores          Json? // Errores durante la generación
+  // Índice ya existente en la BD desde la migración
+  // 20260809220000_indices_en_claves_foraneas (creado por SQL manual); no
+  // estaba declarado aquí y `prisma migrate dev` intentaba borrarlo por eso.
 
   fechaExpedicion DateTime  @default(now()) @map("fecha_expedicion")
   fechaCompletado DateTime? @map("fecha_completado")
@@ -897,6 +905,7 @@ model CardIssuance {
   @@index([tenantId])
   @@index([lote])
   @@index([estado])
+  @@index([templateId])
   @@index([tipoExpedicion])
   @@index([fechaExpedicion])
   @@index([expedidoPor])
