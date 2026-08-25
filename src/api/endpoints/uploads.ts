@@ -42,4 +42,30 @@ export const uploadsApi = {
     if (/^https?:\/\//i.test(url)) return url;
     return `${API_CONFIG.baseURL}${url.startsWith('/') ? '' : '/'}${url}`;
   },
+
+  /**
+   * Abre un material en una pestaña nueva, sea un archivo propio o un enlace
+   * externo (los materiales de tipo "enlace" también pasan por aquí).
+   *
+   * `/api/v1/uploads/file/...` exige sesión (JwtAuthGuard + TenantGuard, ver
+   * backend/src/modules/uploads/uploads.controller.ts): un `window.open`
+   * directo a esa URL no manda el token (vive en localStorage, no en una
+   * cookie) y el navegador recibe un 401 en vez del archivo. Para esos se
+   * pide con el cliente autenticado y se abre el blob resultante; un enlace
+   * externo se abre tal cual, sin mandarle nuestro token.
+   */
+  abrir: async (url?: string | null): Promise<void> => {
+    if (!url) return;
+
+    if (!url.includes('/api/v1/uploads/file/')) {
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+
+    const ruta = /^https?:\/\//i.test(url) ? url.replace(API_CONFIG.baseURL, '') : url;
+    const response = await apiClient.get<Blob>(ruta, { responseType: 'blob' });
+    const objectUrl = window.URL.createObjectURL(response.data as unknown as Blob);
+    window.open(objectUrl, '_blank', 'noopener');
+    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 60_000);
+  },
 };

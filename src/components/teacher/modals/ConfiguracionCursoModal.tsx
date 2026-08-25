@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Save, Calendar, Users, BookOpen, Settings } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface ConfiguracionCursoModalProps {
   curso: any;
@@ -43,6 +44,8 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
     requiereAprobacion: curso?.requiereAprobacion || false,
   });
 
+  const dialogRef = useModalA11y(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const handleSave = () => {
@@ -55,11 +58,18 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-configuracion-curso"
+        tabIndex={-1}
+        className={`${card} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
+      >
         <div className="sticky top-0 bg-inherit p-6 border-b ${border} flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Settings className="text-blue-500" size={24} />
-            <h2 className={`text-2xl font-bold ${text}`}>Configuración del Curso</h2>
+            <h2 id="titulo-configuracion-curso" className={`text-2xl font-bold ${text}`}>Configuración del Curso</h2>
           </div>
           <button
             onClick={onClose}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Send, User, Mail } from 'lucide-react';
+import { X, Send, User, Mail, AlertCircle } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface NuevoMensajeModalProps {
   isOpen: boolean;
@@ -24,17 +25,28 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
   const [tipoDestinatario, setTipoDestinatario] = useState<'profesor' | 'administrador'>('profesor');
   const [asunto, setAsunto] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClose = () => {
+    setDestinatario('');
+    setAsunto('');
+    setMensaje('');
+    setError(null);
+    onClose();
+  };
+
+  const dialogRef = useModalA11y(isOpen, handleClose);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!destinatario.trim() || !asunto.trim() || !mensaje.trim()) {
-      alert('Por favor completa todos los campos');
+      setError('Por favor completa todos los campos');
       return;
     }
 
     if (mensaje.length > 1000) {
-      alert('El mensaje no puede exceder 1000 caracteres');
+      setError('El mensaje no puede exceder 1000 caracteres');
       return;
     }
 
@@ -44,13 +56,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
     setDestinatario('');
     setAsunto('');
     setMensaje('');
-    onClose();
-  };
-
-  const handleClose = () => {
-    setDestinatario('');
-    setAsunto('');
-    setMensaje('');
+    setError(null);
     onClose();
   };
 
@@ -62,6 +68,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
       onClick={handleClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-nuevo-mensaje-estudiante"
+        tabIndex={-1}
         className={`${card} rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,7 +83,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
               <Mail className="text-blue-600" size={24} />
             </div>
             <div>
-              <h3 className={`text-xl font-bold ${text}`}>Nuevo Mensaje</h3>
+              <h3 id="titulo-nuevo-mensaje-estudiante" className={`text-xl font-bold ${text}`}>Nuevo Mensaje</h3>
               <p className="text-sm text-gray-500">Envía un mensaje a tu profesor o administrador</p>
             </div>
           </div>
@@ -83,6 +94,13 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
             <X size={24} />
           </button>
         </div>
+
+        {error && (
+          <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <AlertCircle size={18} className="flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,12 +135,13 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
           {/* Destinatario */}
           <div>
-            <label className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-destinatario" className={`block text-sm font-semibold ${text} mb-2`}>
               {tipoDestinatario === 'profesor' ? 'Nombre del Profesor' : 'Nombre del Administrador'} *
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
+                id="nm-estudiante-destinatario"
                 type="text"
                 value={destinatario}
                 onChange={(e) => setDestinatario(e.target.value)}
@@ -136,10 +155,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
           {/* Asunto */}
           <div>
-            <label className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-asunto" className={`block text-sm font-semibold ${text} mb-2`}>
               Asunto *
             </label>
             <input
+              id="nm-estudiante-asunto"
               type="text"
               value={asunto}
               onChange={(e) => setAsunto(e.target.value)}
@@ -154,10 +174,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
           {/* Mensaje */}
           <div>
-            <label className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-mensaje" className={`block text-sm font-semibold ${text} mb-2`}>
               Mensaje *
             </label>
             <textarea
+              id="nm-estudiante-mensaje"
               value={mensaje}
               onChange={(e) => {
                 if (e.target.value.length <= 1000) {

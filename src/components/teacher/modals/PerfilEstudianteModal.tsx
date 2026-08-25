@@ -17,6 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import { EstudianteDetalle } from '../../../types/teacher.types';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface PerfilEstudianteModalProps {
   estudiante: EstudianteDetalle | null;
@@ -43,6 +44,8 @@ export const PerfilEstudianteModal: React.FC<PerfilEstudianteModalProps> = ({
 }) => {
   const [tabActiva, setTabActiva] = useState<'resumen' | 'calificaciones' | 'actividad'>('resumen');
 
+  const dialogRef = useModalA11y(isOpen && !!estudiante, onClose);
+
   if (!isOpen || !estudiante) return null;
 
   const tabs = [
@@ -53,7 +56,14 @@ export const PerfilEstudianteModal: React.FC<PerfilEstudianteModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg w-full max-w-5xl h-[90vh] flex flex-col`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-perfil-estudiante"
+        tabIndex={-1}
+        className={`${card} rounded-lg w-full max-w-5xl h-[90vh] flex flex-col`}
+      >
         {/* Header */}
         <div className={`p-6 ${border} border-b`}>
           <div className="flex justify-between items-start">
@@ -62,7 +72,7 @@ export const PerfilEstudianteModal: React.FC<PerfilEstudianteModalProps> = ({
                 {estudiante.nombre.charAt(0)}
               </div>
               <div>
-                <h3 className={`text-2xl font-bold ${text}`}>{estudiante.nombre}</h3>
+                <h3 id="titulo-perfil-estudiante" className={`text-2xl font-bold ${text}`}>{estudiante.nombre}</h3>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-2">
                     <Mail size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />

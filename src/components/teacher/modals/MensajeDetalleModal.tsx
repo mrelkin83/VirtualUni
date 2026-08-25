@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface Mensaje {
   id: number;
@@ -72,6 +73,8 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
   const [respuesta, setRespuesta] = useState('');
   const [adjuntosRespuesta, setAdjuntosRespuesta] = useState<File[]>([]);
 
+  const dialogRef = useModalA11y(isOpen && !!mensaje, onClose);
+
   if (!isOpen || !mensaje) return null;
 
   const handleEnviarRespuesta = () => {
@@ -112,7 +115,14 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg w-full max-w-4xl h-[90vh] flex flex-col`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-mensaje-detalle"
+        tabIndex={-1}
+        className={`${card} rounded-lg w-full max-w-4xl h-[90vh] flex flex-col`}
+      >
         {/* Header */}
         <div className={`p-6 ${border} border-b`}>
           <div className="flex justify-between items-center">
@@ -124,7 +134,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
               >
                 <X size={24} />
               </button>
-              <h3 className={`text-xl font-bold ${text}`}>
+              <h3 id="titulo-mensaje-detalle" className={`text-xl font-bold ${text}`}>
                 {mensaje.tipo === 'recibido' ? 'Mensaje Recibido' : 'Mensaje Enviado'}
               </h3>
             </div>

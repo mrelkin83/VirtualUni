@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import { X, Upload, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { cardIssuancesApi, CreateCardIssuanceDto, UserDataDto } from '../../../api/endpoints/card-issuances';
 import { cardTemplatesApi, CardTemplate } from '../../../api/endpoints/card-templates';
+import { useModalA11y } from '../../../hooks/useModalA11y';
+import { comoArreglo } from '../../../utils/respuestaApi';
+
+/** Busca una columna por varios nombres posibles (sin distinguir mayúsculas/acentos). */
+function columnaFila(fila: Record<string, unknown>, ...alias: string[]): string {
+  for (const key of Object.keys(fila)) {
+    if (alias.includes(key.trim().toLowerCase())) {
+      return String(fila[key] ?? '').trim();
+    }
+  }
+  return '';
+}
 
 interface CreateIssuanceModalProps {
   onClose: () => void;
@@ -13,6 +26,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [importInfo, setImportInfo] = useState<string | null>(null);
 
   // Form data
   const [templateId, setTemplateId] = useState<string>('');
@@ -34,6 +48,10 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
     fotoUrl: '',
   });
 
+  // El padre monta/desmonta este modal condicionalmente (no recibe `isOpen`):
+  // mientras está montado, siempre está "abierto".
+  const dialogRef = useModalA11y(true, onClose);
+
   useEffect(() => {
     loadTemplates();
   }, []);
@@ -42,7 +60,9 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
     try {
       setLoadingTemplates(true);
       const response = await cardTemplatesApi.getAll({ esActiva: true });
-      setTemplates((response as any).data || []);
+      // El backend pagina (`{ data: [...], meta }`), no devuelve un array
+      // plano: ver el mismo problema en ExpedicionesTab.tsx.
+      setTemplates(comoArreglo(response));
     } catch (err) {
       console.error('Error loading templates:', err);
     } finally {
@@ -73,10 +93,52 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = ''; // permite volver a elegir el mismo archivo si se corrige
     if (!file) return;
 
-    // TODO: Implement CSV/Excel parsing
-    setError('La carga de archivos CSV/Excel estará disponible próximamente. Por ahora usa la entrada manual.');
+    setError(null);
+    setImportInfo(null);
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const hoja = workbook.Sheets[workbook.SheetNames[0]];
+      const filas = XLSX.utils.sheet_to_json<Record<string, unknown>>(hoja, { defval: '' });
+
+      const nuevos: UserDataDto[] = [];
+      let omitidas = 0;
+
+      for (const fila of filas) {
+        const usuarioId = columnaFila(fila, 'usuarioid', 'usuario_id', 'id');
+        const nombre = columnaFila(fila, 'nombre', 'name');
+        const identificacion = columnaFila(fila, 'identificacion', 'identificación', 'cedula', 'cédula', 'documento');
+        const tipoUsuario = columnaFila(fila, 'tipousuario', 'tipo_usuario', 'tipo') || 'ESTUDIANTE';
+        const fotoUrl = columnaFila(fila, 'fotourl', 'foto_url', 'foto');
+
+        if (!usuarioId || !nombre || !identificacion) {
+          omitidas++;
+          continue;
+        }
+
+        nuevos.push({ usuarioId, nombre, identificacion, tipoUsuario: tipoUsuario.toUpperCase(), fotoUrl });
+      }
+
+      if (nuevos.length === 0) {
+        setError(
+          'No se encontraron filas válidas en el archivo. Se esperan columnas usuarioId, nombre e identificacion (tipoUsuario y fotoUrl son opcionales).',
+        );
+        return;
+      }
+
+      setUsuarios((prev) => [...prev, ...nuevos]);
+      setImportInfo(
+        omitidas > 0
+          ? `Se importaron ${nuevos.length} usuario(s). Se omitieron ${omitidas} fila(s) por falta de usuarioId, nombre o identificación.`
+          : `Se importaron ${nuevos.length} usuario(s) correctamente.`,
+      );
+    } catch (err: any) {
+      setError('No se pudo leer el archivo: ' + (err?.message || 'formato no soportado'));
+    }
   };
 
   const handleSubmit = async () => {
@@ -112,10 +174,17 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-nueva-expedicion"
+        tabIndex={-1}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-900">Nueva Expedición de Carnets</h3>
+          <h3 id="titulo-nueva-expedicion" className="text-2xl font-bold text-gray-900">Nueva Expedición de Carnets</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition"
@@ -139,6 +208,14 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
               <CheckCircle className="w-5 h-5 flex-shrink-0" />
               <span>¡Expedición creada exitosamente!</span>
+            </div>
+          )}
+
+          {/* Import Info Message */}
+          {importInfo && !success && (
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{importInfo}</span>
             </div>
           )}
 

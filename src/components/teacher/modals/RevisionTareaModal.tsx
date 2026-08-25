@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, FileText, Clock, User, CheckCircle, AlertCircle } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
+import { uploadsApi } from '../../../api/endpoints/uploads';
 
 interface Submission {
   id: number;
@@ -48,6 +50,8 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
   const [feedback, setFeedback] = useState('');
   const [filtro, setFiltro] = useState<'todas' | 'pendientes' | 'revisadas'>('pendientes');
 
+  const dialogRef = useModalA11y(isOpen && !!tarea, onClose);
+
   if (!isOpen || !tarea) return null;
 
   const submissions = tarea.submissions || [];
@@ -92,11 +96,18 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg w-full max-w-6xl h-[90vh] flex flex-col`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-revision-tarea"
+        tabIndex={-1}
+        className={`${card} rounded-lg w-full max-w-6xl h-[90vh] flex flex-col`}
+      >
         {/* Header */}
         <div className={`p-6 ${border} border-b flex justify-between items-center`}>
           <div>
-            <h3 className={`text-xl font-bold ${text}`}>Revisión de Tarea</h3>
+            <h3 id="titulo-revision-tarea" className={`text-xl font-bold ${text}`}>Revisión de Tarea</h3>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
               {tarea.titulo} - {tarea.curso}
             </p>
@@ -267,15 +278,17 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
                   {selectedSubmission.archivoUrl && (
                     <div className="mb-6">
                       <h5 className={`font-bold ${text} mb-2`}>Archivo Adjunto</h5>
-                      <a
-                        href={selectedSubmission.archivoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() =>
+                          uploadsApi
+                            .abrir(selectedSubmission.archivoUrl)
+                            .catch(() => alert('No se pudo abrir el archivo.'))
+                        }
                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                       >
                         <FileText size={16} />
                         Descargar archivo
-                      </a>
+                      </button>
                     </div>
                   )}
 

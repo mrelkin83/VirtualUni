@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, CheckCircle, Palette, Layout, Settings } from 'lucide-react';
 import { cardTemplatesApi, CreateCardTemplateDto } from '../../../api/endpoints/card-templates';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface CreateTemplateModalProps {
   onClose: () => void;
@@ -17,6 +18,8 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const dialogRef = useModalA11y(true, onClose);
 
   // Basic Info
   const [nombre, setNombre] = useState(templateToEdit?.nombre || '');
@@ -152,10 +155,17 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full my-8">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-plantilla-carnet"
+        tabIndex={-1}
+        className="bg-white rounded-lg shadow-xl max-w-5xl w-full my-8"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-900">
+          <h3 id="titulo-plantilla-carnet" className="text-2xl font-bold text-gray-900">
             {templateToEdit ? 'Editar Plantilla' : 'Nueva Plantilla de Carnet'}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">

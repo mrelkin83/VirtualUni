@@ -21,6 +21,7 @@ import {
   Clock
 } from 'lucide-react';
 import { Material, CarpetaMaterial } from '../../../types/teacher.types';
+import { uploadsApi } from '../../../api/endpoints/uploads';
 
 interface MaterialesSectionProps {
   materiales: Material[];
@@ -447,7 +448,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(material.url, '_blank');
+                      uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'));
                     }}
                     className="flex-1 p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
                     title="Ver"
@@ -513,7 +514,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                     <td className="p-4">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => window.open(material.url, '_blank')}
+                          onClick={() => uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'))}
                           className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
                           title="Ver"
                         >
@@ -887,14 +888,14 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               </div>
 
               <div className={`${border} border-t pt-4`}>
-                <a
-                  href={materialSeleccionado.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${text} opacity-70 text-sm break-all hover:text-blue-600`}
+                <button
+                  onClick={() =>
+                    uploadsApi.abrir(materialSeleccionado.url).catch(() => alert('No se pudo abrir el material.'))
+                  }
+                  className={`${text} opacity-70 text-sm break-all hover:text-blue-600 text-left`}
                 >
                   {materialSeleccionado.url}
-                </a>
+                </button>
               </div>
             </div>
 
@@ -907,7 +908,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 Compartir
               </button>
               <button
-                onClick={() => window.open(materialSeleccionado.url, '_blank')}
+                onClick={() => uploadsApi.abrir(materialSeleccionado.url).catch(() => alert('No se pudo abrir el material.'))}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
               >
                 <Eye size={18} />
@@ -999,7 +1000,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                         {/* Acciones */}
                         <div className="flex gap-2 flex-shrink-0">
                           <button
-                            onClick={() => window.open(material.url, '_blank')}
+                            onClick={() => uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'))}
                             className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition"
                             title="Ver material"
                           >

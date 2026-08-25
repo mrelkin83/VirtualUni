@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Upload, FileText, Video, File, Image, Link as LinkIcon, Trash2, Download, Eye } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface Material {
   id: number;
@@ -38,6 +39,8 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
     url: '',
     archivo: null as File | null
   });
+
+  const dialogRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -129,10 +132,17 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-gestion-materiales"
+        tabIndex={-1}
+        className={`${card} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
+      >
         <div className="sticky top-0 bg-inherit p-6 border-b ${border} flex justify-between items-center">
           <div>
-            <h2 className={`text-2xl font-bold ${text}`}>Gestión de Materiales</h2>
+            <h2 id="titulo-gestion-materiales" className={`text-2xl font-bold ${text}`}>Gestión de Materiales</h2>
             <p className="text-sm text-gray-500 mt-1">Tema: {tema?.titulo}</p>
           </div>
           <button

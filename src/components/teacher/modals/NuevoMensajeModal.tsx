@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Send, Paperclip, User, FileText } from 'lucide-react';
+import { X, Send, Paperclip, User, FileText, AlertCircle } from 'lucide-react';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface Student {
   id: number;
@@ -34,22 +35,26 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
   const [mensaje, setMensaje] = useState('');
   const [adjuntos, setAdjuntos] = useState<File[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const dialogRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
   const handleEnviar = () => {
     if (!destinatario.trim()) {
-      alert('Por favor selecciona un destinatario');
+      setError('Por favor selecciona un destinatario');
       return;
     }
     if (!asunto.trim()) {
-      alert('Por favor ingresa un asunto');
+      setError('Por favor ingresa un asunto');
       return;
     }
     if (!mensaje.trim()) {
-      alert('Por favor escribe un mensaje');
+      setError('Por favor escribe un mensaje');
       return;
     }
+    setError(null);
 
     const adjuntosNombres = adjuntos.map(f => f.name);
     onEnviar(destinatario, asunto, mensaje, adjuntosNombres);
@@ -81,11 +86,18 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`${card} rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-nuevo-mensaje-docente"
+        tabIndex={-1}
+        className={`${card} rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto`}
+      >
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className={`text-2xl font-bold ${text} flex items-center gap-2`}>
+            <h2 id="titulo-nuevo-mensaje-docente" className={`text-2xl font-bold ${text} flex items-center gap-2`}>
               <Send size={24} className="text-blue-600" />
               Nuevo Mensaje Individual
             </h2>
@@ -97,15 +109,23 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
             </button>
           </div>
 
+          {error && (
+            <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <AlertCircle size={18} className="flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="space-y-4">
             {/* Destinatario */}
             <div>
-              <label className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-busqueda" className={`block text-sm font-medium ${text} mb-2`}>
                 Destinatario *
               </label>
 
               {/* Búsqueda de estudiante */}
               <input
+                id="nm-docente-busqueda"
                 type="text"
                 placeholder="Buscar estudiante por nombre, email o curso..."
                 value={busqueda}
@@ -115,6 +135,8 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
               {/* Selector de estudiante */}
               <select
+                id="nm-docente-destinatario"
+                aria-label="Seleccionar estudiante destinatario"
                 value={destinatario}
                 onChange={(e) => setDestinatario(e.target.value)}
                 className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -139,10 +161,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
             {/* Asunto */}
             <div>
-              <label className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-asunto" className={`block text-sm font-medium ${text} mb-2`}>
                 Asunto *
               </label>
               <input
+                id="nm-docente-asunto"
                 type="text"
                 value={asunto}
                 onChange={(e) => setAsunto(e.target.value)}
@@ -153,10 +176,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
             {/* Mensaje */}
             <div>
-              <label className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-mensaje" className={`block text-sm font-medium ${text} mb-2`}>
                 Mensaje *
               </label>
               <textarea
+                id="nm-docente-mensaje"
                 value={mensaje}
                 onChange={(e) => setMensaje(e.target.value)}
                 rows={8}
@@ -172,11 +196,12 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
             {/* Archivos Adjuntos */}
             <div>
-              <label className={`block text-sm font-medium ${text} mb-2 flex items-center gap-2`}>
+              <label htmlFor="nm-docente-adjuntos" className={`block text-sm font-medium ${text} mb-2 flex items-center gap-2`}>
                 <Paperclip size={16} />
                 Archivos Adjuntos (Opcional)
               </label>
               <input
+                id="nm-docente-adjuntos"
                 type="file"
                 multiple
                 onChange={handleAdjuntarArchivo}

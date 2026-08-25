@@ -16,6 +16,7 @@ import {
   Share2
 } from 'lucide-react';
 import { ClaseVivo } from '../../../types/teacher.types';
+import { uploadsApi } from '../../../api/endpoints/uploads';
 
 interface ClasesSectionProps {
   clasesVivo: ClaseVivo[];
@@ -763,15 +764,17 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
                       Grabación Disponible
                     </p>
-                    <a
-                      href={modalDetalleClase.grabacionUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() =>
+                        uploadsApi
+                          .abrir(modalDetalleClase.grabacionUrl)
+                          .catch(() => alert('No se pudo abrir la grabación.'))
+                      }
                       className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
                     >
                       <Download size={18} />
                       Ver Grabación
-                    </a>
+                    </button>
                   </div>
                 )}
               </div>
