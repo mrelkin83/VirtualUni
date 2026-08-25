@@ -7,18 +7,30 @@ despliegue. Todo lo que sí era un defecto medible ya está corregido y desplega
 
 ---
 
-## 1. Pasarela de pago
+## 1. Pasarela de pago — RESUELTO (2026-08-25)
 
-**Estado:** `realizarPago` no simula ningún cobro. Deja la deuda pendiente y lo
-dice con claridad, porque no hay ninguna pasarela configurada (`stripe` está en
-las dependencias pero sin claves ni webhook operativo).
+**Estado:** se reemplazó Stripe por **Wompi** (pasarela colombiana; único
+método viable para cobrar en COP a instituciones en Colombia). El módulo
+`billing` genera la URL de checkout con firma de integridad, verifica el
+checksum del webhook, y activa/extiende la suscripción del tenant cuando la
+transacción llega `APPROVED`. Falta configurar las llaves reales
+(`WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY`, `WOMPI_EVENTS_SECRET`,
+`WOMPI_INTEGRITY_SECRET`) en el panel de Wompi y en el entorno de producción.
 
-**Decisión:** conectar una pasarela real (Stripe u otra) con sus claves y su
-webhook, o mantener el pago fuera de la aplicación.
+**Limitación conocida, por diseño:** Wompi no tiene suscripciones recurrentes
+nativas como Stripe. Cada checkout paga un periodo de un mes; la renovación
+**no es automática** — el tenant debe volver a pagar. Automatizar el cobro
+periódico (con una fuente de pago tokenizada y reintentos) es un proyecto
+aparte, no incluido aquí. `realizarPago` (deuda de estudiante, no suscripción
+de tenant) sigue sin pasarela — sigue siendo una decisión de negocio aparte.
 
-**Recomendación:** si se quiere cobrar dentro de la plataforma, Stripe ya está
-como dependencia; falta `STRIPE_SECRET_KEY`, el endpoint de webhook y validar la
-firma. Hasta entonces, no fingir el pago es lo correcto.
+**Nota sobre el precio:** los montos en `PLAN_PRICES_COP`
+(`backend/src/modules/billing/billing.service.ts`) son un placeholder — no
+había una cifra de negocio definida al hacer este cambio.
+
+**No toca el checkout del frontend:** confirmado que ningún componente llama
+hoy a `POST /billing/checkout` — no existe pantalla de "comprar plan" que
+actualizar. Es una tarea aparte si se quiere construirla.
 
 ---
 
@@ -39,41 +51,28 @@ comunicado a toda la universidad).
 
 ---
 
-## 3. Topología de despliegue: imágenes publicadas vs. compose
+## 3. Topología de despliegue — RESUELTO (2026-08-25): opción A
 
-**Estado (medido):** `.github/workflows/deploy.yml` construye y publica en Docker
-Hub las imágenes `virtualuni-frontend` y `virtualuni-backend`, pero el
-`docker-compose.yml` del servidor **no consume ninguna de las dos**:
+**Estado anterior (medido):** `.github/workflows/deploy.yml` construía y
+publicaba en Docker Hub las imágenes `virtualuni-frontend` y
+`virtualuni-backend`, pero `docker-compose.yml` no consumía ninguna de las
+dos (`backend` con `build:`, `nginx` con `nginx:alpine` + volumen `./dist`
+que el script de despliegue nunca generaba).
 
-- `backend` usa `build: ./backend` (no `image:`), así que `docker-compose pull` no
-  puede traerlo y `up -d` lo reconstruye desde el código del servidor.
-- `nginx` usa `image: nginx:alpine` y sirve `./dist` por volumen. La imagen
-  `virtualuni-frontend` publicada nunca se usa.
-- `dist` está en `.gitignore` (líneas 11-12) y el script de despliegue sólo hace
-  `git pull` — **no** ejecuta `npm run build`. Consecuencia: en el servidor
-  `./dist` estaría vacío y nginx serviría un sitio en blanco.
+**Arreglado:** `docker-compose.yml` ahora usa
+`image: ${DOCKER_USERNAME}/virtualuni-backend:latest` y
+`image: ${DOCKER_USERNAME}/virtualuni-frontend:latest` (esa imagen ya trae
+`dist` y `nginx.conf` horneados — no hace falta el volumen). `scripts/deploy.sh`
+pasa de `docker-compose up -d --build` a `docker-compose pull && up -d`,
+coherente con lo que `deploy.yml` ya hacía por SSH.
 
-**Por qué no lo arreglo por mi cuenta:** hay dos topologías válidas y son
-mutuamente excluyentes; elegir una cambia el flujo de despliegue y no puedo
-probarlo aquí (el demonio de Docker no corre en esta máquina).
-
-**Recomendación — elegir A o B:**
-
-- **A. Despliegue por imágenes (aprovecha lo que deploy.yml ya publica):**
-  en `docker-compose.yml`, que `backend` use
-  `image: ${DOCKER_USERNAME}/virtualuni-backend:latest` en lugar de `build:`, y
-  que `nginx` use `image: ${DOCKER_USERNAME}/virtualuni-frontend:latest` (que ya
-  trae `dist` horneado) en vez de `nginx:alpine` + volumen `./dist`. Así
-  `docker-compose pull && up -d` en el servidor despliega exactamente lo probado
-  en CI.
-
-- **B. Despliegue desde código (más simple, sin registro):** borrar los pasos de
-  build-and-push de `deploy.yml` y añadir `npm ci && npm run build` (frontend) en
-  el script del servidor antes de `docker-compose up -d`, para que `./dist` exista.
-
-Cualquiera de las dos cierra el hueco. Hoy el pipeline hace trabajo (publicar
-imágenes) que el despliegue tira a la basura, y el frontend no llegaría al
-servidor.
+**Pendiente para que funcione en el servidor real:** un archivo `.env` junto a
+`docker-compose.yml` en el servidor con `DOCKER_USERNAME=<usuario-de-docker-hub>`
+(la imagen falla al resolver sin esto — a propósito, con un mensaje claro en
+vez de silenciosamente construir algo distinto) y confirmar que los secretos
+`DOCKER_USERNAME`/`DOCKER_PASSWORD`/`DEPLOY_HOST`/`DEPLOY_USER`/`DEPLOY_SSH_KEY`
+ya estén configurados en GitHub Actions (Settings → Secrets → Actions) para
+que `deploy.yml` pueda publicar y desplegar.
 
 **Ya corregido y no forma parte de esta decisión:** que la CLI de `prisma`
 faltara en la imagen de producción (movida a dependencias), el `HEALTHCHECK` del
