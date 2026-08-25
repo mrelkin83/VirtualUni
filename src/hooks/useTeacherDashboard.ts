@@ -17,6 +17,7 @@ import { scheduleApi } from '../api/endpoints/schedule';
 import { bancoPreguntasApi } from '../api/endpoints/question-bank';
 import { plantillasMensajeApi } from '../api/endpoints/message-templates';
 import { temarioApi } from '../api/endpoints/course-topics';
+import { generateStudentDataExcel } from '../utils/excelExport';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -703,29 +704,11 @@ export const useTeacherDashboard = () => {
       return;
     }
 
-    // Simular exportación de datos (en producción, esto generaría un archivo CSV/PDF)
-    const datosExportacion = {
-      informacionGeneral: {
-        nombre: estudiante.nombre,
-        email: estudiante.email,
-        telefono: estudiante.telefono,
-        fechaInscripcion: estudiante.fechaInscripcion,
-      },
-      rendimientoAcademico: {
-        promedioGeneral: estudiante.promedioGeneral,
-        progreso: estudiante.progreso,
-        tareasEntregadas: estudiante.tareasEntregadas,
-        tareasRevisadas: estudiante.tareasRevisadas,
-        tareasPendientes: estudiante.tareasPendientes,
-      },
-      asistencia: estudiante.asistencia,
-      historialCalificaciones: estudiante.historialCalificaciones,
-      cursosInscritos: estudiante.cursosInscritos,
-    };
-
-    // En producción, aquí se generaría un archivo descargable
-    console.log('Datos del estudiante exportados:', datosExportacion);
-    alert(`Datos de ${estudiante.nombre} exportados exitosamente!\nRevisa la consola del navegador para ver los detalles.`);
+    try {
+      generateStudentDataExcel(estudiante);
+    } catch (err: any) {
+      alert('No se pudo generar el archivo: ' + (err?.message || 'error desconocido'));
+    }
   };
 
   // Mensajes Actions

@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, AUTH_CONFIG } from '../config/api.config';
 import { ApiError } from '../types/api.types';
+import { useAuthStore } from '../store/authStore';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -95,6 +96,10 @@ class ApiClient {
 
             localStorage.setItem(AUTH_CONFIG.tokenKey, accessToken);
             localStorage.setItem(AUTH_CONFIG.refreshTokenKey, newRefreshToken);
+            // El store de zustand (auth-storage) es una copia aparte de estas
+            // mismas claves: sin esto, un refresh silencioso dejaba el token
+            // nuevo sólo en localStorage y el store seguía con el expirado.
+            useAuthStore.setState({ token: accessToken, refreshToken: newRefreshToken });
 
             // Retry all failed requests
             this.processQueue(null);
@@ -135,6 +140,16 @@ class ApiClient {
     localStorage.removeItem(AUTH_CONFIG.refreshTokenKey);
     localStorage.removeItem(AUTH_CONFIG.tenantKey);
     localStorage.removeItem(AUTH_CONFIG.userKey);
+    // Reinicio directo de estado, no la acción `logout` del store: esa hace
+    // una llamada de red (authApi.logout) y ya estamos manejando un fallo de
+    // autenticación, no hace falta otra petición que también puede fallar.
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      refreshToken: null,
+      tenantId: null,
+      isAuthenticated: false,
+    });
 
     // Redirect to login
     window.location.href = '/login';

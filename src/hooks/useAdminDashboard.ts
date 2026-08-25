@@ -8,6 +8,7 @@ import { announcementsApi } from '../api/endpoints/announcements';
 import { massMessagesApi } from '../api/endpoints/mass-messages';
 import { proceduresApi } from '../api/endpoints/procedures';
 import { idCardsApi } from '../api/endpoints/idcards';
+import { comoArreglo } from '../utils/respuestaApi';
 
 export interface AdminDashboardMetrics {
   totalEstudiantes: number;
@@ -123,8 +124,11 @@ export const useAdminDashboard = (): UseAdminDashboardReturn => {
       const idCardsStats = getData(idCardsRes);
 
       const recentTransactions = getData(recentTransactionsRes) ?? [];
-      const recentProcedures = getData(recentProceduresRes) ?? [];
-      const recentAnnouncements = getData(recentAnnouncementsRes) ?? [];
+      // procedures y announcements paginan (`{ data, pagination }`);
+      // `getData` sólo baja un nivel y dejaba el sobre entero en vez del
+      // arreglo — mismo problema confirmado en ExpedicionesTab.tsx.
+      const recentProcedures = comoArreglo(recentProceduresRes.status === 'fulfilled' ? recentProceduresRes.value : null);
+      const recentAnnouncements = comoArreglo(recentAnnouncementsRes.status === 'fulfilled' ? recentAnnouncementsRes.value : null);
 
       // Derive metrics from stats or use defaults
       const metrics: AdminDashboardMetrics = {

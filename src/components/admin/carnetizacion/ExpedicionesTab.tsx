@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cardIssuancesApi, CardIssuance } from '../../../api/endpoints/card-issuances';
 import { CreateIssuanceModal } from './CreateIssuanceModal';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 const TIPO_EXPEDICION_LABELS: Record<string, string> = {
   NUEVA_EMISION: 'Nueva Emisión',
@@ -57,7 +58,11 @@ export const ExpedicionesTab: React.FC = () => {
         sortBy: 'fechaExpedicion',
         sortOrder: 'desc',
       });
-      setExpediciones((response as any).data || []);
+      // El backend pagina: devuelve { data: [...], meta: {...} }, no un array
+      // plano (backend/src/modules/card-issuances/card-issuances.service.ts,
+      // findAll). Tratar `.data` como el array directamente rompía el render
+      // ("expediciones.map is not a function") en cuanto había resultados.
+      setExpediciones(comoArreglo(response));
     } catch (err: any) {
       setError(err.message || 'Error al cargar expediciones');
       console.error('Error loading issuances:', err);

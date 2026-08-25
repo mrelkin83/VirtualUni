@@ -1203,13 +1203,17 @@ export const useStudentDashboard = () => {
    * Antes esto solo mostraba un aviso con la ruta del archivo: no descargaba
    * nada. Ahora abre la URL real que devuelve el servidor.
    */
-  const descargarCertificado = (solicitudId: number | string) => {
+  const descargarCertificado = async (solicitudId: number | string) => {
     const solicitud: any = solicitudesCertificadosData.find((s: any) => s.id === solicitudId);
     if (!solicitud?.archivoUrl) {
       alert('El certificado aún no está disponible para descargar.');
       return;
     }
-    window.open(uploadsApi.urlAbsoluta(solicitud.archivoUrl), '_blank', 'noopener');
+    try {
+      await uploadsApi.abrir(solicitud.archivoUrl);
+    } catch (err: any) {
+      alert('No se pudo descargar el certificado: ' + (err?.message || 'error de conexión'));
+    }
   };
 
   /**
@@ -1289,7 +1293,9 @@ export const useStudentDashboard = () => {
     if (clase.grabacionUrl) {
       // Mostraba un aviso con la URL y el texto "en un caso real se
       // reproduciría el video". Se abre la grabación.
-      window.open(uploadsApi.urlAbsoluta(clase.grabacionUrl), '_blank', 'noopener');
+      uploadsApi.abrir(clase.grabacionUrl).catch((err: any) => {
+        alert('No se pudo abrir la grabación: ' + (err?.message || 'error de conexión'));
+      });
     } else {
       alert('La grabación no está disponible.');
     }
@@ -1508,8 +1514,6 @@ export const useStudentDashboard = () => {
   };
 
   const verMensaje = (mensaje: any) => {
-    // TODO: Abrir modal o sección para ver mensaje completo
-    console.log('Ver mensaje:', mensaje);
     setConversacionActiva(mensaje);
   };
 

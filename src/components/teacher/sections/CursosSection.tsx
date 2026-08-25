@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { BookOpen, Settings, Plus, Edit3, Trash2, Upload, Eye, Download, FileText, Video, ClipboardCheck, X } from 'lucide-react';
 import { GestionMaterialesModal } from '../modals/GestionMaterialesModal';
+import { uploadsApi } from '../../../api/endpoints/uploads';
+import { materialsApi, MaterialType } from '../../../api/endpoints/materials';
+
+const TIPO_MATERIAL_BACKEND: Record<string, MaterialType> = {
+  pdf: 'DOCUMENTO',
+  documento: 'DOCUMENTO',
+  video: 'VIDEO',
+  imagen: 'IMAGEN',
+  enlace: 'ENLACE',
+};
 
 interface CursosSectionProps {
   cursos: any[];
@@ -570,9 +580,41 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             tema={modalMateriales}
             isOpen={!!modalMateriales}
             onClose={() => setModalMateriales(null)}
-            onSave={(temaId: number, materiales: any[]) => {
-              console.log('Materiales guardados:', materiales);
-              setModalMateriales(null);
+            onSave={async (_temaId: number, materiales: any[]) => {
+              // El modelo de datos actual asocia materiales al curso, no a un
+              // tema puntual del temario (Material no tiene topicId): se
+              // suben al curso y se deja el tema en la descripción para no
+              // perder esa referencia. Ver docs/DECISIONES_PENDIENTES.md para
+              // el mismo tipo de límite en otros módulos.
+              try {
+                for (const material of materiales) {
+                  let url = material.url;
+                  let formato: string | undefined;
+                  let tamanioKb: number | undefined;
+
+                  if (material.archivo instanceof File) {
+                    const { data: archivo } = await uploadsApi.subir(material.archivo, 'materiales');
+                    url = archivo.url;
+                    formato = archivo.formato;
+                    tamanioKb = archivo.tamanioKb;
+                  }
+
+                  if (!url) continue;
+
+                  await materialsApi.create({
+                    courseId: String(cursoDetalle.id),
+                    nombre: material.nombre,
+                    descripcion: modalMateriales?.titulo ? `Tema: ${modalMateriales.titulo}` : undefined,
+                    tipo: TIPO_MATERIAL_BACKEND[material.tipo] || 'OTRO',
+                    url,
+                    formato,
+                    tamanioKb,
+                  });
+                }
+                setModalMateriales(null);
+              } catch (err: any) {
+                alert('No se pudieron guardar los materiales: ' + (err?.message || 'error de conexión'));
+              }
             }}
             darkMode={darkMode}
             card={card}

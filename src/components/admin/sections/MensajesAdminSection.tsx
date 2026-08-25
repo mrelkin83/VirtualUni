@@ -4,6 +4,7 @@ import {
   Search, Circle, Trash2, Bell
 } from 'lucide-react';
 import { announcementsApi, massMessagesApi } from '../../../api/endpoints';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 interface MensajesAdminSectionProps {
   darkMode?: boolean;
@@ -69,7 +70,9 @@ export const MensajesAdminSection: React.FC<MensajesAdminSectionProps> = ({ dark
       const [announcementsData] = await Promise.all([
         announcementsApi.getAll()
       ]);
-      setAnuncios((announcementsData as any).data || []);
+      // El backend pagina (`{ data, pagination }`), no devuelve un array
+      // plano; mismo problema confirmado en ExpedicionesTab.tsx.
+      setAnuncios(comoArreglo(announcementsData));
     } catch (error) {
       console.error('Error loading messaging data:', error);
     }

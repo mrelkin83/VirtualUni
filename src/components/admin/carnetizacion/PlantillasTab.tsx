@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cardTemplatesApi, CardTemplate } from '../../../api/endpoints/card-templates';
 import { CreateTemplateModal } from './CreateTemplateModal';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
 export const PlantillasTab: React.FC = () => {
   const [plantillas, setPlantillas] = useState<CardTemplate[]>([]);
@@ -34,7 +35,9 @@ export const PlantillasTab: React.FC = () => {
       const response = await cardTemplatesApi.getAll({
         search: searchTerm || undefined,
       });
-      setPlantillas((response as any).data || []);
+      // El backend pagina (`{ data, meta }`), no devuelve un array plano;
+      // mismo problema confirmado en ExpedicionesTab.tsx.
+      setPlantillas(comoArreglo(response));
     } catch (err: any) {
       setError(err.message || 'Error al cargar plantillas');
       console.error('Error loading templates:', err);

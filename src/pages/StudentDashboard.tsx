@@ -19,6 +19,7 @@ import { ExamenesSection } from '../components/student/sections/ExamenesSection'
 import { RendirExamenSection } from '../components/student/sections/RendirExamenSection';
 import { ComunidadYForosSection } from '../components/student/sections/ComunidadYForosSection';
 import { NuevoMensajeModal } from '../components/student/modals/NuevoMensajeModal';
+import { MensajeDetalleModal } from '../components/teacher/modals/MensajeDetalleModal';
 import { NotificacionesDropdown } from '../components/student/dropdowns/NotificacionesDropdown';
 import { MensajesDropdown } from '../components/student/dropdowns/MensajesDropdown';
 
@@ -80,6 +81,7 @@ export default function StudentDashboard() {
     setArchivoTarea,
     setComentarioTarea,
     entregarTarea,
+    conversacionActiva,
     setConversacionActiva,
     setModalTramite,
     setTipoTramite,
@@ -124,6 +126,26 @@ export default function StudentDashboard() {
       finalizarExamen();
     }
   }, [tiempoRestante, finalizarExamen, setTiempoRestante]);
+
+  // `conversacionActiva` puede venir de los datos de ejemplo (StudentMessage:
+  // remitente/preview) o de la respuesta cruda del API (contenido/de); se
+  // normaliza a la forma que espera MensajeDetalleModal.
+  const mensajeDetalle = conversacionActiva
+    ? {
+        id: conversacionActiva.id,
+        de: conversacionActiva.remitente ?? conversacionActiva.de ?? 'Desconocido',
+        para: conversacionActiva.para,
+        asunto: conversacionActiva.asunto ?? '(sin asunto)',
+        mensaje:
+          conversacionActiva.mensaje ??
+          conversacionActiva.contenido ??
+          conversacionActiva.preview ??
+          '',
+        fecha: conversacionActiva.fecha ?? '',
+        tipo: conversacionActiva.tipo ?? 'recibido',
+        leido: conversacionActiva.leido,
+      }
+    : null;
 
   const renderContent = () => {
     switch (activeSection) {
@@ -478,6 +500,24 @@ export default function StudentDashboard() {
         eliminarMensaje={eliminarMensaje}
         onVerMensaje={verMensaje}
         onNuevoMensaje={() => setNuevoMensajeModal(true)}
+      />
+
+      <MensajeDetalleModal
+        mensaje={mensajeDetalle}
+        isOpen={!!conversacionActiva}
+        onClose={() => setConversacionActiva(null)}
+        onMarcarLeido={(id) => marcarMensajeComoLeido(id)}
+        onEliminar={(id) => {
+          eliminarMensaje(id);
+          setConversacionActiva(null);
+        }}
+        onResponder={(_id, respuesta) =>
+          enviarMensaje(mensajeDetalle?.de || '', `Re: ${mensajeDetalle?.asunto || ''}`, respuesta)
+        }
+        darkMode={darkMode}
+        card={card}
+        text={text}
+        border={border}
       />
     </div>
   );

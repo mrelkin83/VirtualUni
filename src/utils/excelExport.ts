@@ -243,6 +243,57 @@ export const generateFinancialExcel = (financialData: any, monthlyTrends: any) =
 };
 
 /**
+ * Generate a single student's data sheet (profile + grades + courses),
+ * used by the teacher's "export student data" action.
+ */
+export const generateStudentDataExcel = (estudiante: any) => {
+  const workbook = XLSX.utils.book_new();
+
+  const infoData = [
+    [`Ficha del estudiante - ${estudiante.nombre ?? ''}`],
+    ['Generado:', new Date().toLocaleString('es-ES')],
+    [],
+    ['Información General'],
+    ['Nombre', estudiante.nombre || '-'],
+    ['Email', estudiante.email || '-'],
+    ['Teléfono', estudiante.telefono || '-'],
+    ['Fecha de inscripción', estudiante.fechaInscripcion || '-'],
+    [],
+    ['Rendimiento Académico'],
+    ['Promedio general', estudiante.promedioGeneral ?? '-'],
+    ['Progreso (%)', estudiante.progreso ?? '-'],
+    ['Tareas entregadas', estudiante.tareasEntregadas ?? '-'],
+    ['Tareas revisadas', estudiante.tareasRevisadas ?? '-'],
+    ['Tareas pendientes', estudiante.tareasPendientes ?? '-'],
+    ['Asistencia (%)', estudiante.asistencia ?? '-'],
+  ];
+  const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
+  infoSheet['!cols'] = [{ wch: 30 }, { wch: 30 }];
+  XLSX.utils.book_append_sheet(workbook, infoSheet, 'Resumen');
+
+  if (Array.isArray(estudiante.historialCalificaciones) && estudiante.historialCalificaciones.length) {
+    const encabezados = Object.keys(estudiante.historialCalificaciones[0]);
+    const filas = estudiante.historialCalificaciones.map((h: any) => encabezados.map((k) => h[k]));
+    const gradesSheet = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+    XLSX.utils.book_append_sheet(workbook, gradesSheet, 'Calificaciones');
+  }
+
+  if (Array.isArray(estudiante.cursosInscritos) && estudiante.cursosInscritos.length) {
+    const filas = estudiante.cursosInscritos.map((c: any) =>
+      typeof c === 'string' ? [c] : Object.values(c),
+    );
+    const cursosSheet = XLSX.utils.aoa_to_sheet([['Curso'], ...filas]);
+    XLSX.utils.book_append_sheet(workbook, cursosSheet, 'Cursos');
+  }
+
+  const slug = String(estudiante.nombre || 'estudiante')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  XLSX.writeFile(workbook, `${slug}-${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
+/**
  * Generate student report with enrollments in Excel
  */
 export const generateStudentExcel = (studentAnalytics: any) => {

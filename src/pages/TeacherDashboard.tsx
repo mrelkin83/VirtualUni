@@ -22,6 +22,7 @@ import { RevisionTareaModal } from '../components/teacher/modals/RevisionTareaMo
 import { PerfilEstudianteModal } from '../components/teacher/modals/PerfilEstudianteModal';
 import { MensajeDetalleModal } from '../components/teacher/modals/MensajeDetalleModal';
 import { NuevoMensajeModal } from '../components/teacher/modals/NuevoMensajeModal';
+import { coursesAdminApi } from '../api/endpoints/courses';
 
 export default function TeacherDashboard() {
   const { logout } = useAuthStore();
@@ -50,6 +51,7 @@ export default function TeacherDashboard() {
     setNotificacionesAbiertas,
     setNuevoMensajeModal,
     setCursoDetalle,
+    setCursos,
     setEstudianteDetalle,
     setTareaEnRevision,
     setModalConfigCurso,
@@ -401,9 +403,27 @@ export default function TeacherDashboard() {
           curso={state.modalConfigCurso}
           isOpen={!!state.modalConfigCurso}
           onClose={() => setModalConfigCurso(null)}
-          onSave={(config: any) => {
-            console.log('Configuración guardada:', config);
+          onSave={async (config: any) => {
+            // El modelo Course del backend sólo persiste name/code/description
+            // /credits/semester/color/status; el resto de campos del modal
+            // (duración, cupo, modalidad, horario, prerequisitos, ...) no
+            // tiene columna todavía y sólo se refleja en el estado local,
+            // igual que el resto del panel cuando el servidor no cubre algo.
+            setCursos(cursos.map((c: any) => (c.id === config.id ? { ...c, ...config } : c)));
+            setCursoDetalle((prev: any) => (prev ? { ...prev, ...config } : prev));
             setModalConfigCurso(null);
+
+            if (!config.id) return;
+            try {
+              await coursesAdminApi.update(String(config.id), {
+                name: config.nombre,
+                code: config.codigo,
+                description: config.descripcion,
+                credits: config.creditos,
+              });
+            } catch (err: any) {
+              alert('La configuración se guardó localmente pero no se pudo sincronizar con el servidor: ' + (err?.message || 'error de conexión'));
+            }
           }}
           darkMode={darkMode}
           card={card}
