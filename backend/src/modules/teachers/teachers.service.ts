@@ -155,6 +155,15 @@ export class TeachersService {
     };
   }
 
+  /** Espejo de StudentsService.esFichaDelUsuario, para el mismo chequeo aquí. */
+  async esFichaDelUsuario(userId: string, teacherId: string, tenantId: string): Promise<boolean> {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id: teacherId, tenantId },
+      select: { userId: true },
+    });
+    return !!teacher && teacher.userId === userId;
+  }
+
   async findOne(id: string, tenantId: string) {
     const teacher = await this.prisma.teacher.findFirst({
       where: { id, tenantId },

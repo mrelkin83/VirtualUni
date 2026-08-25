@@ -567,8 +567,12 @@ export class PayrollService {
       throw new NotFoundException(`Registro de nomina con ID ${id} no encontrado`);
     }
 
-    // No permitir modificar registros ya pagados
-    if (existingRecord.estado === PayrollStatus.PAGADO && updateDto.estado !== PayrollStatus.PAGADO) {
+    // No permitir modificar registros ya pagados. Antes comparaba con
+    // `updateDto.estado !== PAGADO`: si el cliente mandaba `estado: 'PAGADO'`
+    // (el mismo valor actual) junto con salarioBase/bonificaciones/deducciones
+    // modificados, la condición era falsa y el monto se reescribía en
+    // silencio sobre un registro ya pagado.
+    if (existingRecord.estado === PayrollStatus.PAGADO) {
       throw new BadRequestException('No se puede modificar un registro de nomina ya pagado');
     }
 

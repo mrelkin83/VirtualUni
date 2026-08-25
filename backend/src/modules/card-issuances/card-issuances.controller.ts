@@ -9,7 +9,6 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
-  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +24,7 @@ import { TenantGuard } from '@/common/guards/tenant.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
+import { CurrentUser, CurrentUserData } from '@/common/decorators/current-user.decorator';
 
 /**
  * Controlador para la gestión de expediciones de carnets
@@ -58,12 +58,10 @@ export class CardIssuancesController {
   create(
     @Body() createDto: CreateCardIssuanceDto,
     @CurrentTenant() tenantId: string,
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserData,
   ) {
-    const userId = req.user?.userId || req.user?.id || 'system';
-    const userName = req.user?.firstName
-      ? `${req.user.firstName} ${req.user.lastName}`
-      : 'Administrador';
+    const userId = user.userId ?? user.id;
+    const userName = user.firstName ? `${user.firstName} ${user.lastName}` : 'Administrador';
 
     return this.cardIssuancesService.create(tenantId, createDto, userId, userName);
   }

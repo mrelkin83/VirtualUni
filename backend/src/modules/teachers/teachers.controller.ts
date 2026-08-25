@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TeachersService } from './teachers.service';
@@ -20,6 +21,7 @@ import { TenantGuard } from '@/common/guards/tenant.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
+import { CurrentUser, CurrentUserData } from '@/common/decorators/current-user.decorator';
 
 @ApiTags('teachers')
 @Controller('teachers')
@@ -56,15 +58,44 @@ export class TeachersController {
     return this.teachersService.findAll(tenantId, pageNum, limitNum, search);
   }
 
+  /**
+   * El listado (findAll) ya está reservado a administración, pero la ficha
+   * individual y sus estadísticas no llevaban ningún chequeo: cualquier
+   * usuario autenticado —incluido un STUDENT— podía pedir el perfil completo
+   * (email, avatarUrl, lastLoginAt, departamento, especialización...) de
+   * cualquier docente con solo conocer su id. Mismo patrón que
+   * StudentsController.asegurarFichaPropia.
+   */
+  private async asegurarFichaPropia(user: CurrentUserData, teacherId: string, tenantId: string) {
+    if (user?.role === 'TENANT_ADMIN' || user?.role === 'SUPER_ADMIN') return;
+    if (user?.role !== 'TEACHER') {
+      throw new ForbiddenException('No tienes acceso a esta ficha');
+    }
+    const propio = await this.teachersService.esFichaDelUsuario(user.userId, teacherId, tenantId);
+    if (!propio) {
+      throw new ForbiddenException('Solo puedes consultar tu propia ficha');
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get teacher by ID' })
-  findOne(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+  async findOne(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    await this.asegurarFichaPropia(user, id, tenantId);
     return this.teachersService.findOne(id, tenantId);
   }
 
   @Get(':id/stats')
   @ApiOperation({ summary: 'Get teacher statistics' })
-  getStats(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+  async getStats(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    await this.asegurarFichaPropia(user, id, tenantId);
     return this.teachersService.getTeacherStats(id, tenantId);
   }
 

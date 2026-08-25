@@ -32,7 +32,7 @@ import { TenantGuard } from '@/common/guards/tenant.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentUser, CurrentUserData } from '@/common/decorators/current-user.decorator';
 
 /**
  * Controlador para la gestión de mensajes masivos
@@ -68,7 +68,7 @@ export class MassMessagesController {
   create(
     @Body() createDto: CreateMassMessageDto,
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.massMessagesService.create(tenantId, createDto, user.firstName);
   }

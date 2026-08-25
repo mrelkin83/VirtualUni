@@ -25,7 +25,23 @@ export class CourseTopicsService {
     return t;
   }
 
+  /**
+   * `dto.courseId` sólo se validaba con `@IsUUID()`, nunca contra el tenant:
+   * un TEACHER/TENANT_ADMIN podía crear un tema referenciando el curso de
+   * otro tenant (registro huérfano/cruzado), aunque `findByCourse` siga
+   * filtrando por tenant al leer.
+   */
+  private async assertCourse(tenantId: string, courseId: string) {
+    const course = await this.prisma.course.findFirst({
+      where: { id: courseId, tenantId },
+      select: { id: true },
+    });
+    if (!course) throw new NotFoundException('Curso no encontrado');
+  }
+
   async crear(tenantId: string, dto: CrearTemaDto) {
+    await this.assertCourse(tenantId, dto.courseId);
+
     // Si no se indica el orden, va al final del temario del curso.
     const orderIndex =
       dto.orderIndex ??

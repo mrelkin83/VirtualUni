@@ -33,7 +33,7 @@ import { TenantGuard } from '@/common/guards/tenant.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentUser, CurrentUserData } from '@/common/decorators/current-user.decorator';
 
 /**
  * Controlador para la gestión de trámites
@@ -68,7 +68,7 @@ export class ProceduresController {
   create(
     @Body() createDto: CreateProcedureDto,
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.proceduresService.create(
       tenantId,
@@ -87,7 +87,7 @@ export class ProceduresController {
   })
   findMine(
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.proceduresService.findMine(tenantId, user.userId ?? user.id);
   }
@@ -98,7 +98,7 @@ export class ProceduresController {
   cancelarPropio(
     @Param('id') id: string,
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.proceduresService.cancelarPropio(
       tenantId,

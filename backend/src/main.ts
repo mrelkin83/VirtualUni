@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -14,11 +13,9 @@ async function bootstrap() {
     rawBody: true, // Enable raw body for Stripe webhooks
   });
 
-  // Archivos subidos: se sirven fuera del prefijo /api/v1, tal y como se
-  // devuelven las URLs desde el modulo de uploads.
-  app.useStaticAssets(join(process.env.UPLOADS_DIR || join(process.cwd(), 'uploads')), {
-    prefix: '/uploads/',
-  });
+  // Los archivos subidos NO se sirven como estáticos públicos: se descargan
+  // por GET /api/v1/uploads/file/:tenantId/:carpeta/:nombre (uploads.controller.ts),
+  // detrás de JwtAuthGuard + TenantGuard, igual que el resto del API.
 
   // CORS - Allow frontend access (development + production)
   app.enableCors({

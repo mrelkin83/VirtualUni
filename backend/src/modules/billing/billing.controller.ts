@@ -9,6 +9,8 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
@@ -57,7 +59,7 @@ export class BillingController {
   ) {
     return this.billingService.createCheckoutSession(
       dto.plan,
-      dto.tenantId || tenantId,
+      tenantId,
       dto.successUrl,
       dto.cancelUrl,
     );
@@ -92,13 +94,15 @@ export class BillingController {
     @Req() req: RawBodyRequest<Request>,
   ) {
     if (!this.stripe) {
-      return { received: false, error: 'Stripe not configured' };
+      // No-2xx: si Stripe está mal configurado, el evento debe reintentarse,
+      // no descartarse en silencio.
+      throw new ServiceUnavailableException('Stripe not configured');
     }
 
     const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
 
     if (!webhookSecret) {
-      return { received: false, error: 'Webhook secret not configured' };
+      throw new ServiceUnavailableException('Webhook secret not configured');
     }
 
     let event: Stripe.Event;
@@ -112,7 +116,9 @@ export class BillingController {
       );
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
-      return { received: false, error: 'Signature verification failed' };
+      // No-2xx: una firma inválida debe hacer que Stripe reintente (o alertar),
+      // no ser aceptada como si el evento se hubiera procesado.
+      throw new BadRequestException('Signature verification failed');
     }
 
     // Handle the event

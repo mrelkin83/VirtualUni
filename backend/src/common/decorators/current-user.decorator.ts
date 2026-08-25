@@ -1,9 +1,14 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
+// Debe reflejar exactamente lo que devuelve JwtStrategy.validate()
+// (backend/src/modules/auth/strategies/jwt.strategy.ts).
 export interface CurrentUserData {
+  id: string;
   userId: string;
   tenantId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   role: string;
 }
 

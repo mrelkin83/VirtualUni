@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
@@ -32,6 +33,25 @@ export class AttendanceService {
 
     if (!course) {
       throw new NotFoundException('Curso no encontrado');
+    }
+
+    // `registro.studentId` lo manda el cliente por cada fila y se usaba tal
+    // cual en el upsert: al haber FK a Student pero no chequeo de tenant, un
+    // id real de otro tenant pasaba igual (groups.service.ts addMembers ya
+    // valida esto mismo para su propio caso). Se exige además matrícula en
+    // el curso: registrar asistencia de alguien no inscrito no tiene sentido.
+    const studentIds = [...new Set(dto.registros.map((r) => r.studentId))];
+    const matriculados = await this.prisma.enrollment.findMany({
+      where: { courseId: dto.courseId, studentId: { in: studentIds } },
+      select: { studentId: true },
+    });
+
+    if (matriculados.length !== studentIds.length) {
+      const validos = new Set(matriculados.map((m) => m.studentId));
+      const invalidos = studentIds.filter((id) => !validos.has(id));
+      throw new BadRequestException(
+        `Estudiante(s) no matriculado(s) en este curso: ${invalidos.join(', ')}`,
+      );
     }
 
     const fecha = new Date(dto.fecha);
