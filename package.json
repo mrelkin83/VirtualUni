@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Plataforma Educativa Virtual - Univirtual",
+  "engines": {
+    "node": ">=22.22.2"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
