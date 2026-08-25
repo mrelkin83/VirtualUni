@@ -41,9 +41,14 @@ docker-compose down
 echo "📥 Pulling latest changes..."
 git pull origin main || true
 
-# Build and start containers
-echo "🔨 Building and starting containers..."
-docker-compose up -d --build
+# Pull the images that .github/workflows/deploy.yml already built and
+# published — no se reconstruye en el servidor. Requiere DOCKER_USERNAME
+# en el .env de este directorio (ver docker-compose.yml).
+echo "📦 Pulling latest images..."
+docker-compose pull
+
+echo "🚀 Starting containers..."
+docker-compose up -d
 
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
