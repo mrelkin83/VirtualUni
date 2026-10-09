@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Claude Code hook cache (tsc --incremental buildinfo, machine-specific)
+.claude/hooks/.cache/
+
+# Claude Code local settings (per-machine, not shared)
+.claude/settings.local.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

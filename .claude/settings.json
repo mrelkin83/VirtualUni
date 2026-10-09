@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-migration-edit.cjs",
+            "timeout": 10,
+            "statusMessage": "Comprobando ruta de migracion..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/typecheck-on-edit.cjs",
+            "timeout": 90,
+            "statusMessage": "Verificando tipos con tsc..."
+          }
+        ]
+      }
+    ]
+  }
+}
