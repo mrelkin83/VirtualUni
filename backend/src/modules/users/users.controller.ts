@@ -13,6 +13,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { TenantGuard } from '@/common/guards/tenant.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import {
   CurrentUser,
@@ -24,7 +25,19 @@ import {
 // Este controlador no tenia RolesGuard. Un estudiante podia leer el directorio
 // completo del tenant, renombrar y desactivar al administrador, y ascenderse a
 // SUPER_ADMIN.
-@UseGuards(JwtAuthGuard, RolesGuard)
+//
+// TenantGuard era el unico que faltaba en todo el backend. No habia fuga: cada
+// consulta de users.service.ts se acota con el `tenantId` que JwtStrategy saca
+// de la base a partir del `sub` firmado, nunca de la cabecera. Pero este
+// controlador si recibe X-Tenant-ID (el interceptor de src/api/client.ts la
+// envia en toda peticion) y la ignoraba en silencio en lugar de rechazarla, y
+// cualquier ruta que se agregue aqui leyendo `request.tenantId`, la cabecera o
+// un `tenantId` del cuerpo no heredaria la comprobacion que el resto del
+// backend da por sentada. Se agrega por uniformidad con la regla del proyecto
+// (todo controlador no publico aplica los tres guards): `tenantId` es NOT NULL
+// en el schema, asi que no hay usuario autenticado sin tenant que pueda caer en
+// el BadRequest del guard.
+@UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
