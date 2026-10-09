@@ -4,6 +4,11 @@ npm-debug.log
 .env
 .env.local
 .env.*.local
+# .env.production solo contiene el placeholder https://api.your-domain.com.
+# Vite lo cargaba durante `npm run build` y lo horneaba en el bundle, asi que
+# la SPA publicada pedia datos a un dominio inexistente. El valor real se pasa
+# como build-arg VITE_API_URL (ver Dockerfile).
+.env.production
 .git
 .gitignore
 README.md

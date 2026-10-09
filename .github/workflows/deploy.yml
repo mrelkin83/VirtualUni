@@ -61,6 +61,13 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/virtualuni-frontend:latest
+          # Vite hornea esto en el bundle al compilar. Si el secreto no existe
+          # queda vacio, que significa "mismo origen" y es lo correcto cuando
+          # el nginx de esta imagen hace proxy de /api/ hacia el backend.
+          # Definelo solo si el backend vive en otro dominio (el ORIGEN, sin
+          # /api/v1).
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

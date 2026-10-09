@@ -12,6 +12,17 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# URL del backend, horneada en el bundle en tiempo de build (Vite sustituye
+# import.meta.env.* al compilar; no se puede cambiar despues sin reconstruir).
+#
+# Vacio por defecto = mismo origen, que es la topologia de este compose: el
+# nginx de esta misma imagen hace proxy de /api/ hacia el backend, y las rutas
+# de src/api/endpoints/ ya incluyen el prefijo /api/v1. Solo hay que pasar un
+# valor si el backend vive en otro dominio, y entonces debe ser el ORIGEN
+# (https://api.ejemplo.com), sin /api/v1.
+ARG VITE_API_URL=""
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the application
 RUN npm run build
 

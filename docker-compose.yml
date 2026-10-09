@@ -38,8 +38,16 @@ services:
       WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY:-}
       WOMPI_EVENTS_SECRET: ${WOMPI_EVENTS_SECRET:-}
       WOMPI_INTEGRITY_SECRET: ${WOMPI_INTEGRITY_SECRET:-}
+      # Explicito en lugar de depender del cwd del proceso: uploads.service.ts
+      # usa UPLOADS_DIR o, si falta, process.cwd()/uploads.
+      UPLOADS_DIR: /app/uploads
     ports:
       - "4000:3001"
+    volumes:
+      # Sin esto los archivos subidos vivian en la capa efimera del contenedor:
+      # cada despliegue trae imagen nueva, recrea el contenedor y los borraba,
+      # dejando en la base URLs que apuntaban a archivos inexistentes.
+      - backend_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,3 +87,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:

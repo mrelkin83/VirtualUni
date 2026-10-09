@@ -45,6 +45,16 @@ COPY --from=builder /app/dist ./dist
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
+# Directorio de archivos subidos.
+#
+# Tiene que existir en la imagen y pertenecer a nestjs ANTES del chown: cuando
+# docker-compose monta el volumen con nombre sobre una ruta que no existe en la
+# imagen, crea el punto de montaje como root, y este contenedor corre como
+# usuario sin privilegios. El mkdirSync de uploads.service.ts fallaria con
+# EACCES y ninguna subida funcionaria. Creandolo aqui, el volumen hereda esta
+# pertenencia al inicializarse.
+RUN mkdir -p /app/uploads
+
 # Change ownership
 RUN chown -R nestjs:nodejs /app
 
