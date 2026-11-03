@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { SubjectsService } from '../subjects/subjects.service';
 import { CurrentUserData } from '@/common/decorators/current-user.decorator';
@@ -48,12 +53,52 @@ export class CourseTopicsService {
   }
 
   /**
+   * Cursos matriculados del estudiante y asignaturas de esos cursos. Un
+   * STUDENT solo lee el temario de sus grupos y del contenido maestro de las
+   * asignaturas que cursa — sin esto, cualquier estudiante del tenant leía el
+   * temario y los bloques de cualquier curso.
+   */
+  private async alcanceEstudiante(
+    tenantId: string,
+    userId: string,
+  ): Promise<{ courseIds: string[]; subjectIds: string[] }> {
+    const student = await this.prisma.student.findUnique({
+      where: { userId },
+      select: { id: true, tenantId: true },
+    });
+    if (!student || student.tenantId !== tenantId) {
+      throw new ForbiddenException('Estudiante no encontrado');
+    }
+
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { studentId: student.id },
+      select: { course: { select: { id: true, subjectId: true } } },
+    });
+
+    return {
+      courseIds: enrollments.map((e) => e.course.id),
+      subjectIds: [
+        ...new Set(
+          enrollments.map((e) => e.course.subjectId).filter((s): s is string => !!s),
+        ),
+      ],
+    };
+  }
+
+  /**
    * Temario de un grupo = contenido maestro de su asignatura (heredado,
    * primero) + temas propios del grupo. Cada tema lleva `origen` para que la
    * UI distinga lo compartido de lo propio.
    */
-  async findByCourse(tenantId: string, courseId: string) {
+  async findByCourse(tenantId: string, courseId: string, user: CurrentUserData) {
     const curso = await this.curso(tenantId, courseId);
+
+    if (user.role === 'STUDENT') {
+      const { courseIds } = await this.alcanceEstudiante(tenantId, user.userId);
+      if (!courseIds.includes(courseId)) {
+        throw new NotFoundException('Curso no encontrado');
+      }
+    }
 
     const topics = await this.prisma.courseTopic.findMany({
       where: {
@@ -77,12 +122,19 @@ export class CourseTopicsService {
   }
 
   /** Temario maestro de una asignatura (para administrarlo sin pasar por un grupo). */
-  async findBySubject(tenantId: string, subjectId: string) {
+  async findBySubject(tenantId: string, subjectId: string, user: CurrentUserData) {
     const subject = await this.prisma.subject.findFirst({
       where: { id: subjectId, tenantId },
       select: { id: true },
     });
     if (!subject) throw new NotFoundException('Asignatura no encontrada');
+
+    if (user.role === 'STUDENT') {
+      const { subjectIds } = await this.alcanceEstudiante(tenantId, user.userId);
+      if (!subjectIds.includes(subjectId)) {
+        throw new NotFoundException('Asignatura no encontrada');
+      }
+    }
 
     const topics = await this.prisma.courseTopic.findMany({
       where: { tenantId, subjectId },

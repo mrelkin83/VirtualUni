@@ -24,16 +24,18 @@ export class CourseTopicsController {
   constructor(private readonly service: CourseTopicsService) {}
 
   @Get()
-  // El alumnado consulta el temario; editarlo es cosa del profesorado.
+  // El alumnado consulta el temario, pero SOLO el de sus grupos/asignaturas:
+  // el servicio verifica la matrícula cuando el rol es STUDENT.
   @ApiOperation({ summary: 'Temario de un grupo (maestro de su asignatura + propio)' })
   findByCourse(
     @Query('courseId') courseId: string,
     @Query('subjectId') subjectId: string,
     @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
   ) {
     // subjectId: administrar el temario maestro sin pasar por un grupo
-    if (subjectId) return this.service.findBySubject(tenantId, subjectId);
-    return this.service.findByCourse(tenantId, courseId);
+    if (subjectId) return this.service.findBySubject(tenantId, subjectId, user);
+    return this.service.findByCourse(tenantId, courseId, user);
   }
 
   @Post()

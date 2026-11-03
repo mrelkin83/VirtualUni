@@ -405,11 +405,11 @@ export class MaterialsService {
     const material = await this.findOne(tenantId, id);
     await this.asegurarPermiso(tenantId, material, user);
 
-    if (dto.courseId) {
-      await this.curso(tenantId, dto.courseId);
-    }
-    // La pertenencia a asignatura no se cambia por PATCH: use promover()
-    const { subjectId: _s, ...data } = dto;
+    // La pertenencia (grupo o asignatura) NO se reasigna por PATCH: se fija al
+    // crear y solo cambia vía promover()/copiarDelGrupo(), que sí validan la
+    // asignatura. Honrar dto.courseId aquí permitía colgar contenido maestro
+    // de un curso ajeno y romper la exclusividad courseId XOR subjectId.
+    const { courseId: _c, subjectId: _s, ...data } = dto;
 
     return this.prisma.material.update({ where: { id }, data });
   }

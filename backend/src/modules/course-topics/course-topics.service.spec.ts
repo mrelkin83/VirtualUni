@@ -14,6 +14,7 @@ const SUBJECT_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
 const ADMIN: any = { id: 'u-admin', userId: 'u-admin', role: 'TENANT_ADMIN' };
 const DOCENTE: any = { id: 'u-doc', userId: 'u-doc', role: 'TEACHER' };
+const ESTUDIANTE: any = { id: 'u-est', userId: 'u-est', role: 'STUDENT' };
 
 describe('CourseTopicsService', () => {
   let service: CourseTopicsService;
@@ -21,6 +22,8 @@ describe('CourseTopicsService', () => {
   const prismaMock: any = {
     course: { findFirst: jest.fn() },
     subject: { findFirst: jest.fn() },
+    student: { findUnique: jest.fn() },
+    enrollment: { findMany: jest.fn() },
     courseTopic: {
       findFirst: jest.fn(),
       findMany: jest.fn(),
@@ -115,7 +118,7 @@ describe('CourseTopicsService', () => {
         { id: 'maestro', courseId: null, subjectId: SUBJECT_ID, blocks: [] },
       ]);
 
-      const temario = await service.findByCourse(TENANT_A, COURSE_ID);
+      const temario = await service.findByCourse(TENANT_A, COURSE_ID, ADMIN);
 
       // El where incluye ambas fuentes
       expect(prismaMock.courseTopic.findMany).toHaveBeenCalledWith(
@@ -128,6 +131,45 @@ describe('CourseTopicsService', () => {
       // Maestro primero y con el flag de origen
       expect(temario[0]).toMatchObject({ id: 'maestro', origen: 'asignatura' });
       expect(temario[1]).toMatchObject({ id: 'propio', origen: 'grupo' });
+    });
+
+    // Hallazgo del revisor: un STUDENT solo lee el temario de SUS grupos
+    it('un estudiante no puede leer el temario de un curso en el que no está matriculado', async () => {
+      prismaMock.course.findFirst.mockResolvedValue({ id: COURSE_ID, subjectId: null });
+      prismaMock.student.findUnique.mockResolvedValue({ id: 'est-1', tenantId: TENANT_A });
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { course: { id: 'otro-curso', subjectId: null } },
+      ]);
+
+      await expect(
+        service.findByCourse(TENANT_A, COURSE_ID, ESTUDIANTE),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prismaMock.courseTopic.findMany).not.toHaveBeenCalled();
+    });
+
+    it('un estudiante no puede leer el temario maestro de una asignatura que no cursa', async () => {
+      prismaMock.subject.findFirst.mockResolvedValue({ id: SUBJECT_ID });
+      prismaMock.student.findUnique.mockResolvedValue({ id: 'est-1', tenantId: TENANT_A });
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { course: { id: 'otro-curso', subjectId: 'otra-asignatura' } },
+      ]);
+
+      await expect(
+        service.findBySubject(TENANT_A, SUBJECT_ID, ESTUDIANTE),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('un estudiante sí lee el temario de un curso matriculado', async () => {
+      prismaMock.course.findFirst.mockResolvedValue({ id: COURSE_ID, subjectId: null });
+      prismaMock.student.findUnique.mockResolvedValue({ id: 'est-1', tenantId: TENANT_A });
+      prismaMock.enrollment.findMany.mockResolvedValue([
+        { course: { id: COURSE_ID, subjectId: null } },
+      ]);
+      prismaMock.courseTopic.findMany.mockResolvedValue([]);
+
+      await expect(
+        service.findByCourse(TENANT_A, COURSE_ID, ESTUDIANTE),
+      ).resolves.toEqual([]);
     });
 
     it('editar un tema maestro exige el permiso de editor', async () => {
