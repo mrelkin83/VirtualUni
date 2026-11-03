@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
-import { unlink } from 'fs/promises';
+import { stat, unlink } from 'fs/promises';
 import { extname, join, resolve, sep } from 'path';
+import { PrismaService } from '../../common/prisma/prisma.service';
 
 /** Carpetas lógicas permitidas. Evita que el cliente elija rutas arbitrarias. */
 export const CARPETAS_PERMITIDAS = ['materiales', 'avatares', 'adjuntos', 'portadas'] as const;
@@ -44,6 +51,8 @@ export interface ArchivoSubido {
 @Injectable()
 export class UploadsService {
   private readonly logger = new Logger(UploadsService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
 
   /** Raíz de almacenamiento; configurable para separar entornos. */
   private readonly raiz = resolve(process.env.UPLOADS_DIR || join(process.cwd(), 'uploads'));
@@ -94,6 +103,28 @@ export class UploadsService {
       );
     }
 
+    // Cupo de almacenamiento del plan. storageGB existia en el modelo y en el
+    // catalogo de planes, pero ningun codigo lo media: el limite de cada plan
+    // era decorativo y un tenant FREE (1 GB) podia subir sin tope. Se
+    // contabiliza aqui (y se descuenta en eliminar()) porque este servicio es
+    // el unico punto por el que entran y salen archivos.
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { storageGB: true, currentStorageGB: true },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Tenant no encontrado');
+    }
+
+    const tamanioGb = archivo.size / 1024 ** 3;
+    if (tenant.currentStorageGB + tamanioGb > tenant.storageGB) {
+      throw new ForbiddenException(
+        `Almacenamiento del plan agotado (${tenant.storageGB} GB). ` +
+          'Libere espacio eliminando archivos o actualice el plan.',
+      );
+    }
+
     const destino = this.carpetaValida(carpeta);
     const directorio = join(this.raiz, tenantId, destino);
 
@@ -106,6 +137,11 @@ export class UploadsService {
 
     const { writeFile } = await import('fs/promises');
     await writeFile(join(directorio, nombre), archivo.buffer);
+
+    await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: { currentStorageGB: { increment: tamanioGb } },
+    });
 
     this.logger.log(`Archivo almacenado: ${tenantId}/${destino}/${nombre}`);
 
@@ -144,7 +180,22 @@ export class UploadsService {
       throw new NotFoundException('Archivo no encontrado');
     }
 
+    const { size } = await stat(absoluta);
     await unlink(absoluta);
+
+    // Devuelve el espacio al cupo del tenant, sin dejarlo nunca negativo
+    // (archivos subidos antes de que existiera la contabilidad).
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { currentStorageGB: true },
+    });
+    if (tenant) {
+      const nuevo = Math.max(tenant.currentStorageGB - size / 1024 ** 3, 0);
+      await this.prisma.tenant.update({
+        where: { id: tenantId },
+        data: { currentStorageGB: nuevo },
+      });
+    }
 
     return { message: 'Archivo eliminado correctamente' };
   }

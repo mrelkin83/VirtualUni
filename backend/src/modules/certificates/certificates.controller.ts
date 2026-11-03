@@ -18,6 +18,7 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TenantGuard } from '@/common/guards/tenant.guard';
+import { FeatureGuard, RequireFeature } from '@/common/guards/feature.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
@@ -27,7 +28,7 @@ const STAFF = ['TENANT_ADMIN', 'SUPER_ADMIN'] as const;
 
 @ApiTags('certificates')
 @Controller('certificates')
-@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard, FeatureGuard)
 @ApiBearerAuth()
 export class CertificatesController {
   constructor(private readonly certificatesService: CertificatesService) {}
@@ -41,6 +42,9 @@ export class CertificatesController {
 
   @Post()
   @Roles('STUDENT')
+  // Emitir certificados es feature de plan (FREE y BASIC... ver
+  // plan-catalog.ts). Sin esto, cualquier plan podia solicitarlos.
+  @RequireFeature('certificates')
   @ApiOperation({ summary: 'Solicitar un certificado' })
   @ApiResponse({ status: 201, description: 'Solicitud creada' })
   create(
@@ -74,6 +78,7 @@ export class CertificatesController {
 
   @Patch(':id')
   @Roles(...STAFF)
+  @RequireFeature('certificates')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud' })
   update(
     @Param('id') id: string,

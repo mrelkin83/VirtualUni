@@ -14,6 +14,7 @@ import { LiveClassesService } from './live-classes.service';
 import { CreateLiveClassDto, UpdateLiveClassDto, QueryLiveClassesDto } from './dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TenantGuard } from '@/common/guards/tenant.guard';
+import { FeatureGuard, RequireFeature } from '@/common/guards/feature.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
@@ -21,7 +22,10 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 
 @ApiTags('live-classes')
 @Controller('live-classes')
-@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
+// FeatureGuard sin @RequireFeature a nivel de clase: solo las rutas
+// marcadas abajo exigen la feature. Los listados quedan accesibles para
+// que los dashboards de un plan sin videoconferencia no fallen al cargar.
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard, FeatureGuard)
 @ApiBearerAuth()
 export class LiveClassesController {
   constructor(private readonly liveClassesService: LiveClassesService) {}
@@ -39,6 +43,9 @@ export class LiveClassesController {
 
   @Post()
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  // La videoconferencia es una feature de plan (FREE la tiene desactivada):
+  // sin este decorador, cualquier plan podia programar y lanzar clases.
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Programar una clase en vivo' })
   @ApiResponse({ status: 201, description: 'Clase creada' })
   create(@Body() dto: CreateLiveClassDto, @CurrentTenant() tenantId: string) {
@@ -61,6 +68,7 @@ export class LiveClassesController {
 
   @Post(':id/start')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Iniciar la clase' })
   start(@Param('id') id: string, @CurrentTenant() tenantId: string) {
     return this.liveClassesService.start(tenantId, id);
@@ -68,6 +76,7 @@ export class LiveClassesController {
 
   @Post(':id/finish')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Finalizar la clase' })
   finish(
     @Param('id') id: string,
@@ -79,6 +88,7 @@ export class LiveClassesController {
 
   @Post(':id/join')
   @Roles('STUDENT', 'TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Unirse a la clase' })
   join(@Param('id') id: string, @CurrentTenant() tenantId: string) {
     return this.liveClassesService.join(tenantId, id);
@@ -86,6 +96,7 @@ export class LiveClassesController {
 
   @Patch(':id')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Actualizar una clase' })
   update(
     @Param('id') id: string,
@@ -97,6 +108,7 @@ export class LiveClassesController {
 
   @Delete(':id')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @RequireFeature('videoConf')
   @ApiOperation({ summary: 'Eliminar una clase' })
   remove(@Param('id') id: string, @CurrentTenant() tenantId: string) {
     return this.liveClassesService.remove(tenantId, id);

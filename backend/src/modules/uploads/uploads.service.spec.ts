@@ -4,6 +4,7 @@ import { mkdtempSync, existsSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { UploadsService } from './uploads.service';
+import { PrismaService } from '../../common/prisma/prisma.service';
 
 const TENANT_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const TENANT_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -27,13 +28,31 @@ function archivo(overrides: Partial<Express.Multer.File> = {}): Express.Multer.F
 describe('UploadsService', () => {
   let service: UploadsService;
   let raiz: string;
+  let prismaMock: {
+    tenant: { findUnique: jest.Mock; update: jest.Mock };
+  };
 
   beforeEach(async () => {
     raiz = mkdtempSync(join(tmpdir(), 'virtualuni-uploads-'));
     process.env.UPLOADS_DIR = raiz;
 
+    // El servicio ahora contabiliza el almacenamiento del plan: por defecto el
+    // mock responde con cupo de sobra para que los tests existentes no cambien
+    // de comportamiento; los tests del cupo lo reconfiguran.
+    prismaMock = {
+      tenant: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ storageGB: 10, currentStorageGB: 0 }),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UploadsService],
+      providers: [
+        UploadsService,
+        { provide: PrismaService, useValue: prismaMock },
+      ],
     }).compile();
 
     service = module.get<UploadsService>(UploadsService);
@@ -44,6 +63,29 @@ describe('UploadsService', () => {
   });
 
   describe('guardar', () => {
+    it('rechaza la subida cuando el cupo de almacenamiento del plan esta agotado', async () => {
+      prismaMock.tenant.findUnique.mockResolvedValue({
+        storageGB: 1,
+        currentStorageGB: 1,
+      });
+
+      await expect(service.guardar(TENANT_A, archivo(), 'materiales')).rejects.toMatchObject({
+        status: 403,
+      });
+      expect(prismaMock.tenant.update).not.toHaveBeenCalled();
+    });
+
+    it('suma el tamanio subido al consumo del tenant', async () => {
+      // 1 MB: por debajo del tope de 25 MB por archivo. 1 MB / 1 GB es
+      // exactamente representable en flotante (2^20 / 2^30 = 2^-10).
+      await service.guardar(TENANT_A, archivo({ size: 1024 ** 2 }), 'materiales');
+
+      expect(prismaMock.tenant.update).toHaveBeenCalledWith({
+        where: { id: TENANT_A },
+        data: { currentStorageGB: { increment: 1 / 1024 } },
+      });
+    });
+
     it('almacena el archivo bajo el tenant y devuelve su URL', async () => {
       const res = await service.guardar(TENANT_A, archivo(), 'materiales');
 
