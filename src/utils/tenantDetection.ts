@@ -33,6 +33,13 @@ export function getSubdomainFromUrl(): string | null {
   // For production domains (e.g., universidad.virtualuni.com)
   // Subdomain is the first part if there are 3+ parts
   if (parts.length >= 3) {
+    // www y api no son tenants: el backend ya los excluye
+    // (tenant.middleware.ts) pero aqui se aceptaban, asi que
+    // www.<dominio> intentaba cargar un tenant llamado "www" y moria con
+    // "No se pudo cargar la informacion del tenant".
+    if (parts[0] === 'www' || parts[0] === 'api') {
+      return null;
+    }
     return parts[0];
   }
 

@@ -18,6 +18,31 @@ async function bootstrap() {
   // detrás de JwtAuthGuard + TenantGuard, igual que el resto del API.
 
   // CORS - Allow frontend access (development + production)
+  //
+  // CORS_ORIGINS se inyectaba desde docker-compose pero nadie lo leia: solo
+  // contaba FRONTEND_URL, asi que al separar el API a otro dominio los
+  // subdominios de tenant quedaban bloqueados y la variable configurada no
+  // hacia nada. Ahora se leen ambos, y del dominio de FRONTEND_URL se deriva
+  // un regex que admite cualquier subdominio de tenant (<slug>.dominio) —
+  // esta plataforma es multi-tenant por subdominio, no un origen unico.
+  const origenesConfigurados = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  const origenesTenant: RegExp[] = [];
+  if (process.env.FRONTEND_URL) {
+    try {
+      const { hostname } = new URL(process.env.FRONTEND_URL);
+      const base = hostname
+        .replace(/^www\./, '')
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      origenesTenant.push(new RegExp(`^https://([a-z0-9-]+\\.)?${base}$`));
+    } catch {
+      // FRONTEND_URL malformada: se ignora el regex y quedan los literales.
+    }
+  }
+
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -26,6 +51,8 @@ async function bootstrap() {
       // Tenant subdomains in development (e.g. http://uniprueba.localhost:3000)
       /^http:\/\/[a-z0-9-]+\.localhost:(3000|3001|5173)$/,
       process.env.FRONTEND_URL,
+      ...origenesConfigurados,
+      ...origenesTenant,
     ].filter(Boolean),
     credentials: true,
   });
