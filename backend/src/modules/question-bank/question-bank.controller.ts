@@ -23,29 +23,42 @@ export class QuestionBankController {
 
   @Get()
   @ApiOperation({ summary: 'Listar el banco de preguntas' })
-  findAll(@CurrentTenant() tenantId: string, @Query('categoria') categoria?: string) {
-    return this.service.findAll(tenantId, categoria);
+  findAll(
+    @CurrentTenant() tenantId: string,
+    @Query('categoria') categoria?: string,
+    @Query('subjectId') subjectId?: string,
+  ) {
+    return this.service.findAll(tenantId, categoria, subjectId);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Añadir una pregunta al banco' })
+  @ApiOperation({ summary: 'Añadir una pregunta al banco (con subjectId = maestra de la asignatura)' })
   create(
     @Body() dto: CrearPreguntaDto,
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: CurrentUserData,
   ) {
-    return this.service.create(tenantId, user?.userId ?? null, dto);
+    return this.service.create(tenantId, user, dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Editar una pregunta' })
-  update(@Param('id') id: string, @Body() dto: ActualizarPreguntaDto, @CurrentTenant() tenantId: string) {
-    return this.service.update(tenantId, id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: ActualizarPreguntaDto,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.service.update(tenantId, id, dto, user);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar una pregunta' })
-  remove(@Param('id') id: string, @CurrentTenant() tenantId: string) {
-    return this.service.remove(tenantId, id);
+  remove(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.service.remove(tenantId, id, user);
   }
 }

@@ -1,8 +1,11 @@
 import {
+  ArrayUnique,
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
@@ -57,4 +60,13 @@ export class ActualizarAsignaturaDto extends PartialType(CrearAsignaturaDto) {
   @IsString()
   @IsOptional()
   status?: string;
+}
+
+/** Docentes habilitados para editar el contenido maestro de la asignatura. */
+export class EditoresDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayUnique()
+  @IsUUID('4', { each: true })
+  teacherIds: string[];
 }

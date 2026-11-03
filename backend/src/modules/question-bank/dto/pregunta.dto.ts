@@ -1,10 +1,17 @@
-import { IsString, IsOptional, IsArray, IsNumber, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsNumber, IsInt, IsUUID, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CrearPreguntaDto {
   @ApiProperty()
   @IsString()
   pregunta: string;
+
+  // Pregunta maestra de una asignatura: la comparten todos sus grupos.
+  // Requiere ser editor de la asignatura (o administración).
+  @ApiProperty({ required: false })
+  @IsUUID()
+  @IsOptional()
+  subjectId?: string;
 
   @ApiProperty({ required: false, example: 'multiple' })
   @IsString()

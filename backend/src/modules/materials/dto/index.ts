@@ -14,9 +14,17 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { MaterialType } from '@prisma/client';
 
 export class CreateMaterialDto {
-  @ApiProperty({ description: 'ID del curso al que pertenece el material' })
+  // Exactamente uno: courseId (material propio del grupo) o subjectId
+  // (contenido maestro de la asignatura). El servicio valida la exclusividad.
+  @ApiPropertyOptional({ description: 'ID del grupo al que pertenece el material' })
   @IsUUID('4', { message: 'El curso debe ser un UUID valido' })
-  courseId: string;
+  @IsOptional()
+  courseId?: string;
+
+  @ApiPropertyOptional({ description: 'ID de la asignatura (contenido maestro)' })
+  @IsUUID('4', { message: 'La asignatura debe ser un UUID valido' })
+  @IsOptional()
+  subjectId?: string;
 
   @ApiPropertyOptional({ description: 'ID de la carpeta contenedora' })
   @IsUUID('4', { message: 'La carpeta debe ser un UUID valido' })
@@ -68,6 +76,11 @@ export class QueryMaterialsDto {
   @IsOptional()
   courseId?: string;
 
+  @ApiPropertyOptional({ description: 'Solo el contenido maestro de esta asignatura' })
+  @IsUUID('4', { message: 'La asignatura debe ser un UUID valido' })
+  @IsOptional()
+  subjectId?: string;
+
   @ApiPropertyOptional({ description: 'Filtrar por carpeta' })
   @IsUUID('4', { message: 'La carpeta debe ser un UUID valido' })
   @IsOptional()
@@ -90,6 +103,11 @@ export class CreateFolderDto {
   @IsOptional()
   courseId?: string;
 
+  @ApiPropertyOptional({ description: 'ID de la asignatura (carpeta de contenido maestro)' })
+  @IsUUID('4', { message: 'La asignatura debe ser un UUID valido' })
+  @IsOptional()
+  subjectId?: string;
+
   @ApiProperty({ description: 'Nombre de la carpeta', example: 'Unidad 1' })
   @IsString()
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
@@ -107,3 +125,14 @@ export class CreateFolderDto {
 }
 
 export class UpdateFolderDto extends PartialType(CreateFolderDto) {}
+
+/** Copiar los materiales propios de otro grupo de la MISMA asignatura. */
+export class CopiarMaterialesDto {
+  @ApiProperty({ description: 'Grupo destino' })
+  @IsUUID('4')
+  courseId: string;
+
+  @ApiProperty({ description: 'Grupo origen (mismo subjectId)' })
+  @IsUUID('4')
+  fromCourseId: string;
+}

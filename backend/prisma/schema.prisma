@@ -191,9 +191,10 @@ model Teacher {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses Course[]
-  grades  Grade[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses        Course[]
+  grades         Grade[]
+  subjectEditors SubjectEditor[]
 
   @@unique([tenantId, employeeCode])
   @@map("teachers")
@@ -251,9 +252,13 @@ model Course {
   @@map("courses")
 }
 
+// Un tema pertenece O a un grupo (courseId: contenido propio) O a una
+// asignatura (subjectId: contenido maestro que heredan todos sus grupos).
+// La exclusividad se valida en el servicio.
 model CourseTopic {
   id          String   @id @default(uuid())
-  courseId    String   @map("course_id")
+  courseId    String?  @map("course_id")
+  subjectId   String?  @map("subject_id")
   tenantId    String   @map("tenant_id")
   title       String
   description String?
@@ -262,10 +267,12 @@ model CourseTopic {
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
-  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  blocks TopicBlock[]
+  course  Course?      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject Subject?     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  blocks  TopicBlock[]
 
   @@index([courseId])
+  @@index([subjectId])
   @@map("course_topics")
 }
 
@@ -786,6 +793,8 @@ model QuestionBank {
   id                String   @id @default(uuid())
   tenantId          String   @map("tenant_id")
   teacherId         String?  @map("teacher_id")
+  // Pregunta maestra de una asignatura: la comparten todos sus grupos
+  subjectId         String?  @map("subject_id")
   tipo              String   @default("multiple")
   pregunta          String   @db.Text
   opciones          String[]
@@ -795,7 +804,10 @@ model QuestionBank {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
+  @@index([subjectId])
   @@map("question_bank")
 }
 
@@ -1330,6 +1342,8 @@ model MaterialFolder {
   id          String   @id @default(uuid())
   tenantId    String   @map("tenant_id")
   courseId    String?  @map("course_id")
+  // Carpeta de contenido maestro de una asignatura (excluyente con courseId)
+  subjectId   String?  @map("subject_id")
   nombre      String
   descripcion String?  @db.Text
   color       String   @default("bg-blue-500")
@@ -1337,17 +1351,21 @@ model MaterialFolder {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   course    Course?    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject   Subject?   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   materials Material[]
 
   @@index([tenantId])
   @@index([courseId])
+  @@index([subjectId])
   @@map("material_folders")
 }
 
 model Material {
   id          String       @id @default(uuid())
   tenantId    String       @map("tenant_id")
-  courseId    String       @map("course_id")
+  // Propio de un grupo (courseId) O maestro de una asignatura (subjectId)
+  courseId    String?      @map("course_id")
+  subjectId   String?      @map("subject_id")
   folderId    String?      @map("folder_id")
   nombre      String
   descripcion String?      @db.Text
@@ -1361,11 +1379,13 @@ model Material {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
-  course Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  folder MaterialFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  course  Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject Subject?        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  folder  MaterialFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([courseId])
+  @@index([subjectId])
   @@index([tipo])
   @@index([folderId])
   @@map("materials")
@@ -1840,9 +1860,34 @@ model Subject {
   planEntries StudyPlanSubject[]
   courses     Course[] // grupos que la dictan
 
+  // Contenido maestro compartido por todos los grupos de la asignatura
+  topics          CourseTopic[]
+  materialFolders MaterialFolder[]
+  materials       Material[]
+  questions       QuestionBank[]
+  editors         SubjectEditor[]
+
   @@unique([tenantId, code])
   @@index([tenantId])
   @@map("subjects")
+}
+
+// Docentes habilitados por el admin para editar el contenido maestro de una
+// asignatura. Por defecto el profesorado solo lo lee desde sus grupos.
+model SubjectEditor {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  subjectId String   @map("subject_id")
+  teacherId String   @map("teacher_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([subjectId, teacherId])
+  @@index([tenantId])
+  @@index([teacherId])
+  @@map("subject_editors")
 }
 
 // Fila del pensum: una asignatura en un nivel de un plan de estudios

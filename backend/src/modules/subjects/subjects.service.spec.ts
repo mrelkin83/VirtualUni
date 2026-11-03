@@ -20,6 +20,10 @@ describe('SubjectsService', () => {
     },
     studyPlanSubject: { count: jest.fn(), findMany: jest.fn() },
     course: { count: jest.fn() },
+    // remove() también cuenta el contenido maestro antes de borrar (fase 4)
+    courseTopic: { count: jest.fn().mockResolvedValue(0) },
+    material: { count: jest.fn().mockResolvedValue(0) },
+    questionBank: { count: jest.fn().mockResolvedValue(0) },
   };
 
   beforeEach(async () => {

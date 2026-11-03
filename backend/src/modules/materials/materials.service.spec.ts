@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { MaterialsService } from './materials.service';
+import { SubjectsService } from '../subjects/subjects.service';
 import { PrismaService } from '@/common/prisma/prisma.service';
 
 const TENANT_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -9,6 +10,8 @@ const STUDENT_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const MATERIAL_ID = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 const CURSO_MATRICULADO = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 const CURSO_AJENO = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+const ASIGNATURA_CURSADA = '11111111-1111-4111-8111-111111111111';
+const ASIGNATURA_AJENA = '22222222-2222-4222-8222-222222222222';
 
 describe('MaterialsService', () => {
   let service: MaterialsService;
@@ -17,16 +20,28 @@ describe('MaterialsService', () => {
     material: { findFirst: jest.fn() },
     student: { findUnique: jest.fn() },
     enrollment: { findMany: jest.fn() },
+    course: { findFirst: jest.fn() },
+    subject: { findFirst: jest.fn() },
     materialFolder: { findMany: jest.fn().mockResolvedValue([]) },
   };
+
+  const subjectsMock = { asegurarEditorDeContenido: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
     prismaMock.student.findUnique.mockResolvedValue({ id: STUDENT_ID, tenantId: TENANT_A });
-    prismaMock.enrollment.findMany.mockResolvedValue([{ courseId: CURSO_MATRICULADO }]);
+    // La matrícula resuelve también la asignatura del grupo (contenido maestro)
+    prismaMock.enrollment.findMany.mockResolvedValue([
+      { course: { id: CURSO_MATRICULADO, subjectId: ASIGNATURA_CURSADA } },
+    ]);
+    prismaMock.materialFolder.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MaterialsService, { provide: PrismaService, useValue: prismaMock }],
+      providers: [
+        MaterialsService,
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: SubjectsService, useValue: subjectsMock },
+      ],
     }).compile();
 
     service = module.get<MaterialsService>(MaterialsService);
@@ -40,6 +55,7 @@ describe('MaterialsService', () => {
       prismaMock.material.findFirst.mockResolvedValue({
         visible: true,
         courseId: CURSO_AJENO,
+        subjectId: null,
       });
 
       await expect(
@@ -51,6 +67,7 @@ describe('MaterialsService', () => {
       prismaMock.material.findFirst.mockResolvedValue({
         visible: false,
         courseId: CURSO_MATRICULADO,
+        subjectId: null,
       });
 
       await expect(
@@ -62,6 +79,7 @@ describe('MaterialsService', () => {
       prismaMock.material.findFirst.mockResolvedValue({
         visible: true,
         courseId: CURSO_MATRICULADO,
+        subjectId: null,
       });
 
       await expect(
@@ -71,6 +89,31 @@ describe('MaterialsService', () => {
 
     it('rechaza un material inexistente', async () => {
       prismaMock.material.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.esAccesibleParaEstudiante(TENANT_A, USER_ID, MATERIAL_ID),
+      ).resolves.toBe(false);
+    });
+
+    // Fase 4: contenido maestro — solo de asignaturas de grupos matriculados
+    it('permite el contenido maestro de una asignatura que cursa', async () => {
+      prismaMock.material.findFirst.mockResolvedValue({
+        visible: true,
+        courseId: null,
+        subjectId: ASIGNATURA_CURSADA,
+      });
+
+      await expect(
+        service.esAccesibleParaEstudiante(TENANT_A, USER_ID, MATERIAL_ID),
+      ).resolves.toBe(true);
+    });
+
+    it('rechaza el contenido maestro de una asignatura que NO cursa', async () => {
+      prismaMock.material.findFirst.mockResolvedValue({
+        visible: true,
+        courseId: null,
+        subjectId: ASIGNATURA_AJENA,
+      });
 
       await expect(
         service.esAccesibleParaEstudiante(TENANT_A, USER_ID, MATERIAL_ID),
@@ -86,14 +129,18 @@ describe('MaterialsService', () => {
       expect(prismaMock.materialFolder.findMany).not.toHaveBeenCalled();
     });
 
-    it('sin courseId, sólo pide carpetas generales o de cursos matriculados', async () => {
+    it('sin courseId, pide generales, de cursos matriculados o de asignaturas cursadas', async () => {
       await service.findAllFoldersForStudent(TENANT_A, USER_ID);
 
       expect(prismaMock.materialFolder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             tenantId: TENANT_A,
-            OR: [{ courseId: null }, { courseId: { in: [CURSO_MATRICULADO] } }],
+            OR: [
+              { courseId: null, subjectId: null },
+              { courseId: { in: [CURSO_MATRICULADO] } },
+              { subjectId: { in: [ASIGNATURA_CURSADA] } },
+            ],
           },
         }),
       );

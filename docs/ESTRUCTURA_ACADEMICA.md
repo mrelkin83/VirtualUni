@@ -1,7 +1,7 @@
 # Estructura académica — Programas, Asignaturas, Pensum y Periodos
 
-> Fase 1 (modelo de datos) y Fase 2 (API) — noviembre de 2026.
-> Rama `feature/estructura-academica`.
+> Fases 1 (modelo de datos), 2 (API), 3 (UI admin) y 4 (contenido maestro) —
+> noviembre de 2026. Rama `feature/estructura-academica`.
 
 ## Modelo
 
@@ -79,8 +79,36 @@ todo id de cliente se valida contra el tenant antes de usarse.
 - Seed demo: 3 programas de niveles distintos que comparten `MAT-BAS` y
   `COM-ORAL`, periodo en curso y 3 grupos ligados a asignatura+periodo.
 
+## Contenido maestro (fase 4)
+
+El temario (`CourseTopic`), las carpetas y materiales (`MaterialFolder`,
+`Material`) y el banco de preguntas (`QuestionBank`) pueden pertenecer **o** a
+un grupo (`courseId`: contenido propio) **o** a una asignatura (`subjectId`:
+contenido maestro). La exclusividad se valida en los servicios y la
+pertenencia no se reasigna por PATCH.
+
+- **Herencia:** `GET /course-topics?courseId=X`, `GET /materials?courseId=X` y
+  `GET /materials/folders?courseId=X` devuelven el contenido maestro de la
+  asignatura del grupo (con `origen: 'asignatura'`) + el propio
+  (`origen: 'grupo'`).
+- **Permiso de edición:** el contenido maestro solo lo muta la administración
+  o un docente habilitado como **editor de la asignatura**
+  (`GET/PUT /subjects/:id/editors`, tabla `subject_editors`). Por defecto el
+  profesorado lo ve de solo lectura desde sus grupos.
+- **Acciones:** `POST /course-topics/:id/promover` y
+  `POST /materials/:id/promover` suben contenido del grupo a la asignatura;
+  `POST /course-topics/copiar-del-grupo` y `POST /materials/copiar-del-grupo`
+  (`{ courseId, fromCourseId }`) copian el contenido propio de otro grupo de
+  la misma asignatura (p. ej. el del periodo anterior).
+- **Visibilidad del estudiante:** solo ve contenido maestro de asignaturas de
+  grupos donde está matriculado (además de lo propio de sus grupos); la fuga
+  de materiales entre cursos cerrada en `623c5c8` sigue cubierta por specs.
+- **Backfill:** `prisma/scripts/backfill-contenido-maestro.ts` mueve el
+  contenido existente a la Subject solo si esta tiene un único grupo; con
+  varios grupos lo deja y lo reporta.
+- Una asignatura con contenido maestro no se elimina (409).
+
 ## Pendiente (fases siguientes)
 
-- Fase 3: UI de administración (sección "Gestión académica").
-- Fase 4: contenido maestro en la Subject (temario/materiales/preguntas).
-- Fase 5: vistas docente/estudiante (Mi programa, avance de pensum).
+- Fase 5: vistas docente/estudiante (Mi programa, avance de pensum, UI de
+  promover/copiar y candado visual del contenido maestro en el panel docente).

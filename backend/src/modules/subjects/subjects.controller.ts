@@ -6,12 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SubjectsService } from './subjects.service';
-import { CrearAsignaturaDto, ActualizarAsignaturaDto } from './dto/subject.dto';
+import {
+  CrearAsignaturaDto,
+  ActualizarAsignaturaDto,
+  EditoresDto,
+} from './dto/subject.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TenantGuard } from '@/common/guards/tenant.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -61,6 +66,24 @@ export class SubjectsController {
   @ApiOperation({ summary: 'En qué programas, pensums y grupos se usa' })
   usage(@Param('id') id: string, @CurrentTenant() tenantId: string) {
     return this.service.usage(tenantId, id);
+  }
+
+  @Get(':id/editors')
+  @Roles(...LECTORES)
+  @ApiOperation({ summary: 'Docentes editores del contenido maestro' })
+  editores(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+    return this.service.listarEditores(tenantId, id);
+  }
+
+  @Put(':id/editors')
+  @Roles(...STAFF)
+  @ApiOperation({ summary: 'Reemplazar los docentes editores (solo administración)' })
+  fijarEditores(
+    @Param('id') id: string,
+    @Body() dto: EditoresDto,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.service.fijarEditores(tenantId, id, dto.teacherIds);
   }
 
   @Get(':id')

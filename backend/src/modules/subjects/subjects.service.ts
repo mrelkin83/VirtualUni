@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { CrearAsignaturaDto, ActualizarAsignaturaDto } from './dto/subject.dto';
+import { CurrentUserData } from '@/common/decorators/current-user.decorator';
 
 @Injectable()
 export class SubjectsService {
@@ -142,16 +145,20 @@ export class SubjectsService {
   }
 
   /**
-   * Una asignatura usada en un pensum o dictada en un grupo no se elimina:
-   * el pensum quedaría roto y los grupos huérfanos de catálogo. 409 con el
+   * Una asignatura usada en un pensum, dictada en un grupo o con contenido
+   * maestro no se elimina: el pensum quedaría roto, los grupos huérfanos de
+   * catálogo, y el contenido compartido se perdería en cascada. 409 con el
    * detalle para que la UI ofrezca desactivarla en su lugar.
    */
   async remove(tenantId: string, id: string) {
     await this.asignatura(tenantId, id);
 
-    const [enPensums, enGrupos] = await Promise.all([
+    const [enPensums, enGrupos, temas, materiales, preguntas] = await Promise.all([
       this.prisma.studyPlanSubject.count({ where: { subjectId: id, tenantId } }),
       this.prisma.course.count({ where: { subjectId: id, tenantId } }),
+      this.prisma.courseTopic.count({ where: { subjectId: id, tenantId } }),
+      this.prisma.material.count({ where: { subjectId: id, tenantId } }),
+      this.prisma.questionBank.count({ where: { subjectId: id, tenantId } }),
     ]);
 
     if (enPensums > 0 || enGrupos > 0) {
@@ -161,7 +168,95 @@ export class SubjectsService {
       );
     }
 
+    if (temas > 0 || materiales > 0 || preguntas > 0) {
+      throw new ConflictException(
+        `La asignatura tiene contenido maestro (${temas} tema(s), ${materiales} ` +
+          `material(es), ${preguntas} pregunta(s)); elimínelo primero o desactívela.`,
+      );
+    }
+
     await this.prisma.subject.delete({ where: { id } });
     return { message: 'Asignatura eliminada' };
+  }
+
+  // -------------------------------------------- editores de contenido maestro
+
+  /**
+   * ¿Puede este usuario editar el contenido maestro de la asignatura?
+   * Administración siempre; un TEACHER solo si el admin lo habilitó como
+   * editor de esa asignatura (SubjectEditor). Lo usan course-topics,
+   * materials y question-bank antes de cualquier mutación con subjectId.
+   */
+  async puedeEditarContenidoMaestro(
+    tenantId: string,
+    subjectId: string,
+    user: CurrentUserData,
+  ): Promise<boolean> {
+    if (user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN') return true;
+    if (user.role !== 'TEACHER') return false;
+
+    const editor = await this.prisma.subjectEditor.findFirst({
+      where: {
+        tenantId,
+        subjectId,
+        teacher: { userId: user.id, tenantId },
+      },
+      select: { id: true },
+    });
+    return !!editor;
+  }
+
+  async asegurarEditorDeContenido(
+    tenantId: string,
+    subjectId: string,
+    user: CurrentUserData,
+  ): Promise<void> {
+    if (!(await this.puedeEditarContenidoMaestro(tenantId, subjectId, user))) {
+      throw new ForbiddenException(
+        'El contenido maestro de la asignatura solo lo edita la administración ' +
+          'o un docente habilitado como editor de la asignatura',
+      );
+    }
+  }
+
+  async listarEditores(tenantId: string, id: string) {
+    await this.asignatura(tenantId, id);
+    return this.prisma.subjectEditor.findMany({
+      where: { subjectId: id, tenantId },
+      include: {
+        teacher: {
+          select: {
+            id: true,
+            employeeCode: true,
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+      },
+    });
+  }
+
+  /** Reemplaza el conjunto de docentes editores (solo administración). */
+  async fijarEditores(tenantId: string, id: string, teacherIds: string[]) {
+    await this.asignatura(tenantId, id);
+
+    // teacherIds viene del cliente: todos deben ser docentes del tenant
+    const docentes = await this.prisma.teacher.findMany({
+      where: { id: { in: teacherIds }, tenantId },
+      select: { id: true },
+    });
+    if (docentes.length !== teacherIds.length) {
+      throw new BadRequestException('Todos los editores deben ser docentes del tenant');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.subjectEditor.deleteMany({ where: { subjectId: id, tenantId } });
+      if (teacherIds.length > 0) {
+        await tx.subjectEditor.createMany({
+          data: teacherIds.map((teacherId) => ({ tenantId, subjectId: id, teacherId })),
+        });
+      }
+    });
+
+    return this.listarEditores(tenantId, id);
   }
 }

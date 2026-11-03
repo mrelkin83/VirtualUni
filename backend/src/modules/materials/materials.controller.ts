@@ -18,6 +18,7 @@ import {
   QueryMaterialsDto,
   CreateFolderDto,
   UpdateFolderDto,
+  CopiarMaterialesDto,
 } from './dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TenantGuard } from '@/common/guards/tenant.guard';
@@ -38,8 +39,12 @@ export class MaterialsController {
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Crear una carpeta de materiales' })
   @ApiResponse({ status: 201, description: 'Carpeta creada' })
-  createFolder(@Body() dto: CreateFolderDto, @CurrentTenant() tenantId: string) {
-    return this.materialsService.createFolder(tenantId, dto);
+  createFolder(
+    @Body() dto: CreateFolderDto,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.materialsService.createFolder(tenantId, dto, user);
   }
 
   @Get('folders')
@@ -63,15 +68,20 @@ export class MaterialsController {
     @Param('id') id: string,
     @Body() dto: UpdateFolderDto,
     @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
   ) {
-    return this.materialsService.updateFolder(tenantId, id, dto);
+    return this.materialsService.updateFolder(tenantId, id, dto, user);
   }
 
   @Delete('folders/:id')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Eliminar una carpeta' })
-  removeFolder(@Param('id') id: string, @CurrentTenant() tenantId: string) {
-    return this.materialsService.removeFolder(tenantId, id);
+  removeFolder(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.materialsService.removeFolder(tenantId, id, user);
   }
 
   // ---------------------------------------------------------------- Estadisticas
@@ -105,9 +115,32 @@ export class MaterialsController {
   create(
     @Body() dto: CreateMaterialDto,
     @CurrentTenant() tenantId: string,
-    @CurrentUser('userId') userId: string,
+    @CurrentUser() user: CurrentUserData,
   ) {
-    return this.materialsService.create(tenantId, dto, userId);
+    return this.materialsService.create(tenantId, dto, user);
+  }
+
+  // Ruta estática antes de :id
+  @Post('copiar-del-grupo')
+  @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Copiar los materiales propios de otro grupo de la misma asignatura' })
+  copiarDelGrupo(
+    @Body() dto: CopiarMaterialesDto,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.materialsService.copiarDelGrupo(tenantId, dto, user);
+  }
+
+  @Post(':id/promover')
+  @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Promover un material del grupo a contenido maestro de la asignatura' })
+  promover(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.materialsService.promover(tenantId, id, user);
   }
 
   @Get()
@@ -167,14 +200,19 @@ export class MaterialsController {
     @Param('id') id: string,
     @Body() dto: UpdateMaterialDto,
     @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
   ) {
-    return this.materialsService.update(tenantId, id, dto);
+    return this.materialsService.update(tenantId, id, dto, user);
   }
 
   @Delete(':id')
   @Roles('TEACHER', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Eliminar un material' })
-  remove(@Param('id') id: string, @CurrentTenant() tenantId: string) {
-    return this.materialsService.remove(tenantId, id);
+  remove(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.materialsService.remove(tenantId, id, user);
   }
 }

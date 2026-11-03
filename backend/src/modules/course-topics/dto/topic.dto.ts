@@ -8,9 +8,17 @@ import { ApiProperty } from '@nestjs/swagger';
  * memoria y se perdía al recargar.
  */
 export class CrearTemaDto {
-  @ApiProperty()
+  // Exactamente uno: courseId (tema propio del grupo) o subjectId (contenido
+  // maestro de la asignatura). El servicio valida la exclusividad.
+  @ApiProperty({ required: false })
   @IsUUID()
-  courseId: string;
+  @IsOptional()
+  courseId?: string;
+
+  @ApiProperty({ required: false })
+  @IsUUID()
+  @IsOptional()
+  subjectId?: string;
 
   @ApiProperty()
   @IsString()
@@ -83,4 +91,15 @@ export class ActualizarBloqueDto extends CrearBloqueDto {
   @IsString()
   @IsOptional()
   declare title: string;
+}
+
+/** Copiar el temario propio de otro grupo de la MISMA asignatura. */
+export class CopiarTemarioDto {
+  @ApiProperty({ description: 'Grupo destino' })
+  @IsUUID()
+  courseId: string;
+
+  @ApiProperty({ description: 'Grupo origen (mismo subjectId)' })
+  @IsUUID()
+  fromCourseId: string;
 }
