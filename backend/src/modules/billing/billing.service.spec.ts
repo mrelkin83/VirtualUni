@@ -5,6 +5,7 @@ import { createHash } from 'crypto';
 import { BillingService, WompiWebhookPayload } from './billing.service';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { Plan, SubscriptionStatus } from '@prisma/client';
+import { obtenerLimitesDePlan } from '@/common/config/plan-catalog';
 
 const TENANT_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
@@ -137,8 +138,19 @@ describe('BillingService (Wompi)', () => {
           }),
         }),
       );
+      // No basta con que cambie el nombre del plan: hay que comprobar que se
+      // escriben tambien sus cupos. La version anterior de esta asercion solo
+      // pedia { plan, status } y pasaba en verde mientras quien pagaba BASIC
+      // se quedaba con los 20 estudiantes y 1 GB de FREE.
       expect(prismaMock.tenant.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { plan: Plan.BASIC, status: 'ACTIVE' } }),
+        expect.objectContaining({
+          where: { id: TENANT_A },
+          data: {
+            plan: Plan.BASIC,
+            status: 'ACTIVE',
+            ...obtenerLimitesDePlan(Plan.BASIC),
+          },
+        }),
       );
     });
 

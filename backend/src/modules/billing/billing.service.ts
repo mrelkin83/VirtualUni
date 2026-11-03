@@ -3,6 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { Plan, SubscriptionStatus, InvoiceStatus } from '@prisma/client';
+import {
+  CATALOGO_DE_PLANES,
+  obtenerLimitesDePlan,
+  obtenerPrecioCop,
+} from '@/common/config/plan-catalog';
 
 /**
  * Duración de un periodo pagado. Wompi no tiene un objeto de "suscripción"
@@ -38,15 +43,6 @@ export interface WompiWebhookPayload {
 @Injectable()
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
-
-  // Montos mensuales en COP. Son un placeholder de negocio (no tengo el
-  // precio real) — ajustar aquí cuando se defina.
-  private readonly PLAN_PRICES_COP: Record<Plan, number | null> = {
-    [Plan.FREE]: null,
-    [Plan.BASIC]: 120_000,
-    [Plan.PROFESSIONAL]: 400_000,
-    [Plan.ENTERPRISE]: 1_200_000,
-  };
 
   constructor(
     private prisma: PrismaService,
@@ -99,7 +95,7 @@ export class BillingService {
       throw new NotFoundException('Tenant not found');
     }
 
-    const montoCop = this.PLAN_PRICES_COP[plan];
+    const montoCop = obtenerPrecioCop(plan);
     if (!montoCop) {
       throw new BadRequestException(`Price not configured for plan: ${plan}`);
     }
@@ -219,9 +215,16 @@ export class BillingService {
       },
     });
 
+    // Los cupos del plan se escriben aqui tambien, no solo el nombre del plan.
+    //
+    // Antes este update ponia unicamente { plan, status }: quien pagaba BASIC
+    // se quedaba con los cupos de FREE (20 estudiantes, 2 profesores, 5 cursos,
+    // 1 GB) porque la tabla de limites solo se aplicaba en
+    // TenantsService.update(), es decir en el cambio administrativo. El unico
+    // camino que de verdad cobra dinero era el que no concedia nada.
     await this.prisma.tenant.update({
       where: { id: tenantId },
-      data: { plan, status: 'ACTIVE' },
+      data: { plan, status: 'ACTIVE', ...obtenerLimitesDePlan(plan) },
     });
 
     return { received: true };
@@ -295,53 +298,37 @@ export class BillingService {
     };
   }
 
-  /** Planes disponibles, precio real en COP (lo que de verdad se cobra por Wompi). */
+  /**
+   * Planes disponibles, precio real en COP (lo que de verdad se cobra por
+   * Wompi).
+   *
+   * Se deriva de CATALOGO_DE_PLANES en vez de repetir la tabla: antes esta
+   * lista era una copia literal de TenantsService.getPlanLimits() con otros
+   * nombres de campo, asi que el catalogo podia anunciar cupos distintos de los
+   * que recibia el tenant. Los nombres cortos (`students`, `storage`...) se
+   * mantienen porque son el contrato publico de GET /api/v1/billing/plans.
+   */
   async getPlans() {
-    return [
-      {
-        name: Plan.FREE,
-        displayName: 'Free',
-        price: 0,
+    return Object.values(Plan).map((plan) => {
+      const { displayName, precioCop, limites } = CATALOGO_DE_PLANES[plan];
+
+      return {
+        name: plan,
+        displayName,
+        price: precioCop ?? 0,
         currency: 'COP',
         interval: 'month',
         features: {
-          students: 20, teachers: 2, courses: 5, storage: 1,
-          messaging: true, videoConf: false, payments: false, certificates: false,
+          students: limites.maxStudents,
+          teachers: limites.maxTeachers,
+          courses: limites.maxCourses,
+          storage: limites.storageGB,
+          messaging: limites.enableMessaging,
+          videoConf: limites.enableVideoConf,
+          payments: limites.enablePayments,
+          certificates: limites.enableCertificates,
         },
-      },
-      {
-        name: Plan.BASIC,
-        displayName: 'Basic',
-        price: this.PLAN_PRICES_COP[Plan.BASIC],
-        currency: 'COP',
-        interval: 'month',
-        features: {
-          students: 100, teachers: 10, courses: 20, storage: 10,
-          messaging: true, videoConf: true, payments: false, certificates: true,
-        },
-      },
-      {
-        name: Plan.PROFESSIONAL,
-        displayName: 'Professional',
-        price: this.PLAN_PRICES_COP[Plan.PROFESSIONAL],
-        currency: 'COP',
-        interval: 'month',
-        features: {
-          students: 500, teachers: 50, courses: 100, storage: 50,
-          messaging: true, videoConf: true, payments: true, certificates: true,
-        },
-      },
-      {
-        name: Plan.ENTERPRISE,
-        displayName: 'Enterprise',
-        price: this.PLAN_PRICES_COP[Plan.ENTERPRISE],
-        currency: 'COP',
-        interval: 'month',
-        features: {
-          students: 999999, teachers: 999999, courses: 999999, storage: 500,
-          messaging: true, videoConf: true, payments: true, certificates: true,
-        },
-      },
-    ];
+      };
+    });
   }
 }

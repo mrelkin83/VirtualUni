@@ -8,6 +8,7 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { Plan, TenantStatus } from '@prisma/client';
+import { obtenerLimitesDePlan } from '@/common/config/plan-catalog';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -357,52 +358,13 @@ export class TenantsService {
   }
 
   /**
-   * Get plan limits configuration
+   * Cupos y features del plan.
+   *
+   * La tabla ya no vive aqui: esta en CATALOGO_DE_PLANES
+   * (common/config/plan-catalog.ts), compartida con BillingService para que el
+   * catalogo que se muestra y los cupos que se escriben no puedan divergir.
    */
   private getPlanLimits(plan: Plan) {
-    const limits = {
-      [Plan.FREE]: {
-        maxStudents: 20,
-        maxTeachers: 2,
-        maxCourses: 5,
-        storageGB: 1,
-        enableMessaging: true,
-        enableVideoConf: false,
-        enablePayments: false,
-        enableCertificates: false,
-      },
-      [Plan.BASIC]: {
-        maxStudents: 100,
-        maxTeachers: 10,
-        maxCourses: 20,
-        storageGB: 10,
-        enableMessaging: true,
-        enableVideoConf: true,
-        enablePayments: false,
-        enableCertificates: true,
-      },
-      [Plan.PROFESSIONAL]: {
-        maxStudents: 500,
-        maxTeachers: 50,
-        maxCourses: 100,
-        storageGB: 50,
-        enableMessaging: true,
-        enableVideoConf: true,
-        enablePayments: true,
-        enableCertificates: true,
-      },
-      [Plan.ENTERPRISE]: {
-        maxStudents: 999999,
-        maxTeachers: 999999,
-        maxCourses: 999999,
-        storageGB: 500,
-        enableMessaging: true,
-        enableVideoConf: true,
-        enablePayments: true,
-        enableCertificates: true,
-      },
-    };
-
-    return limits[plan];
+    return obtenerLimitesDePlan(plan);
   }
 }
