@@ -1,19 +1,14 @@
 import React, { useState, createContext, useContext, useRef, useEffect } from 'react';
 import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Shield, Palette, Building2, Upload, Mail, Calendar, AlertCircle, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, Inbox, MessageSquare, Filter, BarChart3, TrendingDown, CreditCard, Megaphone, Paperclip, Circle, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useTenantStore } from '../store/tenantStore';
+import { tenantsApi } from '../api/endpoints/tenants';
+import { messagesApi } from '../api/endpoints/student';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
 import { coursesAdminApi, teachersApi } from '../api/endpoints/courses';
 import { personasApi } from '../api/endpoints/personas';
 import { plantillasCertificadoApi } from '../api/endpoints/certificate-templates';
 import { comoArreglo } from '../utils/respuestaApi';
-import {
-  activos,
-  empleados,
-  libros,
-  configuracionInstitucion,
-  roles,
-  configuracionPago
-} from '../data/adminMockData';
 import { QuickSearchResult } from '../types/admin.types';
 import {
   ActivosSection,
@@ -67,7 +62,7 @@ export default function AdminDashboard() {
   const [mensajeSeleccionado, setMensajeSeleccionado] = useState(null);
   const [redactarMensaje, setRedactarMensaje] = useState(false);
   const [bandejaActiva, setBandejaActiva] = useState('recibidos');
-  const [mensajesNoLeidos, setMensajesNoLeidos] = useState(5);
+  const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
   const [nuevoUsuario, setNuevoUsuario] = useState({
     nombre: '',
     email: '',
@@ -272,59 +267,33 @@ export default function AdminDashboard() {
   const { data: adminData, loading: adminLoading, error: adminError } = useAdminDashboard();
 
   // Métricas del dashboard (con fallback a datos de ejemplo mientras carga el backend)
+  // Metricas reales, sin maquillaje: antes cada campo caia a una cifra
+  // inventada (|| 2847, || 328500...) cuando el API devolvia 0, asi que una
+  // institucion recien creada veia 2.847 estudiantes y $328.500 de ingresos.
   const metricas = {
-    totalEstudiantes: adminData.metrics.totalEstudiantes || 2847,
-    totalDocentes: adminData.metrics.totalDocentes || 156,
-    solicitudesPendientes: adminData.metrics.solicitudesPendientes || 23,
-    certificadosGenerados: adminData.metrics.certificadosGenerados || 145,
-    ingresosMensuales: adminData.metrics.ingresosMensuales || 328500,
-    cursosActivos: adminData.metrics.cursosActivos || 87,
-    usuariosActivos: adminData.metrics.usuariosActivos || 1234,
-    satisfaccion: adminData.metrics.satisfaccion || 4.6
+    totalEstudiantes: adminData.metrics.totalEstudiantes ?? 0,
+    totalDocentes: adminData.metrics.totalDocentes ?? 0,
+    solicitudesPendientes: adminData.metrics.solicitudesPendientes ?? 0,
+    certificadosGenerados: adminData.metrics.certificadosGenerados ?? 0,
+    ingresosMensuales: adminData.metrics.ingresosMensuales ?? 0,
+    cursosActivos: adminData.metrics.cursosActivos ?? 0,
+    usuariosActivos: adminData.metrics.usuariosActivos ?? 0,
+    satisfaccion: adminData.metrics.satisfaccion ?? 0
   };
 
-  const [mensajes, setMensajes] = useState([
-    { id: 1, de: 'María González', asunto: 'Consulta sobre inscripción', mensaje: 'Buenos días, quisiera consultar sobre el proceso de inscripción para el próximo semestre...', fecha: '2025-10-03 09:30', leido: false, tipo: 'recibido' },
-    { id: 2, de: 'Carlos Rodríguez', asunto: 'Reporte de calificaciones', mensaje: 'Estimado administrador, adjunto el reporte de calificaciones del curso CS301...', fecha: '2025-10-03 08:15', leido: false, tipo: 'recibido' },
-    { id: 3, de: 'Ana Torres', asunto: 'Problema con acceso', mensaje: 'Hola, varios estudiantes reportan problemas para acceder a la plataforma...', fecha: '2025-10-02 16:45', leido: true, tipo: 'recibido' },
-    { id: 4, de: 'Luis Martínez', asunto: 'Solicitud de certificado', mensaje: 'Necesito el certificado de estudios urgente para un trámite...', fecha: '2025-10-02 14:20', leido: false, tipo: 'recibido' },
-    { id: 5, de: 'Elena Ramírez', asunto: 'Propuesta de nuevo curso', mensaje: 'Tengo una propuesta para un nuevo curso de IA avanzada...', fecha: '2025-10-01 11:00', leido: true, tipo: 'recibido' },
-    { id: 6, para: 'María González', asunto: 'Re: Consulta sobre inscripción', mensaje: 'Hola María, el proceso de inscripción estará abierto del 15 al 30 de octubre...', fecha: '2025-10-03 10:00', tipo: 'enviado' },
-    { id: 7, para: 'Todos los estudiantes', asunto: 'Actualización del sistema', mensaje: 'Estimados estudiantes, les informamos que realizaremos mantenimiento...', fecha: '2025-10-02 09:00', tipo: 'enviado' }
-  ]);
+  // Bandeja real: la lista venia escrita a mano (Maria Gonzalez y compania) y
+  // el contador del sobre era un useState(5) fijo.
+  const [mensajes, setMensajes] = useState<any[]>([]);
 
-  const [solicitudes] = useState([
-    { id: 1, tipo: 'certificado', usuario: 'María González', asunto: 'Certificado de estudios', estado: 'pendiente', fecha: '2025-10-03', prioridad: 'alta' },
-    { id: 2, tipo: 'inscripcion', usuario: 'Carlos Ruiz', asunto: 'Inscripción semestre 2025-2', estado: 'pendiente', fecha: '2025-10-03', prioridad: 'media' },
-    { id: 3, tipo: 'tecnico', usuario: 'Ana Torres', asunto: 'Problema acceso plataforma', estado: 'en_proceso', fecha: '2025-10-02', prioridad: 'alta' },
-    { id: 4, tipo: 'financiero', usuario: 'Luis Martínez', asunto: 'Consulta sobre beca', estado: 'pendiente', fecha: '2025-10-02', prioridad: 'baja' },
-    { id: 5, tipo: 'certificado', usuario: 'Elena Ramírez', asunto: 'Constancia de notas', estado: 'completado', fecha: '2025-10-01', prioridad: 'media' }
-  ]);
+  // El menu "Solicitudes" duplicaba a "Tramites" con una tabla de datos
+  // inventados y sin acciones; se retiro (TramitesSection es el modulo real).
 
-  const [usuarios, setUsuarios] = useState<any[]>([
-    { id: 1, nombre: 'María González', email: 'maria.g@university.edu', rol: 'estudiante', estado: 'activo', ultimoAcceso: '2025-10-03', carrera: 'Ingeniería' },
-    { id: 2, nombre: 'Carlos Rodríguez', email: 'carlos.r@university.edu', rol: 'docente', estado: 'activo', ultimoAcceso: '2025-10-03', departamento: 'Sistemas' },
-    { id: 3, nombre: 'Ana Martínez', email: 'ana.m@university.edu', rol: 'admin', estado: 'activo', ultimoAcceso: '2025-10-03', posicion: 'Coordinadora' },
-    { id: 4, nombre: 'Luis Torres', email: 'luis.t@university.edu', rol: 'estudiante', estado: 'inactivo', ultimoAcceso: '2025-09-15', carrera: 'Diseño' },
-    { id: 5, nombre: 'Elena Ramírez', email: 'elena.r@university.edu', rol: 'docente', estado: 'activo', ultimoAcceso: '2025-10-02', departamento: 'Matemáticas' }
-  ]);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
 
   const usuarioActual = useAuthStore((st) => st.user);
   const [docentes, setDocentes] = useState<{id:string;nombre:string}[]>([]);
-  const [cursos, setCursos] = useState<any[]>([
-    { id: 1, nombre: 'Programación Avanzada', codigo: 'CS301', estudiantes: 45, docente: 'Carlos Rodríguez', estado: 'activo', descripcion: 'Curso avanzado de programación orientada a objetos', duracion: '16 semanas', creditos: '4' },
-    { id: 2, nombre: 'Base de Datos', codigo: 'CS302', estudiantes: 38, docente: 'Elena Ramírez', estado: 'activo', descripcion: 'Fundamentos de bases de datos relacionales', duracion: '16 semanas', creditos: '4' },
-    { id: 3, nombre: 'Diseño de Interfaces', codigo: 'DG201', estudiantes: 52, docente: 'Ana Torres', estado: 'activo', descripcion: 'Principios de diseño UX/UI', duracion: '12 semanas', creditos: '3' },
-    { id: 4, nombre: 'Inteligencia Artificial', codigo: 'CS401', estudiantes: 28, docente: 'Carlos Rodríguez', estado: 'inactivo', descripcion: 'Introducción a IA y Machine Learning', duracion: '16 semanas', creditos: '4' }
-  ]);
+  const [cursos, setCursos] = useState<any[]>([]);
 
-  const [transacciones] = useState([
-    { id: 1, estudiante: 'María González', concepto: 'Matrícula Semestre 2025-2', monto: 2500, fecha: '2025-10-03', estado: 'completado' },
-    { id: 2, estudiante: 'Carlos Ruiz', concepto: 'Matrícula + Curso adicional', monto: 3200, fecha: '2025-10-03', estado: 'completado' },
-    { id: 3, estudiante: 'Luis Torres', concepto: 'Certificado de estudios', monto: 150, fecha: '2025-10-02', estado: 'pendiente' },
-    { id: 4, estudiante: 'Ana Martínez', concepto: 'Matrícula Semestre 2025-2', monto: 2500, fecha: '2025-10-01', estado: 'completado' },
-    { id: 5, estudiante: 'Elena Ramírez', concepto: 'Curso de extensión', monto: 800, fecha: '2025-10-01', estado: 'completado' }
-  ]);
 
   // Función de búsqueda rápida
   const handleSearch = (query: string) => {
@@ -384,51 +353,10 @@ export default function AdminDashboard() {
       }
     });
 
-    // Buscar en activos
-    activos.forEach(activo => {
-      if (activo.nombre.toLowerCase().includes(searchLower) ||
-          activo.codigo.toLowerCase().includes(searchLower)) {
-        results.push({
-          id: activo.id,
-          tipo: 'activo',
-          titulo: activo.nombre,
-          subtitulo: `${activo.codigo} - ${activo.ubicacion}`,
-          icono: 'activo',
-          url: `/admin/activos/${activo.id}`
-        });
-      }
-    });
-
-    // Buscar en empleados
-    empleados.forEach(empleado => {
-      if (empleado.nombre.toLowerCase().includes(searchLower) ||
-          empleado.identificacion.includes(searchLower)) {
-        results.push({
-          id: empleado.id,
-          tipo: 'empleado',
-          titulo: empleado.nombre,
-          subtitulo: `${empleado.cargo} - ${empleado.departamento}`,
-          icono: 'empleado',
-          url: `/admin/recursoshumanos/${empleado.id}`
-        });
-      }
-    });
-
-    // Buscar en libros
-    libros.forEach(libro => {
-      if (libro.titulo.toLowerCase().includes(searchLower) ||
-          libro.autor.toLowerCase().includes(searchLower) ||
-          libro.isbn.includes(searchLower)) {
-        results.push({
-          id: libro.id,
-          tipo: 'libro',
-          titulo: libro.titulo,
-          subtitulo: `${libro.autor} - ISBN: ${libro.isbn}`,
-          icono: 'libro',
-          url: `/admin/biblioteca/${libro.id}`
-        });
-      }
-    });
+    // Activos, empleados y libros salieron del buscador: iteraban los
+    // *MockData, asi que devolvian resultados inventados con URLs inertes
+    // mientras ignoraban los datos reales. Cuando sus secciones expongan
+    // listas al nivel de pagina, se reincorporan buscando sobre esas.
 
     setSearchResults(results.slice(0, 8)); // Limitar a 8 resultados
     setSearchOpen(results.length > 0);
@@ -537,7 +465,68 @@ export default function AdminDashboard() {
     cargarCursos();
     cargarUsuarios();
     cargarPlantillas();
+    // Bandeja real para la seccion de mensajes y el contador del sobre.
+    messagesApi
+      .getInbox()
+      .then((data: any) => {
+        const lista = comoArreglo(data);
+        setMensajes(lista);
+        setMensajesNoLeidos(lista.filter((m: any) => !(m.leido ?? m.read)).length);
+      })
+      .catch(() => setMensajesNoLeidos(0));
   }, []);
+
+  // La marca edita el tenant real: al cargar, el formulario parte de lo que
+  // hay en la base (nombre y colores), no de valores de fabrica.
+  const tenantActual = useTenantStore((st) => st.tenant);
+  useEffect(() => {
+    if (!tenantActual) return;
+    setPlatformConfig((prev) => ({
+      ...prev,
+      universityName: tenantActual.name ?? prev.universityName,
+      platformName: tenantActual.name ?? prev.platformName,
+      logoUrl: (tenantActual as any).logo ?? prev.logoUrl,
+      primaryColor: tenantActual.primaryColor ?? prev.primaryColor,
+      secondaryColor: tenantActual.secondaryColor ?? prev.secondaryColor,
+    }));
+  }, [tenantActual]);
+
+  /** Guarda la marca en el tenant (PATCH real; antes era un alert de utileria). */
+  const guardarConfiguracion = async () => {
+    if (!tenantActual?.id) {
+      alert('No se pudo identificar la institución actual.');
+      return;
+    }
+    try {
+      await tenantsApi.update(tenantActual.id, {
+        name: platformConfig.universityName,
+        logo: platformConfig.logoUrl || undefined,
+        primaryColor: platformConfig.primaryColor,
+        secondaryColor: platformConfig.secondaryColor,
+      } as any);
+      useTenantStore.getState().setTenant({
+        ...(tenantActual as any),
+        name: platformConfig.universityName,
+        logo: platformConfig.logoUrl || (tenantActual as any).logo,
+        primaryColor: platformConfig.primaryColor,
+        secondaryColor: platformConfig.secondaryColor,
+      });
+      alert('Configuración guardada.');
+    } catch (err: any) {
+      alert('No se pudo guardar: ' + (err?.message || 'error de conexión'));
+    }
+  };
+
+  const restaurarConfiguracion = () => {
+    if (!tenantActual) return;
+    setPlatformConfig((prev) => ({
+      ...prev,
+      universityName: tenantActual.name ?? prev.universityName,
+      logoUrl: (tenantActual as any).logo ?? '',
+      primaryColor: tenantActual.primaryColor ?? prev.primaryColor,
+      secondaryColor: tenantActual.secondaryColor ?? prev.secondaryColor,
+    }));
+  };
 
   // Cerrar búsqueda al hacer clic fuera
   useEffect(() => {
@@ -557,7 +546,6 @@ export default function AdminDashboard() {
     { id: 'tramites', icon: FileText, label: 'Trámites', color: 'text-purple-600' },
     { id: 'anuncios', icon: Megaphone, label: 'Anuncios', color: 'text-orange-600' },
     { id: 'mensajesmasivos', icon: Send, label: 'Mensajes Masivos', color: 'text-blue-600' },
-    { id: 'solicitudes', icon: ClipboardCheck, label: 'Solicitudes', badge: metricas.solicitudesPendientes, color: 'text-orange-600' },
     { id: 'inscripcion', icon: Users, label: 'Inscripción', color: 'text-green-600' },
     { id: 'documentos', icon: FileText, label: 'Documentos', color: 'text-purple-600' },
     { id: 'plantillas', icon: Award, label: 'Plantillas Certificados', color: 'text-pink-600' },
@@ -1595,48 +1583,17 @@ export default function AdminDashboard() {
             </label>
             <input
               type="text"
-              value={configuracionInstitucion.nombre}
+              value={tenantActual?.name ?? ''}
               className={`w-full px-3 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}
               readOnly
             />
-          </div>
-          <div>
-            <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              NIT
-            </label>
-            <input
-              type="text"
-              value={configuracionInstitucion.nit}
-              className={`w-full px-3 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}
-              readOnly
-            />
-          </div>
-          <div>
-            <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={configuracionInstitucion.email}
-              className={`w-full px-3 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}
-              readOnly
-            />
-          </div>
-          <div>
-            <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              Teléfono
-            </label>
-            <input
-              type="text"
-              value={configuracionInstitucion.telefono}
-              className={`w-full px-3 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}
-              readOnly
-            />
+            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Se edita en «Configuración de Marca», más abajo. NIT, email y
+              teléfono institucionales estarán disponibles cuando el backend
+              los incorpore; antes esta tarjeta mostraba datos de ejemplo.
+            </p>
           </div>
         </div>
-        <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-          Editar Información
-        </button>
       </div>
 
       {/* Personalización de Marca */}
@@ -1754,16 +1711,21 @@ export default function AdminDashboard() {
       <div className={`${card} rounded-lg shadow p-6`}>
         <h3 className={`text-lg font-bold ${text} mb-4`}>Roles y Permisos</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {roles.map(rol => (
+          {/* Los cuatro roles REALES del sistema (enum UserRole del backend).
+              Antes esta tarjeta pintaba roles inventados del mock, con cupos
+              de usuarios que no existian. */}
+          {[
+            { id: 'SUPER_ADMIN', nombre: 'Super Admin', descripcion: 'Operador de la plataforma: planes, estados y cupos de todas las instituciones.', color: 'bg-purple-600' },
+            { id: 'TENANT_ADMIN', nombre: 'Administrador', descripcion: 'Gestiona su institución: usuarios, cursos, finanzas y configuración.', color: 'bg-blue-600' },
+            { id: 'TEACHER', nombre: 'Docente', descripcion: 'Cursos a su cargo: contenidos, tareas, exámenes y calificaciones.', color: 'bg-emerald-600' },
+            { id: 'STUDENT', nombre: 'Estudiante', descripcion: 'Accede a sus cursos, entregas, notas y trámites.', color: 'bg-amber-600' },
+          ].map(rol => (
             <div key={rol.id} className={`p-4 border ${border} rounded-lg`}>
               <div className={`w-12 h-12 ${rol.color} rounded-full flex items-center justify-center text-white font-bold mb-3`}>
                 {rol.nombre.charAt(0)}
               </div>
               <h4 className={`font-bold ${text}`}>{rol.nombre}</h4>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{rol.descripcion}</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                {rol.usuariosAsignados} usuarios
-              </p>
             </div>
           ))}
         </div>
@@ -1889,27 +1851,29 @@ export default function AdminDashboard() {
       {/* Configuración de Pago */}
       <div className={`${card} rounded-lg shadow p-6`}>
         <h3 className={`text-lg font-bold ${text} mb-4`}>Configuración de Pago</h3>
+        {/* Antes esta tarjeta mostraba el mock de Stripe con claves pk_test_
+            inventadas; la pasarela real del proyecto es Wompi y sus claves
+            viven en el servidor, nunca en el navegador. */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Pasarela de Pago:</span>
-            <span className={`font-semibold ${text}`}>{configuracionPago.pasarelaPago}</span>
+            <span className={`font-semibold ${text}`}>Wompi</span>
           </div>
           <div className="flex justify-between items-center">
             <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Moneda:</span>
-            <span className={`font-semibold ${text}`}>{configuracionPago.moneda}</span>
+            <span className={`font-semibold ${text}`}>COP</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Comisión:</span>
-            <span className={`font-semibold ${text}`}>{configuracionPago.comision}%</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Estado:</span>
+            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Pagos en línea del plan:</span>
             <span className={`px-2 py-1 rounded text-xs ${
-              configuracionPago.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              tenantActual?.enablePayments ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
             }`}>
-              {configuracionPago.activo ? 'Activo' : 'Inactivo'}
+              {tenantActual?.enablePayments ? 'Habilitados' : 'No incluidos en el plan actual'}
             </span>
           </div>
+          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Las claves de Wompi se configuran en el servidor (variables WOMPI_*) y no se muestran aquí.
+          </p>
         </div>
       </div>
 
@@ -2003,11 +1967,14 @@ export default function AdminDashboard() {
       )}
 
       <div className="flex justify-end gap-3">
-        <button className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}>
+        <button
+          onClick={restaurarConfiguracion}
+          className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
+        >
           Restaurar Valores
         </button>
         <button
-          onClick={() => alert('Configuración guardada exitosamente!')}
+          onClick={guardarConfiguracion}
           style={{ backgroundColor: platformConfig.primaryColor }}
           className="px-6 py-2 text-white rounded hover:opacity-90 flex items-center gap-2"
         >
@@ -3061,61 +3028,10 @@ export default function AdminDashboard() {
 
   const renderBiblioteca = () => <BibliotecaSection darkMode={darkMode} />;
 
-  const renderSolicitudes = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Solicitudes</h2>
-      </div>
-      <div className={`${card} rounded-lg shadow overflow-hidden`}>
-        <table className="w-full">
-          <thead className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-            <tr>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Tipo</th>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Usuario</th>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Asunto</th>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Estado</th>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Fecha</th>
-              <th className={`p-3 text-left text-sm font-semibold ${text}`}>Prioridad</th>
-            </tr>
-          </thead>
-          <tbody>
-            {solicitudes.map(s => (
-              <tr key={s.id} className={`border-t ${border}`}>
-                <td className="p-3 capitalize">{s.tipo}</td>
-                <td className={`p-3 ${text}`}>{s.usuario}</td>
-                <td className={`p-3 ${text}`}>{s.asunto}</td>
-                <td className="p-3">
-                  <span className={`px-3 py-1 rounded text-xs ${
-                    s.estado === 'completado' ? 'bg-green-100 text-green-700' :
-                    s.estado === 'en_proceso' ? 'bg-blue-100 text-blue-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {s.estado}
-                  </span>
-                </td>
-                <td className={`p-3 text-sm ${text}`}>{s.fecha}</td>
-                <td className="p-3">
-                  <span className={`px-3 py-1 rounded text-xs ${
-                    s.prioridad === 'alta' ? 'bg-red-100 text-red-700' :
-                    s.prioridad === 'media' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-green-100 text-green-700'
-                  }`}>
-                    {s.prioridad}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
   const renderContent = () => {
     switch(activeSection) {
       case 'inicio': return renderInicio();
       case 'mensajes': return renderMensajes();
-      case 'solicitudes': return renderSolicitudes();
       case 'inscripcion': return renderInscripcion();
       case 'plantillas': return renderPlantillas();
       case 'usuarios': return renderUsuarios();
@@ -3279,7 +3195,11 @@ export default function AdminDashboard() {
                   </span>
                 )}
               </button>
-              <button className="relative p-2 hover:bg-gray-100 rounded-full">
+              <button
+                onClick={() => setActiveSection('tramites')}
+                title="Solicitudes pendientes"
+                className="relative p-2 hover:bg-gray-100 rounded-full"
+              >
                 <Bell size={24} className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
                 <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {metricas.solicitudesPendientes}

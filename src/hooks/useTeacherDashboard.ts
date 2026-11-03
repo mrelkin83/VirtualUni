@@ -29,35 +29,25 @@ export const useTeacherDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Data state
-  const [cursos, setCursos] = useState(cursosDocente);
-  const [estudiantes, setEstudiantes] = useState(estudiantesData);
-  const [tareas, setTareas] = useState(tareasData);
-  const [examenes, setExamenes] = useState(examenesData);
-  const [bancoPreguntas, setBancoPreguntas] = useState(bancoPreguntasData);
-  const [modulosCurso, setModulosCurso] = useState(modulosCursoData);
-  const [mensajes, setMensajes] = useState(mensajesData);
+  // Data state.
+  //
+  // Vacios, no con los *MockData: el estado arrancaba con los datos de ejemplo
+  // y la carga solo los reemplazaba `if (data.length > 0)`, asi que un tenant
+  // nuevo (listas vacias en el API) se quedaba viendo cursos y estudiantes
+  // ficticios para siempre. El mock queda solo como fuente de los tipos.
+  const [cursos, setCursos] = useState<typeof cursosDocente>([]);
+  const [estudiantes, setEstudiantes] = useState<typeof estudiantesData>([]);
+  const [tareas, setTareas] = useState<typeof tareasData>([]);
+  const [examenes, setExamenes] = useState<typeof examenesData>([]);
+  const [bancoPreguntas, setBancoPreguntas] = useState<typeof bancoPreguntasData>([]);
+  const [modulosCurso, setModulosCurso] = useState<typeof modulosCursoData>([]);
+  const [mensajes, setMensajes] = useState<typeof mensajesData>([]);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
-  const [grupos, setGrupos] = useState(gruposData);
-  const [materiales, setMateriales] = useState(materialesData);
-  const [carpetas, setCarpetas] = useState(carpetasMaterialesData);
-  const [clasesVivo, setClasesVivo] = useState(clasesVivoData);
-  const [plantillas, setPlantillas] = useState<any[]>([
-    {
-      id: 1,
-      nombre: 'Recordatorio de Tarea',
-      categoria: 'recordatorio',
-      contenido: 'Estimados estudiantes,\n\nLes recuerdo que tienen una tarea pendiente de entrega.\n\nSaludos cordiales',
-      fechaCreacion: '2025-09-01'
-    },
-    {
-      id: 2,
-      nombre: 'Felicitación por Logro',
-      categoria: 'felicitacion',
-      contenido: '¡Felicidades por tu excelente desempeño!\n\nSigue así.',
-      fechaCreacion: '2025-09-01'
-    }
-  ]);
+  const [grupos, setGrupos] = useState<typeof gruposData>([]);
+  const [materiales, setMateriales] = useState<typeof materialesData>([]);
+  const [carpetas, setCarpetas] = useState<typeof carpetasMaterialesData>([]);
+  const [clasesVivo, setClasesVivo] = useState<typeof clasesVivoData>([]);
+  const [plantillas, setPlantillas] = useState<any[]>([]);
   const [anuncios, setAnuncios] = useState<any[]>([]);
 
   // Modal states
@@ -163,15 +153,15 @@ export const useTeacherDashboard = () => {
         }
         if (coursesData.status === "fulfilled") {
           const data = (coursesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setCursos(data);
+          if (Array.isArray(data)) setCursos(data);
         }
         if (studentsData.status === 'fulfilled') {
           const data = (studentsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setEstudiantes(data);
+          if (Array.isArray(data)) setEstudiantes(data);
         }
         if (assignmentsData.status === 'fulfilled') {
           const data = (assignmentsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             // La API no expone `entregasTotales`; el conteo viene en
             // `_count.submissions`. Sin este mapeo la vista dividia por
             // undefined y pintaba `width: NaN%` en la barra de progreso.
@@ -193,43 +183,79 @@ export const useTeacherDashboard = () => {
         }
         if (inboxMessages.status === 'fulfilled') {
           const data = inboxMessages.value as any;
-          if (Array.isArray(data) && data.length > 0) setMensajes(data);
+          if (Array.isArray(data)) setMensajes(data);
         }
         if (profileData.status === 'fulfilled') {
           const data = (profileData.value as any)?.data;
           if (data) {
             // Profile data available in state if needed; currently no dedicated teacher profile state
-            console.log('Teacher profile loaded:', data);
+            // Sin estado de perfil docente todavia; nada que guardar aqui.
           }
         }
         if (examsData.status === 'fulfilled') {
           const data = (examsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setExamenes(data.map(mapExamenApi) as any);
           }
         }
         if (materialsData.status === 'fulfilled') {
           const data = (materialsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setMateriales(data.map(mapMaterialApi) as any);
           }
         }
         if (foldersData.status === 'fulfilled') {
           const data = (foldersData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setCarpetas(data.map(mapCarpetaApi) as any);
           }
         }
         if (liveClassesData.status === 'fulfilled') {
           const data = (liveClassesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setClasesVivo(data.map(mapClaseVivoApi) as any);
           }
         }
         if (groupsData.status === 'fulfilled') {
           const data = (groupsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setGrupos(data.map(mapGrupoApi) as any);
+          }
+        }
+
+        // Temario real. modulosCurso jamas se cargaba del API: nacia del mock
+        // y solo crecia con creaciones locales, asi que al recargar el docente
+        // veia otra vez el temario de ejemplo. Un "modulo" es un CourseTopic y
+        // cada "tema" uno de sus blocks (ver src/api/endpoints/course-topics.ts).
+        if (coursesData.status === 'fulfilled') {
+          const cursosReales = (coursesData.value as any)?.data;
+          if (Array.isArray(cursosReales) && cursosReales.length > 0) {
+            const temarios = await Promise.allSettled(
+              cursosReales.map((c: any) => temarioApi.getByCourse(String(c.id))),
+            );
+            const modulos = temarios.flatMap((t, idx) => {
+              if (t.status !== 'fulfilled') return [];
+              const data = (t.value as any)?.data;
+              if (!Array.isArray(data)) return [];
+              return data.map((m: any) => ({
+                id: m.id,
+                cursoId: cursosReales[idx].id,
+                titulo: m.title ?? m.titulo,
+                descripcion: m.description ?? m.descripcion ?? '',
+                orden: m.orderIndex ?? m.orden ?? 0,
+                temas: Array.isArray(m.blocks)
+                  ? m.blocks.map((b: any) => ({
+                      id: b.id,
+                      titulo: b.title ?? b.titulo,
+                      tipo: 'teoria',
+                      duracion: '',
+                      completado: false,
+                      materiales: [],
+                    }))
+                  : [],
+              }));
+            });
+            setModulosCurso(modulos as any);
           }
         }
       } catch (err: any) {
@@ -526,68 +552,13 @@ export const useTeacherDashboard = () => {
     alert(`Tarea grupal "${tareaData.titulo}" creada exitosamente para el grupo "${grupo.nombre}"!\n\nSe notificará a ${grupo.estudiantesActivos} estudiante${grupo.estudiantesActivos !== 1 ? 's' : ''}.`);
   };
 
-  const exportarDatosGrupo = (grupoId: number) => {
-    const grupo = grupos.find(g => g.id === grupoId);
-    if (!grupo) return;
+  // Aqui vivian crearCurso/editarCurso/eliminarCurso/archivarCurso: mutaban
+  // solo el estado local con prompt() y anunciaban "exitosamente!" sin llamar
+  // al API, asi que el curso desaparecia al recargar. Ademas el backend
+  // reserva crear/eliminar cursos a TENANT_ADMIN (courses.controller.ts), de
+  // modo que conectarlos desde el rol docente era imposible: se retiraron
+  // junto con el resto de simulaciones ("En un caso real...").
 
-    alert(`Exportando datos del ${grupo.nombre}...\n\nFormato: Excel\nIncluye: Lista de estudiantes, calificaciones, asistencia\n\nEn un caso real, se descargaría un archivo Excel.`);
-  };
-
-  // Cursos Actions
-  const crearCurso = () => {
-    const nombre = prompt('Nombre del curso:');
-    if (!nombre?.trim()) return;
-
-    const codigo = prompt('Código del curso:');
-    if (!codigo?.trim()) return;
-
-    const nuevoCurso = {
-      id: cursos.length + 1,
-      nombre,
-      codigo,
-      estudiantes: 0,
-      tareasPendientesRevision: 0,
-      progresoGeneral: 0,
-      color: 'bg-blue-500'
-    };
-
-    setCursos([...cursos, nuevoCurso]);
-    alert(`Curso "${nombre}" creado exitosamente!`);
-  };
-
-  const editarCurso = (cursoId: number) => {
-    const curso = cursos.find(c => c.id === cursoId);
-    if (!curso) return;
-
-    const nuevoNombre = prompt('Nuevo nombre del curso:', curso.nombre);
-    if (nuevoNombre && nuevoNombre.trim()) {
-      setCursos(cursos.map(c =>
-        c.id === cursoId ? { ...c, nombre: nuevoNombre } : c
-      ));
-      alert('Curso actualizado exitosamente!');
-    }
-  };
-
-  const eliminarCurso = (cursoId: number) => {
-    const curso = cursos.find(c => c.id === cursoId);
-    if (!curso) return;
-
-    if (window.confirm(`¿Estás seguro de que deseas eliminar el curso "${curso.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
-      setCursos(cursos.filter(c => c.id !== cursoId));
-      alert('Curso eliminado exitosamente.');
-    }
-  };
-
-  const archivarCurso = (cursoId: number) => {
-    const curso = cursos.find(c => c.id === cursoId);
-    if (!curso) return;
-
-    if (window.confirm(`¿Deseas archivar el curso "${curso.nombre}"?`)) {
-      alert('Curso archivado. Los datos se conservan pero el curso ya no aparecerá en la lista activa.');
-    }
-  };
-
-  // Estudiantes Actions
   const agregarEstudiante = () => {
     const nombre = prompt('Nombre del estudiante:');
     if (!nombre?.trim()) return;
@@ -1241,29 +1212,23 @@ export const useTeacherDashboard = () => {
     const examen: any = examenes.find((e: any) => e.id === examenId);
     if (!examen) return;
 
-    if (typeof examenId === 'string') {
-      try {
-        const { data } = await examsApi.getResults(examenId);
-        const stats = data?.stats || {};
-        const lista = (data?.intentos || [])
-          .map((i: any) => `- ${i.estudiante} (${i.studentCode || 's/c'}): ${i.calificacion ?? 'sin calificar'}`)
-          .join('\n');
-        alert(
-          `Resultados del Examen: ${examen.titulo}\n\n` +
-          `Presentados: ${stats.presentados ?? 0}\n` +
-          `Promedio: ${stats.promedio ?? 0}\n` +
-          `Aprobados: ${stats.aprobados ?? 0} | Reprobados: ${stats.reprobados ?? 0}\n\n` +
-          (lista || 'Aún no hay intentos registrados.')
-        );
-        return;
-      } catch (err: any) {
-        console.error('Error consultando resultados:', err);
-        alert(`No se pudieron consultar los resultados (${err?.message || 'error de conexión'}).`);
-        return;
-      }
+    try {
+      const { data } = await examsApi.getResults(String(examenId));
+      const stats = data?.stats || {};
+      const lista = (data?.intentos || [])
+        .map((i: any) => `- ${i.estudiante} (${i.studentCode || 's/c'}): ${i.calificacion ?? 'sin calificar'}`)
+        .join('\n');
+      alert(
+        `Resultados del Examen: ${examen.titulo}\n\n` +
+        `Presentados: ${stats.presentados ?? 0}\n` +
+        `Promedio: ${stats.promedio ?? 0}\n` +
+        `Aprobados: ${stats.aprobados ?? 0} | Reprobados: ${stats.reprobados ?? 0}\n\n` +
+        (lista || 'Aún no hay intentos registrados.')
+      );
+    } catch (err: any) {
+      console.error('Error consultando resultados:', err);
+      alert(`No se pudieron consultar los resultados (${err?.message || 'error de conexión'}).`);
     }
-
-    alert(`Resultados del Examen: ${examen.titulo}\n\nEstudiantes que presentaron: ${examen.participantes}\n\nEn un caso real, se mostraría:\n- Lista de estudiantes con calificaciones\n- Promedio del grupo\n- Estadísticas por pregunta\n- Gráficos de distribución de notas`);
   };
 
   const eliminarExamen = async (examenId: any) => {
@@ -1331,32 +1296,6 @@ export const useTeacherDashboard = () => {
   };
 
   // Calificaciones Actions
-  const exportarCalificaciones = () => {
-    alert('Exportando calificaciones...\n\nFormato: Excel\nIncluye: Todas las calificaciones de todos los cursos\n\nEn un caso real, se descargaría un archivo Excel.');
-  };
-
-  const importarCalificaciones = () => {
-    alert('Función de importación:\n\nPermite cargar calificaciones desde un archivo Excel.\n\nEn un caso real, se abriría un diálogo para seleccionar el archivo.');
-  };
-
-  const generarReporteCalificaciones = () => {
-    alert('Generando reporte de calificaciones...\n\nIncluye: Estadísticas, promedios, distribución de notas\n\nEn un caso real, se generaría un PDF.');
-  };
-
-  // Asistencia Actions
-  const registrarAsistencia = (fecha: string) => {
-    alert(`Registrando asistencia para la fecha: ${fecha}\n\nEn un caso real, se mostraría un modal con la lista de estudiantes para marcar presente/ausente.`);
-    setModalAsistencia({ fecha, estudiantes: estudiantes });
-  };
-
-  const exportarAsistencia = () => {
-    alert('Exportando reporte de asistencia...\n\nFormato: Excel\nIncluye: Asistencia de todos los estudiantes\n\nEn un caso real, se descargaría un archivo Excel.');
-  };
-
-  const generarReporteAsistencia = () => {
-    alert('Generando reporte de asistencia...\n\nIncluye: Porcentajes, estadísticas, estudiantes con baja asistencia\n\nEn un caso real, se generaría un PDF.');
-  };
-
   // Mensajes Actions
   const enviarMensaje = () => {
     setNuevoMensajeModal(true);
@@ -1831,14 +1770,6 @@ export const useTeacherDashboard = () => {
   };
 
   // Analíticas Actions
-  const generarReporte = (tipo: string) => {
-    alert(`Generando reporte de ${tipo}...\n\nIncluye: Gráficos, estadísticas, tendencias\n\nEn un caso real, se generaría un reporte detallado.`);
-  };
-
-  const exportarReporte = (tipo: string) => {
-    alert(`Exportando reporte de ${tipo}...\n\nFormato: PDF\n\nEn un caso real, se descargaría un archivo PDF.`);
-  };
-
   const generarEstadisticas = () => {
     alert('Generando estadísticas generales...\n\nIncluye: Rendimiento de estudiantes, progreso de cursos, tendencias');
   };
@@ -1860,11 +1791,6 @@ export const useTeacherDashboard = () => {
     }
   };
 
-  const configurarNotificaciones = () => {
-    alert('Configurando preferencias de notificaciones...\n\nPuedes elegir qué notificaciones recibir y cómo.');
-  };
-
-  // Notification Actions
   const marcarComoLeida = async (id: number) => {
     try {
       await notificationsService.markAsRead(String(id));
@@ -1999,9 +1925,13 @@ export const useTeacherDashboard = () => {
         description: moduloData.descripcion,
         orderIndex: moduloData.orden,
       })
-      .then(({ data }) => setModulosCurso([...modulosCurso, { ...nuevoModulo, id: (data as any)?.id }] as any))
+      .then(({ data }) => {
+        setModulosCurso([...modulosCurso, { ...nuevoModulo, id: (data as any)?.id }] as any);
+        // El exito se anuncia cuando el servidor confirma; antes el alert salia
+        // de inmediato aunque el modulo no se hubiera guardado.
+        alert(`Módulo "${moduloData.titulo}" creado exitosamente!`);
+      })
       .catch((err) => alert("No se pudo crear el modulo: " + ((err && err.message) || "error de conexion")));
-    alert(`Módulo "${moduloData.titulo}" creado exitosamente!`);
   };
 
   const editarModulo = (moduloId: number | string, moduloData: any) => {
@@ -2208,21 +2138,25 @@ export const useTeacherDashboard = () => {
     const clase = (clasesVivo as any[]).find(c => c.id === claseId);
     if (!clase) return;
 
-    if (typeof claseId === 'string') {
-      try {
-        await liveClassesApi.start(claseId);
-      } catch (err: any) {
-        console.error('Error iniciando clase en el servidor:', err);
-        alert(`No se pudo iniciar en el servidor: ${err?.message || 'error de conexión'}`);
-        return;
-      }
+    try {
+      await liveClassesApi.start(String(claseId));
+    } catch (err: any) {
+      console.error('Error iniciando clase en el servidor:', err);
+      alert(`No se pudo iniciar en el servidor: ${err?.message || 'error de conexión'}`);
+      return;
     }
 
     setClasesVivo((clasesVivo as any[]).map(c =>
       c.id === claseId ? { ...c, tipo: 'en_curso' } : c
     ) as any);
 
-    alert(`Iniciando clase en vivo: ${clase.titulo}\n\nEnlace de reunión: ${clase.enlaceReunion}\n\nEn un caso real, se abriría la plataforma de videoconferencia.`);
+    // La clase queda iniciada en el servidor y se abre la sala directamente,
+    // en vez del aviso "en un caso real se abriría la plataforma".
+    if (clase.enlaceReunion) {
+      window.open(clase.enlaceReunion, '_blank', 'noopener');
+    } else {
+      alert('La clase quedó iniciada, pero no tiene enlace de reunión configurado.');
+    }
   };
 
   const finalizarClase = async (claseId: number | string) => {
@@ -2469,12 +2403,7 @@ export const useTeacherDashboard = () => {
     asignarEstudiantes,
     eliminarEstudianteGrupo: eliminarEstudianteDeGrupo,
     crearTareaGrupal,
-    exportarDatosGrupo,
     // Cursos
-    crearCurso,
-    editarCurso,
-    eliminarCurso,
-    archivarCurso,
     // Estudiantes
     agregarEstudiante,
     editarEstudiante,
@@ -2496,13 +2425,7 @@ export const useTeacherDashboard = () => {
     verResultadosExamen,
     obtenerExamenDetallado,
     // Calificaciones
-    exportarCalificaciones,
-    importarCalificaciones,
-    generarReporteCalificaciones,
     // Asistencia
-    registrarAsistencia,
-    exportarAsistencia,
-    generarReporteAsistencia,
     // Mensajes
     enviarMensaje,
     eliminarMensaje,
@@ -2535,13 +2458,10 @@ export const useTeacherDashboard = () => {
     editarEvento,
     eliminarEvento,
     // Analíticas
-    generarReporte,
-    exportarReporte,
     generarEstadisticas,
     // Configuración
     actualizarConfiguracion,
     cambiarContrasena,
-    configurarNotificaciones,
     // Banco de Preguntas
     agregarPregunta,
     editarPregunta,

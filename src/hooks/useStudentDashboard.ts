@@ -18,6 +18,7 @@ import { liveClassesApi } from '../api/endpoints/live-classes';
 import { financeApi } from '../api/endpoints/finance';
 import { uploadsApi } from '../api/endpoints/uploads';
 import { proceduresApi } from '../api/endpoints/procedures';
+import { announcementsApi } from '../api/endpoints/announcements';
 import { comoArreglo } from '../utils/respuestaApi';
 import {
   StudentSectionType,
@@ -183,7 +184,12 @@ export const useStudentDashboard = () => {
   const [conversacionActiva, setConversacionActiva] = useState<any>(null);
   const [nuevoMensajeModal, setNuevoMensajeModal] = useState(false);
   const [mensajesAbiertas, setMensajesAbiertas] = useState(false);
-  const [mensajes, setMensajes] = useState(studentMensajes);
+  // Estados de datos VACIOS, no con los *MockData: la carga solo reemplazaba
+  // `if (data.length > 0)`, asi que un alumno de un tenant nuevo veia cursos,
+  // deudas y mensajes de ejemplo como si fueran suyos. Los mocks quedan solo
+  // como fuente de tipos (typeof) y de catalogos estaticos de la UI
+  // (tramitesDisponibles, certificadosDisponibles, eventosHorario).
+  const [mensajes, setMensajes] = useState<typeof studentMensajes>([]);
 
   // Exam State
   const [examenActivo, setExamenActivo] = useState<StudentExam | null>(null);
@@ -191,38 +197,38 @@ export const useStudentDashboard = () => {
   const [respuestasExamen, setRespuestasExamen] = useState<Record<string | number, number>>({});
   const [tiempoRestante, setTiempoRestante] = useState<number | null>(null);
   const [preguntaActual, setPreguntaActual] = useState(0);
-  const [examenes, setExamenes] = useState(studentExamenes);
+  const [examenes, setExamenes] = useState<typeof studentExamenes>([]);
 
   // Course State
   const [cursoDetalle, setCursoDetalle] = useState<StudentCourse | null>(null);
   const [temaSeleccionado, setTemaSeleccionado] = useState<any>(null);
   const [bloqueActivo, setBloqueActivo] = useState(1);
   const [expandirIdeasClave, setExpandirIdeasClave] = useState(false);
-  const [cursos, setCursos] = useState(studentCursos);
+  const [cursos, setCursos] = useState<typeof studentCursos>([]);
 
   // Tasks State
   const [modalTarea, setModalTarea] = useState<StudentTask | null>(null);
   const [archivoTarea, setArchivoTarea] = useState<File | null>(null);
   const [comentarioTarea, setComentarioTarea] = useState('');
-  const [tareas, setTareas] = useState(studentTareas);
+  const [tareas, setTareas] = useState<typeof studentTareas>([]);
 
   // Classes State
   const [claseActiva, setClaseActiva] = useState<any>(null);
   const [tipoClase, setTipoClase] = useState<'vivo' | 'grabada'>('vivo');
-  const [clasesVivoData, setClasesVivoData] = useState<any[]>(clasesVivo);
-  const [clasesGrabadasData, setClasesGrabadasData] = useState<any[]>(clasesGrabadas);
+  const [clasesVivoData, setClasesVivoData] = useState<any[]>([]);
+  const [clasesGrabadasData, setClasesGrabadasData] = useState<any[]>([]);
 
   // Administrative State
   const [modalSolicitud, setModalSolicitud] = useState(false);
   const [tipoSolicitud, setTipoSolicitud] = useState('');
-  const [solicitudesData, setSolicitudesData] = useState(solicitudes);
+  const [solicitudesData, setSolicitudesData] = useState<typeof solicitudes>([]);
 
   // Tramites State
   const [modalTramite, setModalTramite] = useState(false);
   const [tipoTramite, setTipoTramite] = useState('');
   const [observacionesTramite, setObservacionesTramite] = useState('');
   const [tramiteDetalle, setTramiteDetalle] = useState<any>(null);
-  const [tramitesData, setTramitesData] = useState(tramites);
+  const [tramitesData, setTramitesData] = useState<typeof tramites>([]);
   const [tramitesDisponiblesData] = useState(tramitesDisponibles);
 
   // Profile State
@@ -231,29 +237,29 @@ export const useStudentDashboard = () => {
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
   // Grades & Profile Data (loaded from backend)
-  const [calificacionesData, setCalificacionesData] = useState(calificaciones);
-  const [anunciosData] = useState(anuncios);
+  const [calificacionesData, setCalificacionesData] = useState<typeof calificaciones>([]);
+  const [anunciosData, setAnunciosData] = useState<typeof anuncios>([]);
 
   // Library State
-  const [librosData, setLibrosData] = useState<Book[]>(libros);
-  const [prestamosData, setPrestamosData] = useState<LibraryLoan[]>(prestamosActivos);
-  const [reservasData, setReservasData] = useState<LibraryReservation[]>(reservasLibros);
+  const [librosData, setLibrosData] = useState<Book[]>([]);
+  const [prestamosData, setPrestamosData] = useState<LibraryLoan[]>([]);
+  const [reservasData, setReservasData] = useState<LibraryReservation[]>([]);
 
   // Forums State
-  const [topicosData, setTopicosData] = useState<ForumTopic[]>(forosTopicos);
-  const [respuestasData, setRespuestasData] = useState<ForumReply[]>(forosRespuestas);
+  const [topicosData, setTopicosData] = useState<ForumTopic[]>([]);
+  const [respuestasData, setRespuestasData] = useState<ForumReply[]>([]);
 
   // Schedule State
-  const [clasesHorario, setClasesHorario] = useState<ScheduleClass[]>(horarioClases);
+  const [clasesHorario, setClasesHorario] = useState<ScheduleClass[]>([]);
   const [eventosHorario] = useState<ScheduleEvent[]>(horarioEventos);
 
   // Certificates State
   const [certificadosData] = useState<Certificate[]>(certificadosDisponibles);
-  const [solicitudesCertificadosData, setSolicitudesCertificadosData] = useState<CertificateRequest[]>(solicitudesCertificados);
+  const [solicitudesCertificadosData, setSolicitudesCertificadosData] = useState<CertificateRequest[]>([]);
 
   // Financial Data
-  const [historialPagosData, setHistorialPagosData] = useState(historialPagos);
-  const [deudasPendientesData, setDeudasPendientesData] = useState(deudasPendientes);
+  const [historialPagosData, setHistorialPagosData] = useState<typeof historialPagos>([]);
+  const [deudasPendientesData, setDeudasPendientesData] = useState<typeof deudasPendientes>([]);
   const [resumenFinancieroData, setResumenFinancieroData] = useState(resumenFinanciero);
 
   // Notifications State
@@ -284,9 +290,9 @@ export const useStudentDashboard = () => {
   }, []);
 
   // New Sections Data
-  const [clases, setClases] = useState<Clase[]>(clasesData);
-  const [examenesDataState, setExamenesDataState] = useState<StudentExam[]>(studentExamenesData);
-  const [comunidadPostsData, setComunidadPostsData] = useState<ComunidadPost[]>(comunidadPosts);
+  const [clases, setClases] = useState<Clase[]>([]);
+  const [examenesDataState, setExamenesDataState] = useState<StudentExam[]>([]);
+  const [comunidadPostsData, setComunidadPostsData] = useState<ComunidadPost[]>([]);
 
   // Loading and Error States
   const [loading, setLoading] = useState(false);
@@ -512,6 +518,7 @@ export const useStudentDashboard = () => {
           invoicesData,
           financialSummaryData,
           tramitesRes,
+          announcementsRes,
         ] = await Promise.allSettled([
           coursesApi.getAll(),
           assignmentsApi.getMy(),
@@ -531,6 +538,7 @@ export const useStudentDashboard = () => {
           financeApi.getMyInvoices(),
           financeApi.getMyFinancialSummary(),
           proceduresApi.getMy(),
+          announcementsApi.getAll(),
         ]);
 
         if (tramitesRes.status === 'fulfilled') {
@@ -543,21 +551,21 @@ export const useStudentDashboard = () => {
 
         if (coursesData.status === 'fulfilled') {
           const data = (coursesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) setCursos(data);
+          if (Array.isArray(data)) setCursos(data);
         }
         if (assignmentsData.status === 'fulfilled') {
           const data = (assignmentsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setTareas(adaptarTareas(data));
           }
         }
         if (inboxMessages.status === 'fulfilled') {
           const data = inboxMessages.value as any;
-          if (Array.isArray(data) && data.length > 0) setMensajes(data);
+          if (Array.isArray(data)) setMensajes(data);
         }
         if (gradesData.status === 'fulfilled') {
           const data = (gradesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setCalificacionesData(agruparNotasPorCurso(data));
           }
         }
@@ -582,7 +590,7 @@ export const useStudentDashboard = () => {
           // al pulsar "Iniciar examen" caía en la rama local: enseñaba
           // "Examen iniciado. ¡Buena suerte!" y no abría nada, porque no había
           // preguntas ni intento en el servidor.
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             const intentos = attemptsData.status === 'fulfilled'
               ? ((attemptsData.value as any)?.data || [])
               : [];
@@ -615,49 +623,49 @@ export const useStudentDashboard = () => {
         }
         if (booksData.status === 'fulfilled') {
           const data = (booksData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setLibrosData(data.map(mapLibroApi));
           }
         }
         if (loansData.status === 'fulfilled') {
           const data = (loansData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setPrestamosData(data.map(mapPrestamoApi));
           }
         }
         if (reservationsData.status === 'fulfilled') {
           const data = (reservationsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setReservasData(data.map(mapReservaApi));
           }
         }
         if (topicsData.status === 'fulfilled') {
           const data = (topicsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setTopicosData(data.map(mapTopicoApi));
           }
         }
         if (postsData.status === 'fulfilled') {
           const data = (postsData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setComunidadPostsData(data.map(mapPostApi));
           }
         }
         if (certificatesData.status === 'fulfilled') {
           const data = (certificatesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setSolicitudesCertificadosData(data.map(mapSolicitudCertificadoApi));
           }
         }
         if (scheduleData.status === 'fulfilled') {
           const data = (scheduleData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setClasesHorario(data.map(mapHorarioApi));
           }
         }
         if (liveClassesData.status === 'fulfilled') {
           const data = (liveClassesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             const mapeadas = data.map(mapClaseApi);
             setClases(mapeadas);
             setClasesVivoData(mapeadas.filter((c: any) => c.tipo === 'en_vivo'));
@@ -666,7 +674,7 @@ export const useStudentDashboard = () => {
         }
         if (invoicesData.status === 'fulfilled') {
           const data = (invoicesData.value as any)?.data;
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             // Cada pago aplicado es una linea del historial.
             const pagos = data.flatMap((f: any) =>
               (f.payments || []).map((p: any) => ({
@@ -679,7 +687,7 @@ export const useStudentDashboard = () => {
                 comprobante: p.referencia || f.numero,
               }))
             );
-            if (pagos.length > 0) setHistorialPagosData(pagos as any);
+            setHistorialPagosData(pagos as any);
 
             // Una factura con saldo pendiente es una deuda.
             const deudas = data
@@ -699,6 +707,27 @@ export const useStudentDashboard = () => {
               .filter((d: any) => d.monto > 0);
             setDeudasPendientesData(deudas as any);
           }
+        }
+        if (announcementsRes.status === 'fulfilled') {
+          // Los anuncios del estudiante eran un mock sin setter: lo que
+          // publicaba el administrador jamas llegaba a esta vista. El backend
+          // ya usa campos en espanol (titulo/contenido); el sobre puede ser
+          // { data, pagination } o un arreglo pelado.
+          const bruto = (announcementsRes.value as any)?.data;
+          const lista = Array.isArray(bruto) ? bruto : Array.isArray(bruto?.data) ? bruto.data : [];
+          setAnunciosData(
+            lista
+              .filter((a: any) => !a.estado || a.estado === 'PUBLICADO')
+              .map((a: any) => ({
+                id: a.id,
+                titulo: a.titulo ?? a.title ?? '',
+                descripcion: a.descripcion ?? (a.contenido ?? '').slice(0, 120),
+                contenido: a.contenido ?? a.content ?? '',
+                fecha: String(a.fechaPublicacion ?? a.createdAt ?? '').split('T')[0],
+                icono: '📢',
+                color: 'border-blue-500',
+              })) as any,
+          );
         }
         if (financialSummaryData.status === 'fulfilled') {
           const data = (financialSummaryData.value as any)?.data;
