@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatearCop } from '../../../utils/formato';
 import {
   ComposedChart,
   Bar,
@@ -32,9 +33,6 @@ export function FinancialTrendsChart({ data }: FinancialTrendsChartProps) {
     balance: (values.income || 0) - (values.expenses || 0),
   })).sort((a, b) => a.month.localeCompare(b.month));
 
-  const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
-  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -52,10 +50,10 @@ export function FinancialTrendsChart({ data }: FinancialTrendsChartProps) {
           <YAxis
             stroke="#6B7280"
             style={{ fontSize: '12px' }}
-            tickFormatter={formatCurrency}
+            tickFormatter={(v: number) => formatearCop(v)}
           />
           <Tooltip
-            formatter={(value: any) => formatCurrency(Number(value))}
+            formatter={(value: any) => formatearCop(Number(value))}
             contentStyle={{
               backgroundColor: '#fff',
               border: '1px solid #E5E7EB',

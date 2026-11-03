@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatearCop } from '../../../utils/formato';
 import {
   DollarSign,
   CreditCard,
@@ -84,13 +85,6 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
   // Estados para efectivo
   const [puntoEfectivo, setPuntoEfectivo] = useState('');
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const pagosFiltrados = filtroEstado === 'todos'
     ? historialPagos
@@ -235,7 +229,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Pagado</p>
-              <p className={`text-2xl font-bold text-green-600`}>{formatMoney(resumen.totalPagado)}</p>
+              <p className={`text-2xl font-bold text-green-600`}>{formatearCop(resumen.totalPagado)}</p>
             </div>
           </div>
         </div>
@@ -247,7 +241,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Saldo Pendiente</p>
-              <p className={`text-2xl font-bold text-orange-600`}>{formatMoney(resumen.saldoPendiente)}</p>
+              <p className={`text-2xl font-bold text-orange-600`}>{formatearCop(resumen.saldoPendiente)}</p>
             </div>
           </div>
         </div>
@@ -271,7 +265,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Último Pago</p>
-              <p className={`text-2xl font-bold text-purple-600`}>{formatMoney(resumen.ultimoPago)}</p>
+              <p className={`text-2xl font-bold text-purple-600`}>{formatearCop(resumen.ultimoPago)}</p>
             </div>
           </div>
         </div>
@@ -306,7 +300,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-2xl font-bold ${text}`}>{formatMoney(deuda.monto)}</p>
+                    <p className={`text-2xl font-bold ${text}`}>{formatearCop(deuda.monto)}</p>
                     <p className="text-sm text-gray-500">Vence: {deuda.fechaVencimiento}</p>
                   </div>
                   <button
@@ -376,7 +370,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-bold ${text}`}>{formatMoney(pago.monto)}</p>
+                    <p className={`text-xl font-bold ${text}`}>{formatearCop(pago.monto)}</p>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       pago.estado === 'completado'
                         ? 'bg-green-100 text-green-700'
@@ -476,7 +470,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Monto</p>
-                <p className={`text-2xl font-bold text-green-600`}>{formatMoney(detalleModal.monto)}</p>
+                <p className={`text-2xl font-bold text-green-600`}>{formatearCop(detalleModal.monto)}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -524,7 +518,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div>
                     <h3 className={`text-xl font-bold ${text}`}>Realizar Pago</h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {deudaSeleccionada.concepto} - {formatMoney(deudaSeleccionada.monto)}
+                      {deudaSeleccionada.concepto} - {formatearCop(deudaSeleccionada.monto)}
                     </p>
                   </div>
                   <button
@@ -776,7 +770,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                         ) : (
                           <>
                             <Lock size={16} />
-                            Pagar {formatMoney(deudaSeleccionada.monto)}
+                            Pagar {formatearCop(deudaSeleccionada.monto)}
                           </>
                         )}
                       </button>
@@ -984,7 +978,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     <div className={`p-4 rounded-lg border ${border}`}>
                       <p className={`font-semibold ${text} mb-2`}>Información del Pago:</p>
                       <div className="space-y-1 text-sm">
-                        <p><span className="text-gray-500">Monto:</span> <span className="font-semibold">{formatMoney(deudaSeleccionada.monto)}</span></p>
+                        <p><span className="text-gray-500">Monto:</span> <span className="font-semibold">{formatearCop(deudaSeleccionada.monto)}</span></p>
                         <p><span className="text-gray-500">Concepto:</span> {deudaSeleccionada.concepto}</p>
                         <p><span className="text-gray-500">Vigencia del código:</span> 3 días</p>
                       </div>
@@ -1050,7 +1044,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     <div className={`p-4 rounded-lg border ${border}`}>
                       <p className={`font-semibold ${text} mb-2`}>Información del Pago:</p>
                       <div className="space-y-1 text-sm">
-                        <p><span className="text-gray-500">Monto a transferir:</span> <span className="font-semibold text-lg">{formatMoney(deudaSeleccionada.monto)}</span></p>
+                        <p><span className="text-gray-500">Monto a transferir:</span> <span className="font-semibold text-lg">{formatearCop(deudaSeleccionada.monto)}</span></p>
                         <p><span className="text-gray-500">Concepto:</span> {deudaSeleccionada.concepto}</p>
                         <p><span className="text-gray-500">Referencia:</span> <span className="font-mono">REF-{deudaSeleccionada.id}</span></p>
                       </div>
@@ -1079,7 +1073,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                 </div>
                 <h3 className={`text-2xl font-bold ${text} mb-2`}>¡Pago Exitoso!</h3>
                 <p className="text-gray-500 mb-4">
-                  Tu pago de {formatMoney(deudaSeleccionada.monto)} ha sido procesado correctamente
+                  Tu pago de {formatearCop(deudaSeleccionada.monto)} ha sido procesado correctamente
                 </p>
                 <div className="animate-pulse">
                   <p className="text-sm text-gray-500">Cerrando...</p>

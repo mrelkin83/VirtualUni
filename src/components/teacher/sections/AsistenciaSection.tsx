@@ -79,6 +79,31 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
     }
   };
 
+  /** Descarga filas como CSV (UTF-8 con BOM para que Excel lea tildes). */
+  const descargarCsv = (nombre: string, filas: (string | number)[][]) => {
+    const esc = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const contenido = filas.map((f) => f.map(esc).join(';')).join('\r\n');
+    const blob = new Blob(['\ufeff' + contenido], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /** Exporta lo que la tabla muestra; antes el boton era alert('Exportar asistencia'). */
+  const exportarAsistenciaCsv = () => {
+    if (!estudiantes.length) {
+      alert('No hay estudiantes para exportar.');
+      return;
+    }
+    descargarCsv(`asistencia-${fechaSeleccionada || 'hoy'}.csv`, [
+      ['Estudiante', 'Email', 'Curso', 'Estado'],
+      ...estudiantes.map((e: any) => [e.nombre, e.email ?? '', e.curso ?? '', asistencia[e.id] ?? 'sin marcar']),
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -87,7 +112,7 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
           <p className="text-gray-500 mt-1">Registra y consulta la asistencia de tus estudiantes</p>
         </div>
         <button
-          onClick={() => alert('Exportar asistencia')}
+          onClick={exportarAsistenciaCsv}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Download size={18} />

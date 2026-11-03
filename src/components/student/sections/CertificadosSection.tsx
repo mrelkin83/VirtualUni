@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatearCop } from '../../../utils/formato';
 import { FileText, Download, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, X, Eye } from 'lucide-react';
 import { Certificate, CertificateRequest } from '../../../types/student.types';
 
@@ -35,14 +36,6 @@ const CertificateCard: React.FC<{
     }
   };
 
-  const formatMoney = (amount: number) => {
-    if (amount === 0) return 'Gratis';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   return (
     <div className={`${card} rounded-lg shadow p-6 border ${border} hover:shadow-lg transition`}>
@@ -59,7 +52,7 @@ const CertificateCard: React.FC<{
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 text-sm">
               <DollarSign size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
-              <span className={text}>{formatMoney(certificado.costo)}</span>
+              <span className={text}>{formatearCop(certificado.costo, { gratisSiCero: true })}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />

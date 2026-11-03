@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatearFechaHora } from '../../../utils/formato';
 import {
   Package,
   Plus,
@@ -109,15 +110,6 @@ export const ExpedicionesTab: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -263,7 +255,7 @@ export const ExpedicionesTab: React.FC = () => {
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {formatDate(expedicion.fechaExpedicion)}
+                          {formatearFechaHora(expedicion.fechaExpedicion)}
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatearCop } from '../../../utils/formato';
 import {
   Plus,
   Edit2,
@@ -335,12 +336,6 @@ export const FinanzasContabilidadSection: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-    }).format(amount);
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -380,7 +375,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
               <span className="text-sm font-medium text-green-600">Total Ingresos</span>
               <TrendingUp className="w-5 h-5 text-green-600" />
             </div>
-            <div className="text-2xl font-bold text-green-700">{formatCurrency(stats.totalIngresos)}</div>
+            <div className="text-2xl font-bold text-green-700">{formatearCop(stats.totalIngresos)}</div>
           </div>
 
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
@@ -388,7 +383,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
               <span className="text-sm font-medium text-red-600">Total Egresos</span>
               <TrendingDown className="w-5 h-5 text-red-600" />
             </div>
-            <div className="text-2xl font-bold text-red-700">{formatCurrency(stats.totalEgresos)}</div>
+            <div className="text-2xl font-bold text-red-700">{formatearCop(stats.totalEgresos)}</div>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
@@ -396,7 +391,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
               <span className="text-sm font-medium text-blue-600">Balance</span>
               <Wallet className="w-5 h-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold text-blue-700">{formatCurrency(stats.balance)}</div>
+            <div className="text-2xl font-bold text-blue-700">{formatearCop(stats.balance)}</div>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
@@ -545,7 +540,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">{transaction.concepto}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatCurrency(transaction.monto)}
+                            {formatearCop(transaction.monto)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(transaction.fecha).toLocaleDateString('es-CO')}
@@ -611,7 +606,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                       </div>
                       <div className="mb-4">
                         <p className="text-sm text-gray-600 mb-1">Balance</p>
-                        <p className="text-2xl font-bold text-gray-900">{formatCurrency(account.balance)}</p>
+                        <p className="text-2xl font-bold text-gray-900">{formatearCop(account.balance)}</p>
                       </div>
                       <p className="text-sm text-gray-600 mb-4">{account.descripcion}</p>
                       <div className="flex gap-2">
@@ -659,7 +654,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                           <div className="flex justify-between text-sm mb-1">
                             <span className="text-gray-600">Gastado</span>
                             <span className="font-medium text-gray-900">
-                              {formatCurrency(budget.montoGastado)} / {formatCurrency(budget.monto)}
+                              {formatearCop(budget.montoGastado)} / {formatearCop(budget.monto)}
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">

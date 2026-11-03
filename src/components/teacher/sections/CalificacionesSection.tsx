@@ -60,6 +60,39 @@ export const CalificacionesSection: React.FC<CalificacionesSectionProps> = ({
     (cursoSeleccionado === 'todos' || e.curso === cursos.find(c => c.id.toString() === cursoSeleccionado)?.nombre)
   );
 
+  /** Descarga filas como CSV (UTF-8 con BOM para que Excel lea tildes). */
+  const descargarCsv = (nombre: string, filas: (string | number)[][]) => {
+    const esc = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const contenido = filas.map((f) => f.map(esc).join(';')).join('\r\n');
+    const blob = new Blob(['\ufeff' + contenido], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /** Exporta el libro visible; antes el boton era alert('Exportar calificaciones'). */
+  const exportarCalificacionesCsv = () => {
+    if (!estudiantesFiltrados.length) {
+      alert('No hay estudiantes para exportar.');
+      return;
+    }
+    descargarCsv('calificaciones.csv', [
+      ['Estudiante', 'Curso', 'Parcial 1', 'Parcial 2', 'Talleres', 'Proyecto', 'Promedio'],
+      ...estudiantesFiltrados.map((e: any) => [
+        e.nombre,
+        e.curso ?? '',
+        e.parcial1 ?? '',
+        e.parcial2 ?? '',
+        e.talleres ?? '',
+        e.proyecto ?? '',
+        calcularPromedio(e.id),
+      ]),
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -68,7 +101,7 @@ export const CalificacionesSection: React.FC<CalificacionesSectionProps> = ({
           <p className="text-gray-500 mt-1">Gestiona las calificaciones de tus estudiantes</p>
         </div>
         <button
-          onClick={() => alert('Exportar calificaciones')}
+          onClick={exportarCalificacionesCsv}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Download size={18} />

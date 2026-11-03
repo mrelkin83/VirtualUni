@@ -1,26 +1,20 @@
 import React, { useState } from 'react';
-import {
-  CreditCard,
-  FileText,
-  Package,
-  BarChart3,
-} from 'lucide-react';
-import { CarnetsTab } from './CarnetsTab';
+import { FileText, Package, BarChart3 } from 'lucide-react';
 import { PlantillasTab } from './PlantillasTab';
 import { ExpedicionesTab } from './ExpedicionesTab';
 
-type TabType = 'carnets' | 'plantillas' | 'expediciones';
+// La pestania "Carnets" (modulo idcards del backend) se retiro de la UI: era
+// un segundo sistema de carnetizacion en paralelo a expediciones/plantillas
+// (card-issuances + card-templates + card-generator), con modelo de datos
+// propio, de modo que un carnet emitido en una pestania no existia en la
+// otra. Se conserva el sistema con plantillas y PDF; el modulo idcards sigue
+// en el backend por si hay datos que migrar.
+type TabType = 'plantillas' | 'expediciones';
 
 export const CarnetizacionMejorada: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('carnets');
+  const [activeTab, setActiveTab] = useState<TabType>('expediciones');
 
   const tabs = [
-    {
-      id: 'carnets' as TabType,
-      label: 'Carnets',
-      icon: CreditCard,
-      description: 'Gestión de carnets individuales',
-    },
     {
       id: 'plantillas' as TabType,
       label: 'Plantillas',
@@ -93,7 +87,6 @@ export const CarnetizacionMejorada: React.FC = () => {
 
         {/* Tab Content */}
         <div className="p-6">
-          {activeTab === 'carnets' && <CarnetsTab />}
           {activeTab === 'plantillas' && <PlantillasTab />}
           {activeTab === 'expediciones' && <ExpedicionesTab />}
         </div>
