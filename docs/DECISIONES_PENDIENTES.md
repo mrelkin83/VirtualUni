@@ -78,3 +78,24 @@ que `deploy.yml` pueda publicar y desplegar.
 faltara en la imagen de producción (movida a dependencias), el `HEALTHCHECK` del
 backend apuntando a `/api/health` (404 → `/api/v1/health`), y que la validación
 de entorno no atrapara los placeholders `your-production-...` de compose.
+
+---
+
+## Estructura académica (fases 1–2, 2026-11-03) — decisiones abiertas
+
+**Programas creados por el backfill:** `Student.program` era texto libre; el
+backfill creó un `Program` en `BORRADOR` por cada valor distinto con
+`educationLevel: OTRO` y estructura genérica (`VIRTUAL`/`SEMESTRAL`/`CREDITOS`,
+campos obligatorios del modelo). El admin debe completar nivel, modalidad y
+periodicidad reales de cada uno y pasarlos a `ACTIVO`.
+
+**Campos legados:** `Course.code/name/credits/semester` y
+`Student.program/semester` se conservan como legado de solo lectura. Decidir
+cuándo retirarlos en una migración posterior, una vez la UI use solo la
+estructura nueva.
+
+**Fuera de alcance anotado (no implementado a propósito):** escalas de
+calificación configurables por programa (Decreto 1290 para colegios), boletines
+y certificados de notas oficiales, homologaciones, admisiones/CRM, cobro por
+programa y facturación electrónica DIAN. `maxCourses` del plan sigue contando
+grupos.

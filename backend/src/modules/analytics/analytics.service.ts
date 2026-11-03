@@ -93,6 +93,10 @@ export class AnalyticsService {
             course: true,
           },
         },
+        // La inscripción real a programa; Student.program es texto legado
+        programEnrollments: {
+          include: { program: { select: { name: true } } },
+        },
       },
     });
 
@@ -101,13 +105,26 @@ export class AnalyticsService {
       0
     );
 
+    // Agrupa por el Program de ProgramEnrollment (un estudiante puede estar
+    // en varios); si no tiene inscripción, cae al texto libre legado.
+    const studentsByProgram: Record<string, number> = {};
+    for (const student of students) {
+      const nombres =
+        student.programEnrollments.length > 0
+          ? student.programEnrollments.map((pe) => pe.program.name)
+          : [student.program || 'Sin programa'];
+      for (const nombre of nombres) {
+        studentsByProgram[nombre] = (studentsByProgram[nombre] || 0) + 1;
+      }
+    }
+
     return {
       totalStudents: students.length,
       totalEnrollments: enrollmentCount,
       averageEnrollmentsPerStudent: students.length > 0
         ? (enrollmentCount / students.length).toFixed(2)
         : 0,
-      studentsByProgram: this.groupByField(students, 'program'),
+      studentsByProgram,
     };
   }
 
@@ -327,17 +344,6 @@ export class AnalyticsService {
       financial,
       generatedAt: new Date().toISOString(),
     };
-  }
-
-  /**
-   * Helper: Agrupar por campo
-   */
-  private groupByField(items: any[], field: string): Record<string, number> {
-    return items.reduce((acc, item) => {
-      const key = item[field] || 'N/A';
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
   }
 
   /**

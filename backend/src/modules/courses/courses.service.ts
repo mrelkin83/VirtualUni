@@ -28,18 +28,6 @@ export class CoursesService {
       );
     }
 
-    // Check if course code already exists for this tenant
-    const existingCourse = await this.prisma.course.findFirst({
-      where: {
-        code: createCourseDto.code,
-        tenantId,
-      },
-    });
-
-    if (existingCourse) {
-      throw new ConflictException('Course code already exists');
-    }
-
     // Verify teacher exists and belongs to this tenant
     const teacher = await this.prisma.teacher.findFirst({
       where: {
@@ -52,11 +40,82 @@ export class CoursesService {
       throw new NotFoundException('Teacher not found or does not belong to this tenant');
     }
 
+    // Grupo con asignatura de catálogo: code/name/credits se derivan de la
+    // Subject y el semestre del periodo; el cliente no los manda. Sin
+    // subjectId, el flujo legado exige code y name explícitos.
+    let { code, name, credits, semester } = createCourseDto;
+    if (createCourseDto.subjectId) {
+      const subject = await this.prisma.subject.findFirst({
+        where: { id: createCourseDto.subjectId, tenantId },
+      });
+      if (!subject) {
+        throw new NotFoundException('Asignatura no encontrada');
+      }
+
+      let periodo: { code: string } | null = null;
+      if (createCourseDto.academicPeriodId) {
+        periodo = await this.prisma.academicPeriod.findFirst({
+          where: { id: createCourseDto.academicPeriodId, tenantId },
+          select: { code: true },
+        });
+        if (!periodo) {
+          throw new NotFoundException('Periodo académico no encontrado');
+        }
+      }
+
+      // El code legado sigue siendo único por tenant: se compone con el grupo
+      // y el periodo para que "MAT-BAS – Grupo A – 2027-1" no choque con el
+      // Grupo B ni con el mismo grupo de otro periodo.
+      code = [subject.code, createCourseDto.groupCode, periodo?.code]
+        .filter(Boolean)
+        .join('-');
+      name = [
+        subject.name,
+        createCourseDto.groupCode ? `Grupo ${createCourseDto.groupCode}` : null,
+        periodo?.code,
+      ]
+        .filter(Boolean)
+        .join(' – ');
+      credits = subject.credits ?? undefined;
+      semester = periodo?.code ?? semester;
+    } else {
+      if (!code || !name) {
+        throw new BadRequestException(
+          'code y name son obligatorios cuando no se indica subjectId',
+        );
+      }
+      if (createCourseDto.academicPeriodId) {
+        const periodo = await this.prisma.academicPeriod.findFirst({
+          where: { id: createCourseDto.academicPeriodId, tenantId },
+          select: { code: true },
+        });
+        if (!periodo) {
+          throw new NotFoundException('Periodo académico no encontrado');
+        }
+        semester = periodo.code ?? semester;
+      }
+    }
+
+    // Check if course code already exists for this tenant
+    const existingCourse = await this.prisma.course.findFirst({
+      where: { code, tenantId },
+    });
+
+    if (existingCourse) {
+      throw new ConflictException(
+        `Ya existe un grupo con el código ${code}; use otro groupCode o periodo`,
+      );
+    }
+
     // Create course in transaction
     const result = await this.prisma.$transaction(async (tx) => {
       const course = await tx.course.create({
         data: {
           ...createCourseDto,
+          code,
+          name,
+          credits,
+          semester,
           tenantId,
         },
         include: {
@@ -260,6 +319,27 @@ export class CoursesService {
 
       if (!teacher) {
         throw new NotFoundException('Teacher not found or does not belong to this tenant');
+      }
+    }
+
+    // subjectId/academicPeriodId vienen del cliente: contra el tenant antes de usarse
+    if (updateCourseDto.subjectId) {
+      const subject = await this.prisma.subject.findFirst({
+        where: { id: updateCourseDto.subjectId, tenantId },
+        select: { id: true },
+      });
+      if (!subject) {
+        throw new NotFoundException('Asignatura no encontrada');
+      }
+    }
+
+    if (updateCourseDto.academicPeriodId) {
+      const periodo = await this.prisma.academicPeriod.findFirst({
+        where: { id: updateCourseDto.academicPeriodId, tenantId },
+        select: { id: true },
+      });
+      if (!periodo) {
+        throw new NotFoundException('Periodo académico no encontrado');
       }
     }
 

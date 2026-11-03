@@ -56,6 +56,12 @@ import { MessageTemplatesModule } from './modules/message-templates/message-temp
 import { CourseTopicsModule } from './modules/course-topics/course-topics.module';
 import { CertificateTemplatesModule } from './modules/certificate-templates/certificate-templates.module';
 
+// Estructura académica: programas, pensum, asignaturas transversales, periodos
+import { ProgramsModule } from './modules/programs/programs.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
+import { AcademicPeriodsModule } from './modules/academic-periods/academic-periods.module';
+import { ProgramEnrollmentsModule } from './modules/program-enrollments/program-enrollments.module';
+
 @Module({
   imports: [
     // Configuration
@@ -135,6 +141,10 @@ import { CertificateTemplatesModule } from './modules/certificate-templates/cert
     CourseTopicsModule,
     QuestionBankModule,
     MessageTemplatesModule,
+    ProgramsModule,
+    SubjectsModule,
+    AcademicPeriodsModule,
+    ProgramEnrollmentsModule,
   ],
   controllers: [AppController],
 })

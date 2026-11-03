@@ -1,0 +1,195 @@
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '@/common/prisma/prisma.service';
+import { ProgramEnrollmentStatus, StudyPlanStatus } from '@prisma/client';
+import {
+  CrearInscripcionDto,
+  ActualizarInscripcionDto,
+} from './dto/program-enrollment.dto';
+import { CurrentUserData } from '@/common/decorators/current-user.decorator';
+
+const INCLUDE_RESUMEN = {
+  student: {
+    select: {
+      id: true,
+      studentCode: true,
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+    },
+  },
+  program: { select: { id: true, code: true, name: true, educationLevel: true } },
+  studyPlan: { select: { id: true, version: true, status: true } },
+} as const;
+
+@Injectable()
+export class ProgramEnrollmentsService {
+  constructor(private prisma: PrismaService) {}
+
+  private async inscripcion(tenantId: string, id: string) {
+    const inscripcion = await this.prisma.programEnrollment.findFirst({
+      where: { id, tenantId },
+      include: { program: { select: { id: true, durationPeriods: true } } },
+    });
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+    return inscripcion;
+  }
+
+  private validarNivel(level: number | undefined, durationPeriods: number | null) {
+    if (level && durationPeriods && level > durationPeriods) {
+      throw new BadRequestException(
+        `El nivel ${level} supera la duración del programa (${durationPeriods} periodos)`,
+      );
+    }
+  }
+
+  async findAll(
+    tenantId: string,
+    page = 1,
+    limit = 20,
+    programId?: string,
+    studentId?: string,
+    status?: ProgramEnrollmentStatus,
+  ) {
+    const skip = (page - 1) * limit;
+    // programId/studentId son filtros del cliente, pero el where siempre
+    // lleva tenantId: un id ajeno simplemente no encuentra nada.
+    const where: any = { tenantId };
+    if (programId) where.programId = programId;
+    if (studentId) where.studentId = studentId;
+    if (status) where.status = status;
+
+    const [inscripciones, total] = await Promise.all([
+      this.prisma.programEnrollment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: INCLUDE_RESUMEN,
+      }),
+      this.prisma.programEnrollment.count({ where }),
+    ]);
+
+    return {
+      data: inscripciones,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async create(tenantId: string, dto: CrearInscripcionDto) {
+    // Todos los *Id del DTO se validan contra el tenant antes de usarse
+    const [estudiante, programa] = await Promise.all([
+      this.prisma.student.findFirst({
+        where: { id: dto.studentId, tenantId },
+        select: { id: true },
+      }),
+      this.prisma.program.findFirst({
+        where: { id: dto.programId, tenantId },
+        select: { id: true, durationPeriods: true },
+      }),
+    ]);
+    if (!estudiante) throw new NotFoundException('Estudiante no encontrado');
+    if (!programa) throw new NotFoundException('Programa no encontrado');
+
+    let studyPlanId = dto.studyPlanId;
+    if (studyPlanId) {
+      // Debe ser un pensum del MISMO programa y tenant
+      const plan = await this.prisma.studyPlan.findFirst({
+        where: { id: studyPlanId, tenantId, programId: dto.programId },
+        select: { id: true },
+      });
+      if (!plan) {
+        throw new NotFoundException('Pensum no encontrado para ese programa');
+      }
+    } else {
+      const vigente = await this.prisma.studyPlan.findFirst({
+        where: { tenantId, programId: dto.programId, status: StudyPlanStatus.VIGENTE },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      if (!vigente) {
+        throw new BadRequestException(
+          'El programa no tiene pensum VIGENTE; indique studyPlanId explícitamente',
+        );
+      }
+      studyPlanId = vigente.id;
+    }
+
+    this.validarNivel(dto.currentLevel, programa.durationPeriods);
+
+    const existente = await this.prisma.programEnrollment.findFirst({
+      where: { studentId: dto.studentId, programId: dto.programId },
+      select: { id: true },
+    });
+    if (existente) {
+      throw new ConflictException('El estudiante ya está inscrito en este programa');
+    }
+
+    return this.prisma.programEnrollment.create({
+      data: {
+        tenantId,
+        studentId: dto.studentId,
+        programId: dto.programId,
+        studyPlanId,
+        currentLevel: dto.currentLevel ?? 1,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+      },
+      include: INCLUDE_RESUMEN,
+    });
+  }
+
+  async update(tenantId: string, id: string, dto: ActualizarInscripcionDto) {
+    const inscripcion = await this.inscripcion(tenantId, id);
+
+    if (dto.studyPlanId) {
+      const plan = await this.prisma.studyPlan.findFirst({
+        where: { id: dto.studyPlanId, tenantId, programId: inscripcion.programId },
+        select: { id: true },
+      });
+      if (!plan) {
+        throw new NotFoundException('Pensum no encontrado para ese programa');
+      }
+    }
+
+    this.validarNivel(dto.currentLevel, inscripcion.program.durationPeriods);
+
+    return this.prisma.programEnrollment.update({
+      where: { id },
+      data: {
+        studyPlanId: dto.studyPlanId,
+        currentLevel: dto.currentLevel,
+        status: dto.status,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+      },
+      include: INCLUDE_RESUMEN,
+    });
+  }
+
+  /**
+   * Programas de un estudiante. Un STUDENT solo puede consultar los suyos;
+   * profesorado y administración, los de cualquier estudiante del tenant.
+   */
+  async studentPrograms(tenantId: string, studentId: string, user: CurrentUserData) {
+    const estudiante = await this.prisma.student.findFirst({
+      where: { id: studentId, tenantId },
+      select: { id: true, userId: true },
+    });
+    if (!estudiante) throw new NotFoundException('Estudiante no encontrado');
+
+    if (user.role === 'STUDENT' && estudiante.userId !== user.id) {
+      throw new ForbiddenException('Solo puede consultar sus propios programas');
+    }
+
+    return this.prisma.programEnrollment.findMany({
+      where: { tenantId, studentId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        program: true,
+        studyPlan: { select: { id: true, version: true, status: true } },
+      },
+    });
+  }
+}
