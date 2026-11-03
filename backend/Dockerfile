@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -20,9 +20,30 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Production
-FROM node:18-alpine
+#
+# Node 22, no 18: @nestjs/schedule v6 usa el `crypto` GLOBAL
+# (crypto.randomUUID en scheduler.orchestrator), que solo existe a partir de
+# Node 19. Con node:18-alpine el backend arrancaba y moria en el onModuleInit
+# de ScheduleExplorer con "ReferenceError: crypto is not defined", en bucle de
+# reinicio (medido en el VPS de produccion). Ademas Node 18 esta fuera de
+# soporte desde abril de 2025, los workflows de .github usan Node 22 y el
+# package.json de la raiz declara "node": ">=22.22.2".
+FROM node:22-alpine
 
 WORKDIR /app
+
+# OpenSSL para el engine de Prisma.
+#
+# node:18-alpine es hoy Alpine 3.21, que trae solo libssl.so.3 y NO incluye el
+# CLI de openssl. Sin ese CLI `prisma generate` no detecta la version, cae al
+# valor por defecto "openssl-1.1.x" y genera
+# libquery_engine-linux-musl.so.node, que enlaza contra libssl.so.1.1 -
+# ausente en la imagen. El contenedor arrancaba, mapeaba todas las rutas y
+# moria en el onModuleInit de PrismaService con "Error loading shared library
+# libssl.so.1.1", quedando en bucle de reinicio (medido en el VPS de
+# produccion). Con openssl instalado detecta 3.0.x y genera el engine correcto,
+# libquery_engine-linux-musl-openssl-3.0.x.so.node.
+RUN apk add --no-cache openssl
 
 # Install production dependencies only.
 #
