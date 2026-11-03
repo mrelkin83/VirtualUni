@@ -174,6 +174,8 @@ model Student {
   certificateRequests CertificateRequest[]
   invoices            StudentInvoice[]
   programEnrollments  ProgramEnrollment[]
+  subjectRecords      StudentSubjectRecord[]
+  homologationRequests HomologationRequest[]
 
   @@unique([tenantId, studentCode])
   @@map("students")
@@ -244,6 +246,12 @@ model Course {
   liveClasses     LiveClass[]
   groups          CourseGroup[]
   scheduleEvents  ScheduleEvent[]
+  subjectRecords  StudentSubjectRecord[]
+
+  // Cierre de notas: con gradesClosedAt presente las notas del grupo quedan
+  // bloqueadas; solo un admin puede reabrir (queda auditado en los records).
+  gradesClosedAt   DateTime? @map("grades_closed_at")
+  gradesClosedById String?   @map("grades_closed_by_id") // userId de quien cerró
 
   @@unique([tenantId, code])
   @@index([teacherId])
@@ -836,6 +844,8 @@ model CertificateTemplate {
   configuracion Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+
+  studyPlanBlocks StudyPlanBlock[]
 
   @@index([tenantId])
   @@map("certificate_templates")
@@ -1807,6 +1817,16 @@ model Program {
   officialCode    String?         @map("official_code") // SNIES o registro ETDH (opcional)
   approvalAct     String?         @map("approval_act") // resolución/registro calificado (texto libre)
   status          ProgramStatus   @default(BORRADOR)
+
+  // Política académica del programa (cierre de notas y homologación)
+  passingGrade        Float @default(3.0) @map("passing_grade") // nota mínima aprobatoria en la escala del programa
+  gradeScaleMax       Float @default(5.0) @map("grade_scale_max")
+  hoursPerCredit      Int   @default(48) @map("hours_per_credit")
+  // % máximo del pensum reconocible por homologación EXTERNA. No aplica al
+  // reconocimiento interno por misma Subject aprobada en la institución.
+  maxRecognitionPct   Int   @default(50) @map("max_recognition_pct")
+  minRecognitionGrade Float @default(3.0) @map("min_recognition_grade")
+
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
@@ -1834,6 +1854,7 @@ model StudyPlan {
   program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   subjects           StudyPlanSubject[]
   programEnrollments ProgramEnrollment[]
+  blocks             StudyPlanBlock[]
 
   @@unique([programId, version])
   @@index([tenantId])
@@ -1853,12 +1874,19 @@ model Subject {
   credits     Int?
   hours       Int? // horas totales
   weeklyHours Int?     @map("weekly_hours")
+  // Desglose de horas (ETDH): si faltan, horas = créditos × hoursPerCredit
+  theoreticalHours Int? @map("theoretical_hours")
+  practicalHours   Int? @map("practical_hours")
   status      String   @default("active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   planEntries StudyPlanSubject[]
   courses     Course[] // grupos que la dictan
+  records          StudentSubjectRecord[]
+  equivalencesFrom SubjectEquivalence[] @relation("equivSource")
+  equivalencesTo   SubjectEquivalence[] @relation("equivTarget")
+  homologationItems HomologationItem[]
 
   // Contenido maestro compartido por todos los grupos de la asignatura
   topics          CourseTopic[]
@@ -1900,16 +1928,23 @@ model StudyPlanSubject {
   subjectType SubjectType @default(OBLIGATORIA) @map("subject_type")
   credits     Int? // override opcional del valor de la Subject
   hours       Int?
+  // Overrides opcionales del desglose de horas de la Subject (ETDH)
+  theoreticalHours Int? @map("theoretical_hours")
+  practicalHours   Int? @map("practical_hours")
   orderIndex  Int         @default(0) @map("order_index")
+  // Bloque de competencia certificable al que pertenece la fila (opcional)
+  blockId     String?     @map("block_id")
 
   studyPlan     StudyPlan               @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
   subject       Subject                 @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  block         StudyPlanBlock?         @relation(fields: [blockId], references: [id], onDelete: SetNull)
   prerequisites StudyPlanPrerequisite[] @relation("entry")
   requiredBy    StudyPlanPrerequisite[] @relation("required")
 
   @@unique([studyPlanId, subjectId])
   @@index([tenantId])
   @@index([subjectId])
+  @@index([blockId])
   @@map("study_plan_subjects")
 }
 
@@ -1939,6 +1974,7 @@ model AcademicPeriod {
   updatedAt DateTime     @updatedAt @map("updated_at")
 
   courses Course[]
+  subjectRecords StudentSubjectRecord[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1962,9 +1998,162 @@ model ProgramEnrollment {
   student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   program   Program   @relation(fields: [programId], references: [id], onDelete: Restrict)
   studyPlan StudyPlan @relation(fields: [studyPlanId], references: [id], onDelete: Restrict)
+  homologationRequests HomologationRequest[]
 
   @@unique([studentId, programId]) // varios programas sí; dos veces el mismo, no
   @@index([tenantId])
   @@index([programId])
   @@map("program_enrollments")
+}
+
+// ============================================================
+// Historial académico, homologación y bloques certificables
+// ============================================================
+
+// Cómo quedó aprobada (o reprobada) la asignatura en el historial
+enum RecordOrigin {
+  CURSADA // cursó el grupo y se cerraron notas
+  RECONOCIMIENTO_INTERNO // misma Subject aprobada antes en la institución
+  HOMOLOGACION_EQUIVALENCIA // otra Subject equivalente (SubjectEquivalence)
+  RECONOCIMIENTO_EXTERNO // cursada en otra institución, con soporte
+  VALIDACION_SUFICIENCIA // examen de suficiencia
+}
+
+enum RecordStatus {
+  VIGENTE
+  ANULADO // p. ej. al reabrir notas de un grupo
+}
+
+enum HomologationType {
+  EQUIVALENCIA_INTERNA
+  EXTERNA
+  VALIDACION_SUFICIENCIA
+}
+
+enum HomologationStatus {
+  SOLICITADA
+  EN_REVISION
+  APROBADA
+  APROBADA_PARCIAL
+  RECHAZADA
+}
+
+// Historial académico: una fila por intento definitivo del estudiante en una
+// asignatura. El historial es del ESTUDIANTE, no del programa: una asignatura
+// aprobada sirve para cualquier programa presente o futuro.
+model StudentSubjectRecord {
+  id               String       @id @default(uuid())
+  tenantId         String       @map("tenant_id")
+  studentId        String       @map("student_id")
+  subjectId        String       @map("subject_id")
+  courseId         String?      @map("course_id") // grupo donde la cursó (null si es homologación)
+  academicPeriodId String?      @map("academic_period_id")
+  origin           RecordOrigin
+  finalGrade       Float?       @map("final_grade") // en la escala del programa; null para reconocimientos sin nota
+  passed           Boolean
+  creditsSnapshot  Int?         @map("credits_snapshot")
+  hoursSnapshot    Int?         @map("hours_snapshot")
+  status           RecordStatus @default(VIGENTE)
+  approvedById     String?      @map("approved_by_id") // userId del admin/docente que cerró o aprobó
+  approvedAt       DateTime?    @map("approved_at")
+  sourceRecordId   String?      @map("source_record_id") // registro original (RECONOCIMIENTO_INTERNO)
+  sourceRequestId  String?      @map("source_request_id") // HomologationRequest que lo originó
+  notes            String?      @db.Text
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  student        Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject        Subject         @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  course         Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  academicPeriod AcademicPeriod? @relation(fields: [academicPeriodId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([studentId, subjectId])
+  @@index([courseId])
+  @@map("student_subject_records")
+}
+
+// "Aprobar X equivale a aprobar Y" cuando NO son la misma Subject.
+// La homologación entre programas de la institución que comparten la misma
+// Subject NO pasa por aquí: es reconocimiento interno automático.
+model SubjectEquivalence {
+  id              String  @id @default(uuid())
+  tenantId        String  @map("tenant_id")
+  sourceSubjectId String  @map("source_subject_id")
+  targetSubjectId String  @map("target_subject_id")
+  bidirectional   Boolean @default(false)
+  notes           String?
+
+  sourceSubject Subject @relation("equivSource", fields: [sourceSubjectId], references: [id], onDelete: Cascade)
+  targetSubject Subject @relation("equivTarget", fields: [targetSubjectId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceSubjectId, targetSubjectId])
+  @@index([tenantId])
+  @@index([targetSubjectId])
+  @@map("subject_equivalences")
+}
+
+// Solicitud de homologación con soportes y aprobación ítem por ítem
+model HomologationRequest {
+  id                  String             @id @default(uuid())
+  tenantId            String             @map("tenant_id")
+  studentId           String             @map("student_id")
+  programEnrollmentId String             @map("program_enrollment_id") // programa destino
+  type                HomologationType
+  status              HomologationStatus @default(SOLICITADA)
+  originInstitution   String?            @map("origin_institution")
+  supportFiles        String[]           @map("support_files") // URLs del módulo de uploads
+  reviewedById        String?            @map("reviewed_by_id") // userId del revisor
+  reviewedAt          DateTime?          @map("reviewed_at")
+  decisionNotes       String?            @db.Text @map("decision_notes")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+
+  student           Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment  @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
+  items             HomologationItem[]
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("homologation_requests")
+}
+
+model HomologationItem {
+  id              String  @id @default(uuid())
+  tenantId        String  @map("tenant_id")
+  requestId       String  @map("request_id")
+  targetSubjectId String  @map("target_subject_id") // asignatura del pensum destino
+  originName      String? @map("origin_name") // nombre en la institución de origen
+  originHours     Int?    @map("origin_hours")
+  originGrade     Float?  @map("origin_grade")
+  decision        String? // APROBADO | RECHAZADO
+  decisionNotes   String? @db.Text @map("decision_notes") // justificación (obligatoria al forzar validaciones)
+
+  request       HomologationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  targetSubject Subject             @relation(fields: [targetSubjectId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@index([requestId])
+  @@map("homologation_items")
+}
+
+// Bloque de competencia certificable dentro de un pensum
+model StudyPlanBlock {
+  id                     String  @id @default(uuid())
+  tenantId               String  @map("tenant_id")
+  studyPlanId            String  @map("study_plan_id")
+  name                   String // "Módulo Contable-Financiero"
+  description            String? @db.Text
+  orderIndex             Int     @default(0) @map("order_index")
+  certifiable            Boolean @default(true)
+  certificateTemplateId  String? @map("certificate_template_id")
+  competencyStandardCode String? @map("competency_standard_code") // norma de competencia laboral (opcional)
+
+  studyPlan           StudyPlan            @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  certificateTemplate CertificateTemplate? @relation(fields: [certificateTemplateId], references: [id], onDelete: SetNull)
+  subjects            StudyPlanSubject[]
+
+  @@index([tenantId])
+  @@index([studyPlanId])
+  @@map("study_plan_blocks")
 }
