@@ -5,7 +5,8 @@ import { useTenantStore } from '../store/tenantStore';
 import { tenantsApi } from '../api/endpoints/tenants';
 import { messagesApi } from '../api/endpoints/student';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
-import { coursesAdminApi, teachersApi } from '../api/endpoints/courses';
+import { coursesAdminApi } from '../api/endpoints/courses';
+import { programasApi, inscripcionesApi, Programa } from '../api/endpoints/academico';
 import { personasApi } from '../api/endpoints/personas';
 import { plantillasCertificadoApi } from '../api/endpoints/certificate-templates';
 import { comoArreglo } from '../utils/respuestaApi';
@@ -21,7 +22,9 @@ import {
   BibliotecaSection,
   AnunciosSection,
   MensajesMasivosSection,
-  AnalyticsSection
+  AnalyticsSection,
+  GestionAcademicaSection,
+  InscripcionesProgramaSection
 } from '../components/admin/sections';
 import { CarnetizacionMejorada } from '../components/admin/carnetizacion/CarnetizacionMejorada';
 import { financeApi, announcementsApi, massMessagesApi, proceduresApi } from '../api/endpoints';
@@ -72,22 +75,8 @@ export default function AdminDashboard() {
     departamento: '',
     posicion: ''
   });
-  const [createCursoModal, setCreateCursoModal] = useState(false);
-  const [editCursoModal, setEditCursoModal] = useState(null);
-  const [verCursoModal, setVerCursoModal] = useState(null);
-  const [nuevoCurso, setNuevoCurso] = useState({
-    nombre: '',
-    codigo: '',
-    estudiantes: 0,
-    docente: '',
-    estado: 'activo',
-    descripcion: '',
-    duracion: '',
-    creditos: ''
-  });
   const [verHistorialModal, setVerHistorialModal] = useState(null);
   const [comunicacionMasivaModal, setComunicacionMasivaModal] = useState(false);
-  const [inscripcionModal, setInscripcionModal] = useState(false);
   const [logsAuditoriaModal, setLogsAuditoriaModal] = useState(false);
   const [historialQRModal, setHistorialQRModal] = useState(false);
 
@@ -291,8 +280,9 @@ export default function AdminDashboard() {
   const [usuarios, setUsuarios] = useState<any[]>([]);
 
   const usuarioActual = useAuthStore((st) => st.user);
-  const [docentes, setDocentes] = useState<{id:string;nombre:string}[]>([]);
   const [cursos, setCursos] = useState<any[]>([]);
+  // Programas reales para el alta de estudiantes (reemplaza el texto libre)
+  const [programasAcademicos, setProgramasAcademicos] = useState<Programa[]>([]);
 
 
   // Función de búsqueda rápida
@@ -399,16 +389,7 @@ export default function AdminDashboard() {
    */
   const cargarCursos = async () => {
     try {
-      const [cursosRes, docentesRes] = await Promise.all([
-        coursesAdminApi.getAll({ limit: 100 }),
-        teachersApi.getAll().catch(() => ({ data: [] })),
-      ]);
-
-      const listaDocentes = comoArreglo((docentesRes as any).data).map((d: any) => ({
-        id: d.id,
-        nombre: [d.user?.firstName, d.user?.lastName].filter(Boolean).join(' ') || d.employeeCode,
-      }));
-      setDocentes(listaDocentes);
+      const cursosRes = await coursesAdminApi.getAll({ limit: 100 });
 
       setCursos(
         comoArreglo((cursosRes as any).data).map((c: any) => ({
@@ -465,6 +446,11 @@ export default function AdminDashboard() {
     cargarCursos();
     cargarUsuarios();
     cargarPlantillas();
+    // Programas para el selector del alta de estudiantes
+    programasApi
+      .getAll({ limit: 100 })
+      .then((r) => setProgramasAcademicos(r.data))
+      .catch((err) => console.error('Error cargando programas:', err));
     // Bandeja real para la seccion de mensajes y el contador del sobre.
     messagesApi
       .getInbox()
@@ -550,7 +536,7 @@ export default function AdminDashboard() {
     { id: 'documentos', icon: FileText, label: 'Documentos', color: 'text-purple-600' },
     { id: 'plantillas', icon: Award, label: 'Plantillas Certificados', color: 'text-pink-600' },
     { id: 'usuarios', icon: Users, label: 'Usuarios', color: 'text-green-600' },
-    { id: 'cursos', icon: BookOpen, label: 'Cursos', color: 'text-blue-600' },
+    { id: 'academico', icon: BookOpen, label: 'Gestión académica', color: 'text-blue-600' },
     { id: 'activos', icon: Building2, label: 'Gestión de Activos', color: 'text-orange-600' },
     { id: 'inventario', icon: ClipboardCheck, label: 'Inventario', color: 'text-purple-600' },
     { id: 'nomina', icon: CreditCard, label: 'Nómina', color: 'text-green-600' },
@@ -591,10 +577,22 @@ export default function AdminDashboard() {
 
     try {
       if (nuevoUsuario.rol === 'estudiante') {
-        await personasApi.crearEstudiante({
+        const creado = await personasApi.crearEstudiante({
           firstName, lastName, email: nuevoUsuario.email, password,
-          program: nuevoUsuario.carrera || undefined,
         });
+        // `carrera` guarda ahora el id del Programa elegido: la inscripción
+        // real es un ProgramEnrollment (pensum vigente), no texto libre.
+        const studentId = (creado as any)?.data?.id;
+        if (nuevoUsuario.carrera && studentId) {
+          await inscripcionesApi
+            .create({ studentId, programId: nuevoUsuario.carrera })
+            .catch((e: any) =>
+              alert(
+                'Usuario creado, pero la inscripción al programa falló: ' +
+                  (e?.response?.data?.message ?? e?.message ?? 'error'),
+              ),
+            );
+        }
       } else if (nuevoUsuario.rol === 'docente') {
         await personasApi.crearDocente({
           firstName, lastName, email: nuevoUsuario.email, password,
@@ -660,76 +658,6 @@ export default function AdminDashboard() {
       alert('Usuario desactivado');
     } catch (err: any) {
       alert('No se pudo desactivar: ' + (err?.message || 'error de conexión'));
-    }
-  };
-
-  const crearCurso = async () => {
-    if (!nuevoCurso.nombre || !nuevoCurso.codigo || !nuevoCurso.docente) {
-      alert('Por favor completa los campos obligatorios');
-      return;
-    }
-
-    try {
-      await coursesAdminApi.create({
-        name: nuevoCurso.nombre,
-        code: nuevoCurso.codigo,
-        // `docente` guarda ahora el identificador del docente, no su nombre:
-        // la API relaciona el curso por teacherId.
-        teacherId: nuevoCurso.docente,
-        description: nuevoCurso.descripcion || undefined,
-        semester: nuevoCurso.duracion || undefined,
-        credits: nuevoCurso.creditos ? parseInt(nuevoCurso.creditos, 10) : undefined,
-      });
-      await cargarCursos();
-      setCreateCursoModal(false);
-      setNuevoCurso({
-        nombre: '',
-        codigo: '',
-        estudiantes: 0,
-        docente: '',
-        estado: 'activo',
-        descripcion: '',
-        duracion: '',
-        creditos: ''
-      });
-      alert('Curso creado exitosamente');
-    } catch (err: any) {
-      alert('No se pudo crear el curso: ' + (err?.message || 'error de conexión'));
-    }
-  };
-
-  const editarCurso = async () => {
-    if (!editCursoModal.nombre || !editCursoModal.codigo || !editCursoModal.docente) {
-      alert('Por favor completa los campos obligatorios');
-      return;
-    }
-
-    try {
-      await coursesAdminApi.update(String(editCursoModal.id), {
-        name: editCursoModal.nombre,
-        code: editCursoModal.codigo,
-        teacherId: editCursoModal.teacherId || editCursoModal.docente,
-        description: editCursoModal.descripcion || undefined,
-        semester: editCursoModal.duracion || undefined,
-        credits: editCursoModal.creditos ? parseInt(editCursoModal.creditos, 10) : undefined,
-        status: editCursoModal.estado === 'activo' ? 'active' : 'inactive',
-      });
-      await cargarCursos();
-      setEditCursoModal(null);
-      alert('Curso actualizado exitosamente');
-    } catch (err: any) {
-      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
-    }
-  };
-
-  const eliminarCurso = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este curso?')) return;
-    try {
-      await coursesAdminApi.remove(String(id));
-      await cargarCursos();
-      alert('Curso eliminado exitosamente');
-    } catch (err: any) {
-      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1323,14 +1251,17 @@ export default function AdminDashboard() {
 
                 {nuevoUsuario.rol === 'estudiante' && (
                   <div>
-                    <label className="block text-sm font-semibold mb-2">Carrera</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-semibold mb-2">Programa académico</label>
+                    <select
                       value={nuevoUsuario.carrera}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, carrera: e.target.value})}
-                      placeholder="Ingeniería en Sistemas"
                       className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                    />
+                    >
+                      <option value="">Sin programa (inscribir después)</option>
+                      {programasAcademicos.map((programa) => (
+                        <option key={programa.id} value={programa.id}>{programa.name}</option>
+                      ))}
+                    </select>
                   </div>
                 )}
 
@@ -2133,525 +2064,6 @@ export default function AdminDashboard() {
     </div>
   );
 
-  const renderCursos = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Gestión de Cursos</h2>
-        <button onClick={() => setCreateCursoModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-          <Plus size={18} />Crear Curso
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4">
-        {cursos.map(curso => (
-          <div key={curso.id} className={`${card} rounded-lg shadow p-4`}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className={`font-bold ${text}`}>{curso.nombre}</h4>
-                  <span className={`px-3 py-1 rounded text-xs ${
-                    curso.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {curso.estado}
-                  </span>
-                </div>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Código: {curso.codigo} • Docente: {curso.docente} • {curso.estudiantes} estudiantes
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setEditCursoModal(curso)} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
-                  <Edit size={18} />
-                </button>
-                <button onClick={() => setVerCursoModal(curso)} className="p-2 text-green-600 hover:bg-green-50 rounded">
-                  <Eye size={18} />
-                </button>
-                <button onClick={() => eliminarCurso(curso.id)} className="p-2 text-red-600 hover:bg-red-50 rounded">
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal Crear Curso */}
-      {createCursoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setCreateCursoModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Crear Nuevo Curso</h3>
-              <button onClick={() => setCreateCursoModal(false)}><X size={24} /></button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Nombre del Curso *</label>
-                  <input
-                    type="text"
-                    value={nuevoCurso.nombre}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, nombre: e.target.value})}
-                    placeholder="Programación Avanzada"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Código del Curso *</label>
-                  <input
-                    type="text"
-                    value={nuevoCurso.codigo}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, codigo: e.target.value})}
-                    placeholder="CS301"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Docente *</label>
-                  <select
-                    value={nuevoCurso.docente}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, docente: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  >
-                    <option value="">Seleccionar docente...</option>
-                    {/* Docentes reales del tenant. El valor es su
-                        identificador, que es lo que la API relaciona con el
-                        curso; antes se enviaba el nombre y no correspondía a
-                        ningún registro. */}
-                    {docentes.map(doc => (
-                      <option key={doc.id} value={doc.id}>{doc.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Estado *</label>
-                  <select
-                    value={nuevoCurso.estado}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, estado: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Estudiantes Inscritos</label>
-                  <input
-                    type="number"
-                    value={nuevoCurso.estudiantes}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, estudiantes: e.target.value as any})}
-                    placeholder="0"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Duración</label>
-                  <input
-                    type="text"
-                    value={nuevoCurso.duracion}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, duracion: e.target.value})}
-                    placeholder="16 semanas"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Créditos</label>
-                  <input
-                    type="text"
-                    value={nuevoCurso.creditos}
-                    onChange={(e) => setNuevoCurso({...nuevoCurso, creditos: e.target.value})}
-                    placeholder="4"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Descripción del Curso</label>
-                <textarea
-                  value={nuevoCurso.descripcion}
-                  onChange={(e) => setNuevoCurso({...nuevoCurso, descripcion: e.target.value})}
-                  placeholder="Descripción detallada del curso..."
-                  rows={4}
-                  className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                ></textarea>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button 
-                  onClick={crearCurso}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
-                >
-                  <Save size={18} />
-                  Crear Curso
-                </button>
-                <button 
-                  onClick={() => setCreateCursoModal(false)}
-                  className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Editar Curso */}
-      {editCursoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditCursoModal(null)}>
-          <div className={`${card} rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Editar Curso</h3>
-              <button onClick={() => setEditCursoModal(null)}><X size={24} /></button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Nombre del Curso *</label>
-                  <input
-                    type="text"
-                    value={editCursoModal.nombre}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, nombre: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Código del Curso *</label>
-                  <input
-                    type="text"
-                    value={editCursoModal.codigo}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, codigo: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Docente *</label>
-                  <select
-                    value={editCursoModal.teacherId || editCursoModal.docente}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, teacherId: e.target.value, docente: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  >
-                    <option value="">Seleccionar docente...</option>
-                    {/* Docentes reales del tenant. El valor es su
-                        identificador, que es lo que la API relaciona con el
-                        curso; antes se enviaba el nombre y no correspondía a
-                        ningún registro. */}
-                    {docentes.map(doc => (
-                      <option key={doc.id} value={doc.id}>{doc.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Estado *</label>
-                  <select
-                    value={editCursoModal.estado}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, estado: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Estudiantes Inscritos</label>
-                  <input
-                    type="number"
-                    value={editCursoModal.estudiantes}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, estudiantes: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Duración</label>
-                  <input
-                    type="text"
-                    value={editCursoModal.duracion || ''}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, duracion: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Créditos</label>
-                  <input
-                    type="text"
-                    value={editCursoModal.creditos || ''}
-                    onChange={(e) => setEditCursoModal({...editCursoModal, creditos: e.target.value})}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Descripción del Curso</label>
-                <textarea
-                  value={editCursoModal.descripcion || ''}
-                  onChange={(e) => setEditCursoModal({...editCursoModal, descripcion: e.target.value})}
-                  rows={4}
-                  className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
-                ></textarea>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button 
-                  onClick={editarCurso}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
-                >
-                  <Save size={18} />
-                  Guardar Cambios
-                </button>
-                <button 
-                  onClick={() => setEditCursoModal(null)}
-                  className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Ver Detalles del Curso */}
-      {verCursoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setVerCursoModal(null)}>
-          <div className={`${card} rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Detalles del Curso</h3>
-              <button onClick={() => setVerCursoModal(null)}><X size={24} /></button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-2xl font-bold ${text}`}>{verCursoModal.nombre}</h4>
-                  <span className={`px-4 py-2 rounded text-sm font-semibold ${
-                    verCursoModal.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {verCursoModal.estado.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Código</p>
-                    <p className={`font-semibold ${text}`}>{verCursoModal.codigo}</p>
-                  </div>
-                  <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Docente</p>
-                    <p className={`font-semibold ${text}`}>{verCursoModal.docente}</p>
-                  </div>
-                  <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Estudiantes</p>
-                    <p className={`font-semibold ${text}`}>{verCursoModal.estudiantes}</p>
-                  </div>
-                  <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Créditos</p>
-                    <p className={`font-semibold ${text}`}>{verCursoModal.creditos || 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Duración</p>
-                  <p className={`font-semibold ${text}`}>{verCursoModal.duracion || 'No especificada'}</p>
-                </div>
-
-                <div>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Descripción</p>
-                  <p className={text}>{verCursoModal.descripcion || 'No hay descripción disponible'}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => { setVerCursoModal(null); setEditCursoModal(verCursoModal); }}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
-                >
-                  <Edit size={18} />
-                  Editar Curso
-                </button>
-                <button 
-                  onClick={() => setVerCursoModal(null)}
-                  className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderInscripcion = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Inscripción de Estudiantes</h2>
-        <button onClick={() => setInscripcionModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-          <Plus size={18} />Inscribir Estudiante
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {cursos.filter(c => c.estado === 'activo').slice(0, 3).map(curso => (
-          <div key={curso.id} className={`${card} rounded-lg shadow p-4`}>
-            <h4 className={`font-bold mb-2 ${text}`}>{curso.nombre}</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-              Código: {curso.codigo}
-            </p>
-            <div className="mb-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Cupos ocupados</span>
-                <span className="font-semibold">{curso.estudiantes}/50</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full" 
-                  style={{ width: `${(curso.estudiantes / 50) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-            <button 
-              onClick={() => setInscripcionModal(true)}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 text-sm"
-            >
-              Inscribir Estudiante
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-xl font-bold mb-4 ${text}`}>Inscripciones Recientes</h3>
-        <div className="space-y-3">
-          {[
-            { estudiante: 'María González', curso: 'Programación Avanzada', fecha: '2025-10-03', estado: 'Confirmada' },
-            { estudiante: 'Luis Torres', curso: 'Diseño de Interfaces', fecha: '2025-10-02', estado: 'Pendiente' },
-            { estudiante: 'Ana Martínez', curso: 'Base de Datos', fecha: '2025-10-02', estado: 'Confirmada' }
-          ].map((inscripcion, i) => (
-            <div key={i} className={`flex items-center justify-between p-3 rounded-lg border ${border}`}>
-              <div className="flex-1">
-                <p className={`font-semibold ${text}`}>{inscripcion.estudiante}</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {inscripcion.curso} • {inscripcion.fecha}
-                </p>
-              </div>
-              <span className={`px-3 py-1 rounded text-xs font-semibold ${
-                inscripcion.estado === 'Confirmada' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-              }`}>
-                {inscripcion.estado}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Modal Inscripción */}
-      {inscripcionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setInscripcionModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-2xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Inscribir Estudiante a Curso</h3>
-              <button onClick={() => setInscripcionModal(false)}><X size={24} /></button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Estudiante *</label>
-                <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
-                  <option value="">Seleccionar estudiante...</option>
-                  {usuarios.filter(u => u.rol === 'estudiante').map(est => (
-                    <option key={est.id} value={est.id}>{est.nombre} - {est.email}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Curso *</label>
-                <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
-                  <option value="">Seleccionar curso...</option>
-                  {cursos.filter(c => c.estado === 'activo').map(curso => (
-                    <option key={curso.id} value={curso.id}>
-                      {curso.nombre} ({curso.codigo}) - {curso.estudiantes}/50 cupos
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Semestre</label>
-                <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
-                  <option>2025-2</option>
-                  <option>2025-1</option>
-                  <option>2024-2</option>
-                </select>
-              </div>
-
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-                <p className="text-sm font-semibold mb-2">Validación de Requisitos</p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle size={16} className="text-green-600" />
-                    <span>Estudiante activo</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle size={16} className="text-green-600" />
-                    <span>Sin deudas pendientes</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle size={16} className="text-green-600" />
-                    <span>Cupos disponibles en el curso</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button 
-                  onClick={() => { 
-                    alert('Estudiante inscrito exitosamente'); 
-                    setInscripcionModal(false); 
-                  }} 
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
-                >
-                  <Save size={18} />
-                  Confirmar Inscripción
-                </button>
-                <button 
-                  onClick={() => setInscripcionModal(false)}
-                  className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
 
   const renderTramites = () => <TramitesSection />;
 
@@ -3032,10 +2444,13 @@ export default function AdminDashboard() {
     switch(activeSection) {
       case 'inicio': return renderInicio();
       case 'mensajes': return renderMensajes();
-      case 'inscripcion': return renderInscripcion();
+      case 'inscripcion': return <InscripcionesProgramaSection />;
       case 'plantillas': return renderPlantillas();
       case 'usuarios': return renderUsuarios();
-      case 'cursos': return renderCursos();
+      case 'academico': return <GestionAcademicaSection />;
+      // Enlaces viejos (búsqueda global) siguen llegando a 'cursos': ahora es
+      // la pestaña Grupos de la gestión académica.
+      case 'cursos': return <GestionAcademicaSection pestanaInicial="grupos" />;
       case 'activos': return renderActivos();
       case 'inventario': return renderInventario();
       case 'nomina': return renderNomina();

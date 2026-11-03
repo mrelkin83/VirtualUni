@@ -8,13 +8,20 @@ import { apiClient } from '../client';
  * anunciaba "Curso creado exitosamente" y al recargar no quedaba nada.
  */
 export interface CursoCreateDto {
-  code: string;
-  name: string;
+  // code y name son opcionales cuando se manda subjectId: el backend los
+  // deriva de la asignatura y el periodo (Curso = GRUPO).
+  code?: string;
+  name?: string;
   teacherId: string;
   description?: string;
   credits?: number;
   semester?: string;
   color?: string;
+  subjectId?: string;
+  academicPeriodId?: string;
+  groupCode?: string;
+  capacity?: number;
+  modality?: 'PRESENCIAL' | 'VIRTUAL' | 'HIBRIDA' | 'DISTANCIA';
 }
 
 export const coursesAdminApi = {

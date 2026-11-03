@@ -167,6 +167,9 @@ export class CoursesService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
+          // La UI de Grupos muestra la asignatura y el periodo del grupo
+          subject: { select: { id: true, code: true, name: true } },
+          academicPeriod: { select: { id: true, code: true, name: true } },
           teacher: {
             include: {
               user: {

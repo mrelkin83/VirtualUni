@@ -83,8 +83,11 @@ function estadoDePeriodo(desde: Date, hasta: Date): PeriodStatus {
 }
 
 async function backfillSubjects(tenantId: string) {
+  // Solo cursos SIN asignatura: un grupo ya enlazado (p. ej. creado por el
+  // seed o por la UI nueva) no debe generar una Subject duplicada a partir de
+  // su code compuesto ("MAT-BAS-A-2026-2").
   const cursos = await prisma.course.findMany({
-    where: { tenantId },
+    where: { tenantId, subjectId: null },
     select: {
       id: true,
       code: true,

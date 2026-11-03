@@ -11,6 +11,8 @@ export { FinanzasContabilidadSection } from './FinanzasContabilidadSection';
 export { AnalyticsSection } from './AnalyticsSection';
 export { AnunciosSection } from './AnunciosSection';
 export { MensajesMasivosSection } from './MensajesMasivosSection';
+export { GestionAcademicaSection } from './academico/GestionAcademicaSection';
+export { InscripcionesProgramaSection } from './academico/InscripcionesProgramaSection';
 
 // Export types if needed
 export type { default as ActivosSectionType } from './ActivosSection';

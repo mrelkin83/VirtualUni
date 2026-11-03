@@ -251,7 +251,8 @@ export class StudyPlansService {
       where: { studyPlanId: id, tenantId },
       orderBy: [{ level: 'asc' }, { orderIndex: 'asc' }],
       include: {
-        subject: true,
+        // planEntries alimenta la insignia "Transversal · N" del editor
+        subject: { include: { _count: { select: { planEntries: true, courses: true } } } },
         prerequisites: {
           include: {
             required: {
