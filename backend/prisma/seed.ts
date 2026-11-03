@@ -36,7 +36,20 @@
  *       If data already exists, it will be skipped.
  */
 
-import { PrismaClient, UserRole, Plan, TenantStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  Plan,
+  TenantStatus,
+  EducationLevel,
+  Modality,
+  PeriodStructure,
+  AcademicUnit,
+  SubjectType,
+  ProgramStatus,
+  StudyPlanStatus,
+  PeriodStatus,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -846,6 +859,188 @@ async function main() {
   }
 
   log(`   ✅ Created ${stats.created.messages} messages`);
+
+  // ============================================
+  // ESTRUCTURA ACADÉMICA: programas, asignaturas
+  // transversales, pensum, periodo y grupos
+  // ============================================
+  log('\n🎓 Creating academic structure...');
+
+  // Periodo en curso (hoy cae dentro del rango → EN_CURSO)
+  const hoy = new Date();
+  const periodoCode = `${hoy.getFullYear()}-${hoy.getMonth() < 6 ? '1' : '2'}`;
+  let periodo = await prisma.academicPeriod.findFirst({
+    where: { tenantId, code: periodoCode },
+  });
+  if (!periodo) {
+    periodo = await prisma.academicPeriod.create({
+      data: {
+        tenantId,
+        code: periodoCode,
+        name: `Periodo ${periodoCode}`,
+        startDate: new Date(hoy.getFullYear(), hoy.getMonth() < 6 ? 0 : 6, 15),
+        endDate: new Date(hoy.getFullYear(), hoy.getMonth() < 6 ? 5 : 11, 15),
+        status: PeriodStatus.EN_CURSO,
+      },
+    });
+    log(`   ✅ Created academic period ${periodoCode} (EN_CURSO)`);
+  } else {
+    log(`   ⏭️  Academic period ${periodoCode} already exists, skipping...`);
+  }
+
+  // Asignaturas transversales: compartidas entre varios programas
+  const subjectsData = [
+    { code: 'MAT-BAS', name: 'Matemáticas Básicas', area: 'Matemáticas', credits: 3, hours: 64 },
+    { code: 'COM-ORAL', name: 'Comunicación Oral y Escrita', area: 'Lenguaje', credits: 2, hours: 48 },
+    { code: 'PROG-FUND', name: 'Fundamentos de Programación', area: 'Ingeniería', credits: 4, hours: 96 },
+    { code: 'CONTA-BAS', name: 'Contabilidad Básica', area: 'Contaduría', credits: 3, hours: 80 },
+  ];
+  const subjectsMap: Record<string, { id: string; code: string; name: string; credits: number | null }> = {};
+  for (const sd of subjectsData) {
+    let subject = await prisma.subject.findFirst({ where: { tenantId, code: sd.code } });
+    if (!subject) {
+      subject = await prisma.subject.create({ data: { tenantId, ...sd } });
+      log(`   ✅ Created subject ${sd.code} - ${sd.name}`);
+    } else {
+      log(`   ⏭️  Subject ${sd.code} already exists, skipping...`);
+    }
+    subjectsMap[sd.code] = subject;
+  }
+
+  // 3 programas de niveles distintos; MAT-BAS y COM-ORAL aparecen en el
+  // pensum de más de uno (esa es la transversalidad que la UI debe mostrar).
+  const programasData = [
+    {
+      code: 'TEC-SOFT',
+      name: 'Tecnólogo en Desarrollo de Software',
+      educationLevel: EducationLevel.TECNOLOGICO,
+      modality: Modality.VIRTUAL,
+      periodStructure: PeriodStructure.SEMESTRAL,
+      academicUnit: AcademicUnit.CREDITOS,
+      durationPeriods: 6,
+      totalCredits: 96,
+      degreeTitle: 'Tecnólogo en Desarrollo de Software',
+      pensum: [
+        { code: 'MAT-BAS', level: 1 },
+        { code: 'COM-ORAL', level: 1 },
+        { code: 'PROG-FUND', level: 1 },
+      ],
+    },
+    {
+      code: 'TLAB-CONTA',
+      name: 'Técnico Laboral en Contabilidad',
+      educationLevel: EducationLevel.TECNICO_LABORAL,
+      modality: Modality.PRESENCIAL,
+      periodStructure: PeriodStructure.MODULAR,
+      academicUnit: AcademicUnit.HORAS,
+      durationPeriods: 4,
+      totalHours: 1200,
+      degreeTitle: 'Técnico Laboral por Competencias en Contabilidad',
+      pensum: [
+        { code: 'MAT-BAS', level: 1 },
+        { code: 'CONTA-BAS', level: 1 },
+        { code: 'COM-ORAL', level: 2 },
+      ],
+    },
+    {
+      code: 'BACH-CICLOS',
+      name: 'Bachillerato por Ciclos',
+      educationLevel: EducationLevel.BACHILLERATO_POR_CICLOS,
+      modality: Modality.HIBRIDA,
+      periodStructure: PeriodStructure.POR_CICLOS,
+      academicUnit: AcademicUnit.INTENSIDAD_HORARIA_SEMANAL,
+      durationPeriods: 6,
+      pensum: [
+        { code: 'MAT-BAS', level: 3 },
+        { code: 'COM-ORAL', level: 3 },
+      ],
+    },
+  ];
+
+  for (const pd of programasData) {
+    const { pensum, ...programData } = pd;
+    let programa = await prisma.program.findFirst({ where: { tenantId, code: pd.code } });
+    if (!programa) {
+      programa = await prisma.program.create({
+        data: { tenantId, ...programData, status: ProgramStatus.ACTIVO },
+      });
+      log(`   ✅ Created program ${pd.code} - ${pd.name}`);
+    } else {
+      log(`   ⏭️  Program ${pd.code} already exists, skipping...`);
+    }
+
+    let plan = await prisma.studyPlan.findFirst({
+      where: { programId: programa.id, version: 'v1' },
+    });
+    if (!plan) {
+      plan = await prisma.studyPlan.create({
+        data: {
+          tenantId,
+          programId: programa.id,
+          version: 'v1',
+          status: StudyPlanStatus.VIGENTE,
+          validFrom: new Date(hoy.getFullYear(), 0, 1),
+        },
+      });
+    }
+
+    for (const [idx, entry] of pensum.entries()) {
+      const subject = subjectsMap[entry.code];
+      const existente = await prisma.studyPlanSubject.findFirst({
+        where: { studyPlanId: plan.id, subjectId: subject.id },
+      });
+      if (!existente) {
+        await prisma.studyPlanSubject.create({
+          data: {
+            tenantId,
+            studyPlanId: plan.id,
+            subjectId: subject.id,
+            level: entry.level,
+            subjectType: SubjectType.OBLIGATORIA,
+            orderIndex: idx,
+          },
+        });
+      }
+    }
+  }
+
+  // Grupos del periodo en curso, ligados a subject + periodo. El nombre
+  // visible se arma como "Asignatura – Grupo A – 2026-2".
+  const gruposData = [
+    { subjectCode: 'MAT-BAS', groupCode: 'A', teacherIdx: 5, color: 'bg-yellow-500' },
+    { subjectCode: 'COM-ORAL', groupCode: 'A', teacherIdx: 0, color: 'bg-sky-500' },
+    { subjectCode: 'PROG-FUND', groupCode: 'A', teacherIdx: 2, color: 'bg-violet-500' },
+  ];
+  for (const gd of gruposData) {
+    const subject = subjectsMap[gd.subjectCode];
+    const courseCode = `${subject.code}-${gd.groupCode}-${periodo.code}`;
+    const existente = await prisma.course.findFirst({
+      where: { tenantId, code: courseCode },
+    });
+    if (existente) {
+      log(`   ⏭️  Group ${courseCode} already exists, skipping...`);
+      continue;
+    }
+    await prisma.course.create({
+      data: {
+        tenantId,
+        teacherId: teachers[gd.teacherIdx].id,
+        // code/name/credits legados copiados de la Subject para compatibilidad
+        code: courseCode,
+        name: `${subject.name} – Grupo ${gd.groupCode} – ${periodo.code}`,
+        credits: subject.credits,
+        semester: periodo.code,
+        color: gd.color,
+        status: 'active',
+        subjectId: subject.id,
+        academicPeriodId: periodo.id,
+        groupCode: gd.groupCode,
+        capacity: 30,
+        modality: Modality.VIRTUAL,
+      },
+    });
+    log(`   ✅ Created group ${courseCode}`);
+  }
 
   // ============================================
   // SUMMARY

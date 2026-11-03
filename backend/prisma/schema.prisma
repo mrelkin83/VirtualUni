@@ -101,21 +101,21 @@ model Invoice {
 // ============================================
 
 model User {
-  id           String    @id @default(uuid())
-  tenantId     String    @map("tenant_id")
-  email        String
-  passwordHash String    @map("password_hash")
-  firstName    String    @map("first_name")
-  lastName     String    @map("last_name")
-  role         UserRole
-  avatarUrl    String?   @map("avatar_url")
-  isActive     Boolean   @default(true) @map("is_active")
-  lastLoginAt  DateTime? @map("last_login_at")
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  email             String
+  passwordHash      String    @map("password_hash")
+  firstName         String    @map("first_name")
+  lastName          String    @map("last_name")
+  role              UserRole
+  avatarUrl         String?   @map("avatar_url")
+  isActive          Boolean   @default(true) @map("is_active")
+  lastLoginAt       DateTime? @map("last_login_at")
   // Momento del ultimo cierre de sesion. Los refresh tokens emitidos antes de
   // esta marca dejan de valer: sin ella, cerrar sesion no invalidaba nada.
   sessionsRevokedAt DateTime? @map("sessions_revoked_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
   // Relations
   tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -137,6 +137,8 @@ model Student {
   userId         String    @unique @map("user_id")
   tenantId       String    @map("tenant_id")
   studentCode    String    @map("student_code")
+  // program y semester son LEGADO de solo lectura: la inscripción real vive
+  // en ProgramEnrollment. Se conservan hasta aprobar su eliminación.
   program        String?
   semester       String?
   enrollmentDate DateTime? @map("enrollment_date")
@@ -160,17 +162,18 @@ model Student {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enrollments  Enrollment[]
-  submissions  Submission[]
-  grades       Grade[]
-  examAttempts ExamAttempt[]
-  attendances  Attendance[]
-  groupMembers GroupMember[]
-  bookLoans        BookLoan[]
-  bookReservations BookReservation[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments         Enrollment[]
+  submissions         Submission[]
+  grades              Grade[]
+  examAttempts        ExamAttempt[]
+  attendances         Attendance[]
+  groupMembers        GroupMember[]
+  bookLoans           BookLoan[]
+  bookReservations    BookReservation[]
   certificateRequests CertificateRequest[]
-  invoices         StudentInvoice[]
+  invoices            StudentInvoice[]
+  programEnrollments  ProgramEnrollment[]
 
   @@unique([tenantId, studentCode])
   @@map("students")
@@ -196,28 +199,44 @@ model Teacher {
   @@map("teachers")
 }
 
+// Course = GRUPO: una Subject dictada en un Periodo por un Docente. El nombre
+// del modelo no se cambia porque lo usan ~40 módulos; en la UI se etiqueta
+// "Grupo". subjectId/academicPeriodId son nullable en esta entrega para no
+// romper los datos y flujos existentes.
 model Course {
-  id          String   @id @default(uuid())
-  tenantId    String   @map("tenant_id")
-  teacherId   String   @map("teacher_id")
+  id          String  @id @default(uuid())
+  tenantId    String  @map("tenant_id")
+  teacherId   String  @map("teacher_id")
+  // code, name, credits y semester son LEGADO: con subjectId presente, el
+  // código/nombre/créditos canónicos viven en la Subject y el periodo en
+  // AcademicPeriod. Se conservan hasta aprobar su eliminación.
   code        String
   name        String
   description String?
   credits     Int?
   semester    String?
-  color       String   @default("bg-blue-500")
-  status      String   @default("active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  color       String  @default("bg-blue-500")
+  status      String  @default("active")
+
+  subjectId        String?   @map("subject_id")
+  academicPeriodId String?   @map("academic_period_id")
+  groupCode        String?   @map("group_code") // "A", "01"
+  capacity         Int?
+  modality         Modality?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  teacher     Teacher       @relation(fields: [teacherId], references: [id])
-  enrollments Enrollment[]
-  assignments Assignment[]
-  topics      CourseTopic[]
-  grades      Grade[]
-  exams       Exam[]
-  attendances Attendance[]
+  teacher        Teacher         @relation(fields: [teacherId], references: [id])
+  subject        Subject?        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  academicPeriod AcademicPeriod? @relation(fields: [academicPeriodId], references: [id], onDelete: Restrict)
+  enrollments    Enrollment[]
+  assignments    Assignment[]
+  topics         CourseTopic[]
+  grades         Grade[]
+  exams          Exam[]
+  attendances    Attendance[]
 
   materials       Material[]
   materialFolders MaterialFolder[]
@@ -227,6 +246,8 @@ model Course {
 
   @@unique([tenantId, code])
   @@index([teacherId])
+  @@index([subjectId])
+  @@index([academicPeriodId])
   @@map("courses")
 }
 
@@ -780,14 +801,14 @@ model QuestionBank {
 
 /// Plantillas de mensaje del profesorado y la administracion.
 model MessageTemplate {
-  id         String   @id @default(uuid())
-  tenantId   String   @map("tenant_id")
-  autorId    String?  @map("autor_id")
-  nombre     String
-  categoria  String   @default("general")
-  contenido  String   @db.Text
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  autorId   String?  @map("autor_id")
+  nombre    String
+  categoria String   @default("general")
+  contenido String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([tenantId])
   @@map("message_templates")
@@ -1178,7 +1199,7 @@ model StudentInvoice {
   updatedAt        DateTime             @updatedAt @map("updated_at")
 
   payments StudentPayment[]
-  student  Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  student  Student?         @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([estado])
@@ -1549,14 +1570,14 @@ model ForumReply {
 }
 
 model CommunityPost {
-  id         String   @id @default(uuid())
-  tenantId   String   @map("tenant_id")
-  autorId    String   @map("autor_id")
-  contenido  String   @db.Text
-  imagenUrl  String?  @map("imagen_url")
-  categoria  String   @default("general")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  autorId   String   @map("autor_id")
+  contenido String   @db.Text
+  imagenUrl String?  @map("imagen_url")
+  categoria String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   autor    User               @relation(fields: [autorId], references: [id], onDelete: Cascade)
   comments CommunityComment[]
@@ -1661,4 +1682,244 @@ enum CertificateStatus {
   EN_PROCESO
   EMITIDO
   RECHAZADO
+}
+
+// ============================================================
+// Estructura académica: Programas, Pensum, Asignaturas, Periodos
+// ============================================================
+
+// Nivel de formación (catálogo para Colombia: Ley 30, ETDH, formal, continua)
+enum EducationLevel {
+  TECNICO_PROFESIONAL
+  TECNOLOGICO
+  PROFESIONAL_UNIVERSITARIO
+  ESPECIALIZACION
+  MAESTRIA
+  DOCTORADO
+  TECNICO_LABORAL
+  CONOCIMIENTOS_ACADEMICOS
+  PREESCOLAR
+  BASICA_PRIMARIA
+  BASICA_SECUNDARIA
+  MEDIA_BACHILLERATO
+  BACHILLERATO_POR_CICLOS
+  DIPLOMADO
+  CURSO_LIBRE
+  TALLER
+  SEMINARIO
+  OTRO
+}
+
+// Cómo avanza el programa en el tiempo
+enum PeriodStructure {
+  SEMESTRAL
+  CUATRIMESTRAL
+  TRIMESTRAL
+  ANUAL
+  POR_CICLOS
+  MODULAR
+  UNICO
+}
+
+// Unidad de medida académica del programa
+enum AcademicUnit {
+  CREDITOS
+  HORAS
+  INTENSIDAD_HORARIA_SEMANAL
+}
+
+enum Modality {
+  PRESENCIAL
+  VIRTUAL
+  HIBRIDA
+  DISTANCIA
+}
+
+// Tipo de la asignatura dentro del pensum
+enum SubjectType {
+  OBLIGATORIA
+  ELECTIVA
+  OPTATIVA
+  PRACTICA
+  TRABAJO_DE_GRADO
+}
+
+enum ProgramStatus {
+  BORRADOR
+  ACTIVO
+  INACTIVO
+}
+
+enum StudyPlanStatus {
+  BORRADOR
+  VIGENTE
+  CERRADO
+}
+
+enum PeriodStatus {
+  PLANEADO
+  EN_CURSO
+  CERRADO
+}
+
+enum ProgramEnrollmentStatus {
+  ACTIVO
+  APLAZADO
+  RETIRADO
+  GRADUADO
+  CANCELADO
+}
+
+model Program {
+  id              String          @id @default(uuid())
+  tenantId        String          @map("tenant_id")
+  code            String
+  name            String
+  description     String?         @db.Text
+  educationLevel  EducationLevel  @map("education_level")
+  modality        Modality
+  periodStructure PeriodStructure @map("period_structure")
+  academicUnit    AcademicUnit    @map("academic_unit")
+  durationPeriods Int?            @map("duration_periods") // nº de semestres/grados/ciclos/módulos
+  totalCredits    Int?            @map("total_credits")
+  totalHours      Int?            @map("total_hours")
+  degreeTitle     String?         @map("degree_title") // "Tecnólogo en Gestión Empresarial"
+  officialCode    String?         @map("official_code") // SNIES o registro ETDH (opcional)
+  approvalAct     String?         @map("approval_act") // resolución/registro calificado (texto libre)
+  status          ProgramStatus   @default(BORRADOR)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  studyPlans         StudyPlan[]
+  programEnrollments ProgramEnrollment[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("programs")
+}
+
+// Pensum versionado: al cambiar el plan de estudios se crea una versión nueva
+// y los estudiantes antiguos permanecen en la suya.
+model StudyPlan {
+  id        String          @id @default(uuid())
+  tenantId  String          @map("tenant_id")
+  programId String          @map("program_id")
+  version   String // "2027-1", "v2"
+  status    StudyPlanStatus @default(BORRADOR)
+  validFrom DateTime?       @map("valid_from")
+  notes     String?         @db.Text
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  subjects           StudyPlanSubject[]
+  programEnrollments ProgramEnrollment[]
+
+  @@unique([programId, version])
+  @@index([tenantId])
+  @@map("study_plans")
+}
+
+// Asignatura/materia/módulo: catálogo transversal del tenant, no de un
+// programa. Su contenido maestro se comparte entre todos los grupos que la
+// dictan (temario/materiales/preguntas se enlazan en una fase posterior).
+model Subject {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  code        String
+  name        String
+  description String?  @db.Text
+  area        String? // área de conocimiento ("Matemáticas", "Ciencias Naturales")
+  credits     Int?
+  hours       Int? // horas totales
+  weeklyHours Int?     @map("weekly_hours")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  planEntries StudyPlanSubject[]
+  courses     Course[] // grupos que la dictan
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("subjects")
+}
+
+// Fila del pensum: una asignatura en un nivel de un plan de estudios
+model StudyPlanSubject {
+  id          String      @id @default(uuid())
+  tenantId    String      @map("tenant_id")
+  studyPlanId String      @map("study_plan_id")
+  subjectId   String      @map("subject_id")
+  level       Int // semestre / grado / ciclo / módulo (1..n); 1 para UNICO
+  subjectType SubjectType @default(OBLIGATORIA) @map("subject_type")
+  credits     Int? // override opcional del valor de la Subject
+  hours       Int?
+  orderIndex  Int         @default(0) @map("order_index")
+
+  studyPlan     StudyPlan               @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  subject       Subject                 @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  prerequisites StudyPlanPrerequisite[] @relation("entry")
+  requiredBy    StudyPlanPrerequisite[] @relation("required")
+
+  @@unique([studyPlanId, subjectId])
+  @@index([tenantId])
+  @@index([subjectId])
+  @@map("study_plan_subjects")
+}
+
+model StudyPlanPrerequisite {
+  id         String @id @default(uuid())
+  tenantId   String @map("tenant_id")
+  entryId    String @map("entry_id") // la asignatura que tiene el requisito
+  requiredId String @map("required_id") // la que hay que aprobar antes (misma StudyPlan)
+
+  entry    StudyPlanSubject @relation("entry", fields: [entryId], references: [id], onDelete: Cascade)
+  required StudyPlanSubject @relation("required", fields: [requiredId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, requiredId])
+  @@index([requiredId])
+  @@map("study_plan_prerequisites")
+}
+
+model AcademicPeriod {
+  id        String       @id @default(uuid())
+  tenantId  String       @map("tenant_id")
+  code      String // "2027-1", "2027", "COHORTE-03"
+  name      String
+  startDate DateTime     @map("start_date") @db.Date
+  endDate   DateTime     @map("end_date") @db.Date
+  status    PeriodStatus @default(PLANEADO)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  courses Course[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("academic_periods")
+}
+
+// Inscripción del estudiante a un programa, con su versión de pensum
+model ProgramEnrollment {
+  id           String                  @id @default(uuid())
+  tenantId     String                  @map("tenant_id")
+  studentId    String                  @map("student_id")
+  programId    String                  @map("program_id")
+  studyPlanId  String                  @map("study_plan_id")
+  currentLevel Int                     @default(1) @map("current_level")
+  status       ProgramEnrollmentStatus @default(ACTIVO)
+  startDate    DateTime                @default(now()) @map("start_date")
+  endDate      DateTime?               @map("end_date")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program   Program   @relation(fields: [programId], references: [id], onDelete: Restrict)
+  studyPlan StudyPlan @relation(fields: [studyPlanId], references: [id], onDelete: Restrict)
+
+  @@unique([studentId, programId]) // varios programas sí; dos veces el mismo, no
+  @@index([tenantId])
+  @@index([programId])
+  @@map("program_enrollments")
 }
