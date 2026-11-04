@@ -86,6 +86,27 @@ function pensumDestino(destino: string) {
   }));
 }
 
+/** Pensum de una sola fila: Contabilidad 1. */
+function pensumDeCont1() {
+  return {
+    id: 'fila-1',
+    subjectId: 'cont1',
+    level: 1,
+    subjectType: 'OBLIGATORIA',
+    credits: 1,
+    hours: null,
+    orderIndex: 0,
+    blockId: null,
+    subject: {
+      id: 'cont1',
+      code: 'CONT1',
+      name: 'Contabilidad 1',
+      credits: 1,
+      hours: null,
+    },
+  };
+}
+
 describe('ProgresoService', () => {
   let service: ProgresoService;
 
@@ -246,6 +267,71 @@ describe('ProgresoService', () => {
     expect(fila.estado).toBe('APROBADA');
     expect(fila.viaSubjectId).toBe('cont1');
     expect(fila.reconocida).toBe(true);
+  });
+
+  it('marca reconocida la asignatura que también tiene un reconocimiento interno', async () => {
+    // Cursó Contabilidad 1 y después otro programa se la reconoció: quedan dos
+    // registros VIGENTES de la misma Subject. Se conserva el cursado, pero la
+    // fila debe salir como reconocida.
+    prismaMock.studentSubjectRecord.findMany.mockResolvedValue([
+      {
+        id: 'rec-cursada',
+        subjectId: 'cont1',
+        finalGrade: 4.2,
+        origin: 'CURSADA',
+        creditsSnapshot: 1,
+        hoursSnapshot: 48,
+      },
+      {
+        id: 'rec-reconocida',
+        subjectId: 'cont1',
+        finalGrade: 4.2,
+        origin: 'RECONOCIMIENTO_INTERNO',
+        creditsSnapshot: 1,
+        hoursSnapshot: 48,
+      },
+    ]);
+    prismaMock.studyPlanSubject.findMany.mockResolvedValue([pensumDeCont1()]);
+
+    const progreso = await service.computarProgreso(
+      TENANT_A,
+      STUDENT_ID,
+      'plan-x',
+      48,
+      AcademicUnit.CREDITOS,
+    );
+
+    const fila = progreso.niveles[0].asignaturas[0];
+    expect(fila.estado).toBe('APROBADA');
+    // El registro conservado sigue siendo el cursado, con su nota
+    expect(fila.origin).toBe('CURSADA');
+    expect(fila.finalGrade).toBe(4.2);
+    expect(fila.viaSubjectId).toBeNull();
+    expect(fila.reconocida).toBe(true);
+  });
+
+  it('no marca reconocida la asignatura cursada sin ningún reconocimiento', async () => {
+    prismaMock.studentSubjectRecord.findMany.mockResolvedValue([
+      {
+        id: 'rec-cursada',
+        subjectId: 'cont1',
+        finalGrade: 4.2,
+        origin: 'CURSADA',
+        creditsSnapshot: 1,
+        hoursSnapshot: 48,
+      },
+    ]);
+    prismaMock.studyPlanSubject.findMany.mockResolvedValue([pensumDeCont1()]);
+
+    const progreso = await service.computarProgreso(
+      TENANT_A,
+      STUDENT_ID,
+      'plan-x',
+      48,
+      AcademicUnit.CREDITOS,
+    );
+
+    expect(progreso.niveles[0].asignaturas[0].reconocida).toBe(false);
   });
 
   it('marca BLOQUEADA_POR_PRERREQUISITO cuando falta el requisito', async () => {

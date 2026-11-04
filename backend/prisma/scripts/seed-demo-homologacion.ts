@@ -23,6 +23,7 @@ import {
   AcademicUnit,
   EducationLevel,
   Modality,
+  PeriodStatus,
   PeriodStructure,
   ProgramStatus,
   RecordOrigin,
@@ -37,6 +38,7 @@ const prisma = new PrismaClient();
 const SUBDOMINIO = 'uniprueba';
 const EGRESADO_EMAIL = 'egresado.contable@uniprueba.com';
 const EGRESADO_PASSWORD = 'Estudiante123!';
+const PERIODO_DEMO = 'COHORTE-2027-1';
 
 /** Los 12 módulos del programa contable, con su bloque de competencia. */
 const MODULOS = [
@@ -134,6 +136,8 @@ const resumen = {
   filas: { creadas: 0, reutilizadas: 0 },
   bloques: { creados: 0, reutilizados: 0 },
   historial: { creados: 0, reutilizados: 0 },
+  grupos: { creados: 0, reutilizados: 0 },
+  contenido: { temasDeGrupo: 0, temasDeAsignatura: 0 },
   notas: [] as string[],
 };
 
@@ -443,13 +447,111 @@ async function main() {
     });
   }
 
-  // ---- 4. Resumen --------------------------------------------------
+  // ---- 4. Grupos del programa contable con contenido -----------------
+  // Dos grupos de la MISMA asignatura (Contabilidad 1) para poder probar de
+  // verdad el contenido maestro: promover del grupo a la asignatura y copiar
+  // el contenido propio de un grupo al otro.
+  const docente = await prisma.teacher.findFirst({
+    where: { tenantId },
+    orderBy: { employeeCode: 'asc' },
+    select: { id: true },
+  });
+
+  let periodo = await prisma.academicPeriod.findFirst({
+    where: { tenantId, code: PERIODO_DEMO },
+  });
+  if (!periodo) {
+    periodo = await prisma.academicPeriod.create({
+      data: {
+        tenantId,
+        code: PERIODO_DEMO,
+        name: 'Cohorte demo 2027-1',
+        startDate: new Date('2027-01-15'),
+        endDate: new Date('2027-06-30'),
+        status: PeriodStatus.EN_CURSO,
+      },
+    });
+    resumen.notas.push(`Periodo demo creado: ${PERIODO_DEMO}`);
+  }
+
+  if (!docente) {
+    resumen.notas.push(
+      'Sin docentes en el tenant: no se crearon grupos ni contenido demo',
+    );
+  } else {
+    const subjectCont1 = subjectPorCodigo.get('CONT1')!;
+
+    for (const grupo of ['A', 'B'] as const) {
+      const code = `CONT1-${grupo}-${PERIODO_DEMO}`;
+      let course = await prisma.course.findFirst({ where: { tenantId, code } });
+      if (!course) {
+        course = await prisma.course.create({
+          data: {
+            tenantId,
+            code,
+            name: `Contabilidad 1 – Grupo ${grupo} – ${PERIODO_DEMO}`,
+            teacherId: docente.id,
+            subjectId: subjectCont1,
+            academicPeriodId: periodo.id,
+            groupCode: grupo,
+            capacity: 25,
+            credits: 1,
+            modality: Modality.PRESENCIAL,
+            status: 'active',
+          },
+        });
+        resumen.grupos.creados++;
+      } else {
+        resumen.grupos.reutilizados++;
+      }
+
+      // Contenido PROPIO del grupo: es lo que se puede promover o copiar
+      const temaPropio = await prisma.courseTopic.findFirst({
+        where: { tenantId, courseId: course.id },
+      });
+      if (!temaPropio) {
+        await prisma.courseTopic.create({
+          data: {
+            tenantId,
+            courseId: course.id,
+            title: `Taller de partida doble (grupo ${grupo})`,
+            description:
+              'Contenido propio del grupo: sirve para probar Promover a la asignatura y Copiar desde otro grupo.',
+            orderIndex: 0,
+          },
+        });
+        resumen.contenido.temasDeGrupo++;
+      }
+    }
+
+    // Contenido MAESTRO de la asignatura: lo heredan todos sus grupos
+    const temaMaestro = await prisma.courseTopic.findFirst({
+      where: { tenantId, subjectId: subjectCont1 },
+    });
+    if (!temaMaestro) {
+      await prisma.courseTopic.create({
+        data: {
+          tenantId,
+          subjectId: subjectCont1,
+          title: 'Ecuación patrimonial (contenido maestro)',
+          description:
+            'Contenido maestro de la asignatura: lo ven todos los grupos de Contabilidad 1.',
+          orderIndex: 0,
+        },
+      });
+      resumen.contenido.temasDeAsignatura++;
+    }
+  }
+
+  // ---- 5. Resumen --------------------------------------------------
   console.log('Asignaturas:', resumen.asignaturas);
   console.log('Programas:  ', resumen.programas);
   console.log('Pensums:    ', resumen.pensums);
   console.log('Filas:      ', resumen.filas);
   console.log('Bloques:    ', resumen.bloques);
   console.log('Historial:  ', resumen.historial);
+  console.log('Grupos:     ', resumen.grupos);
+  console.log('Contenido:  ', resumen.contenido);
   resumen.notas.forEach((n) => console.log('-', n));
 
   console.log(

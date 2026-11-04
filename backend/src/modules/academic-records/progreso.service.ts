@@ -59,6 +59,13 @@ interface Aprobada {
   creditsSnapshot: number | null;
   hoursSnapshot: number | null;
   recordId: string;
+  /**
+   * El estudiante tiene ALGÚN registro de esta asignatura que no es CURSADA:
+   * la trae reconocida u homologada. Se mira sobre todos sus registros, no
+   * solo sobre el que se conserva, porque el conservado es el original
+   * cursado y por sí solo no lo diría.
+   */
+  reconocidaEnAlgunPrograma: boolean;
 }
 
 @Injectable()
@@ -93,10 +100,16 @@ export class ProgresoService {
     });
 
     // Varias filas para la misma Subject son posibles (p. ej. la cursada y su
-    // reconocimiento en otro programa). Se conserva la primera: la cursada.
+    // reconocimiento en otro programa). Se conserva la primera —la cursada—,
+    // pero se recuerda si alguna de las demás es un reconocimiento.
     const porSubject = new Map<string, Aprobada>();
     for (const r of registros) {
-      if (porSubject.has(r.subjectId)) continue;
+      const esReconocimiento = r.origin !== RecordOrigin.CURSADA;
+      const yaVista = porSubject.get(r.subjectId);
+      if (yaVista) {
+        if (esReconocimiento) yaVista.reconocidaEnAlgunPrograma = true;
+        continue;
+      }
       porSubject.set(r.subjectId, {
         subjectId: r.subjectId,
         finalGrade: r.finalGrade,
@@ -104,6 +117,7 @@ export class ProgresoService {
         creditsSnapshot: r.creditsSnapshot,
         hoursSnapshot: r.hoursSnapshot,
         recordId: r.id,
+        reconocidaEnAlgunPrograma: esReconocimiento,
       });
     }
     return porSubject;
@@ -324,8 +338,11 @@ export class ProgresoService {
         estado,
         finalGrade: resuelta?.aprobada.finalGrade ?? null,
         origin: resuelta?.aprobada.origin ?? null,
+        // Reconocida = no la cursó dentro de este programa: vino de otro
+        // programa, de otra institución o de una asignatura equivalente.
         reconocida: resuelta
           ? resuelta.aprobada.origin !== RecordOrigin.CURSADA ||
+            resuelta.aprobada.reconocidaEnAlgunPrograma ||
             resuelta.viaSubjectId != null
           : false,
         viaSubjectId: resuelta?.viaSubjectId ?? null,
@@ -650,6 +667,8 @@ export class ProgresoService {
           origen.hoursPerCredit,
         ),
         recordId: `simulado:${fila.subjectId}`,
+        // En la matriz se simula un egresado que cursó todo su pensum
+        reconocidaEnAlgunPrograma: false,
       });
     }
 
