@@ -8,51 +8,49 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   private isEnabled = false;
 
   async onModuleInit() {
-    try {
-      // Redis configuration from environment or defaults
-      const redisHost = process.env.REDIS_HOST || 'localhost';
-      const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
-      const redisPassword = process.env.REDIS_PASSWORD;
+    // Sin REDIS_HOST no hay cache que montar. Antes se asumia 'localhost' y
+    // cada arranque sin Redis —produccion incluida— soltaba una rafaga de
+    // ECONNREFUSED. Solo analytics usa la cache, asi que apagarla es benigno.
+    const redisHost = process.env.REDIS_HOST;
+    if (!redisHost) {
+      this.logger.log('REDIS_HOST sin definir: cache deshabilitada');
+      return;
+    }
 
-      // Try to connect to Redis
-      this.redisClient = new Redis({
-        host: redisHost,
-        port: redisPort,
-        password: redisPassword,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            this.logger.warn('Redis connection failed after 3 retries. Cache disabled.');
-            return null; // Stop retrying
-          }
-          return Math.min(times * 100, 3000);
-        },
-        maxRetriesPerRequest: 3,
-      });
+    const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
+    const client = new Redis({
+      host: redisHost,
+      port: redisPort,
+      password: process.env.REDIS_PASSWORD,
+      retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 3000)),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
 
-      // Test connection
-      await this.redisClient.ping();
-      this.isEnabled = true;
-      this.logger.log(`Redis cache enabled - Connected to ${redisHost}:${redisPort}`);
-
-      // Handle errors
-      this.redisClient.on('error', (error) => {
-        this.logger.error('Redis error:', error);
-        this.isEnabled = false;
-      });
-
-      this.redisClient.on('reconnecting', () => {
-        this.logger.log('Reconnecting to Redis...');
-      });
-
-      this.redisClient.on('ready', () => {
-        this.logger.log('Redis connection ready');
-        this.isEnabled = true;
-      });
-
-    } catch (error) {
-      this.logger.warn('Redis not available. Cache disabled. Error:', error.message);
+    // Los manejadores van ANTES de conectar: registrarlos despues dejaba el
+    // fallo inicial sin dueno y ioredis lo escupia como "Unhandled error
+    // event" por consola, fuera del logger de Nest.
+    client.on('error', (error) => {
       this.isEnabled = false;
+      this.logger.warn(`Error de Redis: ${error.message}`);
+    });
+    client.on('ready', () => {
+      this.isEnabled = true;
+    });
+
+    try {
+      await client.connect();
+      await client.ping();
+      this.redisClient = client;
+      this.isEnabled = true;
+      this.logger.log(`Cache de Redis activa en ${redisHost}:${redisPort}`);
+    } catch (error) {
+      // disconnect() corta los reintentos. Sin esto el cliente seguia
+      // golpeando el puerto indefinidamente aunque la cache quedara apagada.
+      client.disconnect();
       this.redisClient = null;
+      this.isEnabled = false;
+      this.logger.warn(`Redis no disponible, cache deshabilitada: ${error.message}`);
     }
   }
 
