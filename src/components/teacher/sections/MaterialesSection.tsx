@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Material, CarpetaMaterial } from '../../../types/teacher.types';
 import { uploadsApi } from '../../../api/endpoints/uploads';
+import { ContenidoDelGrupoPanel } from './ContenidoDelGrupoPanel';
 
 interface MaterialesSectionProps {
   materiales: Material[];
@@ -45,6 +46,7 @@ interface MaterialesSectionProps {
 export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   materiales,
   carpetas,
+  darkMode,
   card,
   text,
   border,
@@ -228,6 +230,10 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Contenido maestro de la asignatura vs. propio del grupo, con las
+          acciones de promover y copiar del grupo anterior. Autónomo. */}
+      <ContenidoDelGrupoPanel darkMode={darkMode} />
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

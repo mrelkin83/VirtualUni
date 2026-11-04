@@ -25,10 +25,34 @@ export class CourseTopicsService {
   private async curso(tenantId: string, courseId: string) {
     const course = await this.prisma.course.findFirst({
       where: { id: courseId, tenantId },
-      select: { id: true, subjectId: true },
+      select: { id: true, subjectId: true, teacherId: true },
     });
     if (!course) throw new NotFoundException('Curso no encontrado');
     return course;
+  }
+
+  /**
+   * Un TEACHER solo copia contenido entre grupos que él dicta. Sin esto,
+   * cualquier docente podía inyectar temas en el grupo de otro (destino) o
+   * sacar el material privado de un colega (origen), con solo compartir la
+   * asignatura. La administración sí puede mover entre grupos ajenos.
+   */
+  private async asegurarDocenteDelGrupo(
+    tenantId: string,
+    course: { id: string; teacherId: string },
+    user: CurrentUserData,
+  ) {
+    if (user.role !== 'TEACHER') return;
+
+    const docente = await this.prisma.teacher.findFirst({
+      where: { id: course.teacherId, tenantId },
+      select: { userId: true },
+    });
+    if (docente?.userId !== user.id) {
+      throw new ForbiddenException(
+        'Solo puede copiar contenido entre grupos que usted dicta',
+      );
+    }
   }
 
   private async tema(tenantId: string, id: string) {
@@ -241,7 +265,11 @@ export class CourseTopicsService {
    * del periodo anterior) como temas propios de este grupo. El contenido
    * maestro no se copia: ya se hereda.
    */
-  async copiarDelGrupo(tenantId: string, dto: CopiarTemarioDto) {
+  async copiarDelGrupo(
+    tenantId: string,
+    dto: CopiarTemarioDto,
+    user: CurrentUserData,
+  ) {
     const [destino, origen] = await Promise.all([
       this.curso(tenantId, dto.courseId),
       this.curso(tenantId, dto.fromCourseId),
@@ -255,6 +283,10 @@ export class CourseTopicsService {
         'Ambos grupos deben dictar la misma asignatura de catálogo',
       );
     }
+
+    // Ambos grupos deben ser del docente que llama (la administración no)
+    await this.asegurarDocenteDelGrupo(tenantId, destino, user);
+    await this.asegurarDocenteDelGrupo(tenantId, origen, user);
 
     const temas = await this.prisma.courseTopic.findMany({
       where: { tenantId, courseId: dto.fromCourseId },

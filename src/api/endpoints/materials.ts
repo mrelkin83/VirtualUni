@@ -94,4 +94,25 @@ export const materialsApi = {
     const response = await apiClient.delete<any>(`/api/v1/materials/folders/${id}`);
     return { data: response.data };
   },
+
+  // ----- contenido maestro de la asignatura (fase 4) -----
+
+  /**
+   * Sube un material propio del grupo a contenido maestro de su asignatura:
+   * lo heredan todos los grupos que la dictan. Sale de su carpeta (las
+   * carpetas del grupo no se comparten). Exige ser editor de la asignatura.
+   */
+  promover: async (id: string) => {
+    const response = await apiClient.post<any>(`/api/v1/materials/${id}/promover`);
+    return { data: response.data };
+  },
+
+  /** Copia los materiales propios de otro grupo MÍO de la misma asignatura. */
+  copiarDelGrupo: async (data: { courseId: string; fromCourseId: string }) => {
+    const response = await apiClient.post<{ message: string; copiados: number }>(
+      '/api/v1/materials/copiar-del-grupo',
+      data,
+    );
+    return { data: response.data };
+  },
 };

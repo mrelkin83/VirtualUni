@@ -22,6 +22,7 @@ describe('CourseTopicsService', () => {
   const prismaMock: any = {
     course: { findFirst: jest.fn() },
     subject: { findFirst: jest.fn() },
+    teacher: { findFirst: jest.fn() },
     student: { findUnique: jest.fn() },
     enrollment: { findMany: jest.fn() },
     courseTopic: {
@@ -32,7 +33,14 @@ describe('CourseTopicsService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
-    topicBlock: { findFirst: jest.fn(), count: jest.fn(), create: jest.fn() },
+    topicBlock: {
+      findFirst: jest.fn(),
+      count: jest.fn(),
+      create: jest.fn(),
+      createMany: jest.fn(),
+    },
+    // copiarDelGrupo copia temas y bloques en una transacción
+    $transaction: jest.fn(),
   };
 
   // SubjectsService real no hace falta: solo su contrato de permiso
@@ -226,15 +234,52 @@ describe('CourseTopicsService', () => {
   describe('copiarDelGrupo', () => {
     it('rechaza copiar entre grupos de asignaturas distintas', async () => {
       prismaMock.course.findFirst
-        .mockResolvedValueOnce({ id: COURSE_ID, subjectId: SUBJECT_ID })
-        .mockResolvedValueOnce({ id: 'otro', subjectId: 'otra-asignatura' });
+        .mockResolvedValueOnce({ id: COURSE_ID, subjectId: SUBJECT_ID, teacherId: 'd1' })
+        .mockResolvedValueOnce({ id: 'otro', subjectId: 'otra-asignatura', teacherId: 'd1' });
 
       await expect(
-        service.copiarDelGrupo(TENANT_A, {
-          courseId: COURSE_ID,
-          fromCourseId: 'otro',
-        } as any),
+        service.copiarDelGrupo(
+          TENANT_A,
+          { courseId: COURSE_ID, fromCourseId: 'otro' } as any,
+          ADMIN,
+        ),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    // Un docente no puede inyectar contenido en el grupo de otro, ni sacar
+    // el contenido privado de un colega, por compartir la asignatura.
+    it('rechaza a un docente que no dicta el grupo destino', async () => {
+      prismaMock.course.findFirst
+        .mockResolvedValueOnce({ id: COURSE_ID, subjectId: SUBJECT_ID, teacherId: 'ajeno' })
+        .mockResolvedValueOnce({ id: 'otro', subjectId: SUBJECT_ID, teacherId: 'ajeno' });
+      // La ficha del docente del grupo pertenece a OTRO usuario
+      prismaMock.teacher.findFirst.mockResolvedValue({ userId: 'u-otro-docente' });
+
+      await expect(
+        service.copiarDelGrupo(
+          TENANT_A,
+          { courseId: COURSE_ID, fromCourseId: 'otro' } as any,
+          DOCENTE,
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('permite copiar entre dos grupos del mismo docente', async () => {
+      prismaMock.course.findFirst
+        .mockResolvedValueOnce({ id: COURSE_ID, subjectId: SUBJECT_ID, teacherId: 'd1' })
+        .mockResolvedValueOnce({ id: 'otro', subjectId: SUBJECT_ID, teacherId: 'd1' });
+      prismaMock.teacher.findFirst.mockResolvedValue({ userId: DOCENTE.id });
+      prismaMock.courseTopic.findMany.mockResolvedValue([]);
+      prismaMock.$transaction.mockImplementation(async (fn: any) => fn(prismaMock));
+
+      await expect(
+        service.copiarDelGrupo(
+          TENANT_A,
+          { courseId: COURSE_ID, fromCourseId: 'otro' } as any,
+          DOCENTE,
+        ),
+      ).resolves.toMatchObject({ copiados: 0 });
     });
   });
 });

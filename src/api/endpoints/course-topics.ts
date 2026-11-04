@@ -38,4 +38,25 @@ export const temarioApi = {
     const response = await apiClient.delete(`${BASE}/blocks/${temaId}`);
     return { data: response.data };
   },
+
+  // ----- contenido maestro de la asignatura (fase 4) -----
+
+  /**
+   * Sube un módulo propio del grupo a contenido maestro de su asignatura:
+   * desde entonces lo heredan todos los grupos que la dictan. Exige ser
+   * editor de la asignatura (o administración).
+   */
+  promoverModulo: async (id: string) => {
+    const response = await apiClient.post(`${BASE}/${id}/promover`);
+    return { data: response.data };
+  },
+
+  /** Copia el temario propio de otro grupo MÍO de la misma asignatura. */
+  copiarDelGrupo: async (data: { courseId: string; fromCourseId: string }) => {
+    const response = await apiClient.post<{ message: string; copiados: number }>(
+      `${BASE}/copiar-del-grupo`,
+      data,
+    );
+    return { data: response.data };
+  },
 };

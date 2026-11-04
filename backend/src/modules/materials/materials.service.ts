@@ -31,13 +31,36 @@ export class MaterialsService {
   private async curso(tenantId: string, courseId: string) {
     const course = await this.prisma.course.findFirst({
       where: { id: courseId, tenantId },
-      select: { id: true, subjectId: true },
+      select: { id: true, subjectId: true, teacherId: true },
     });
 
     if (!course) {
       throw new NotFoundException('Curso no encontrado');
     }
     return course;
+  }
+
+  /**
+   * Un TEACHER solo copia material entre grupos que él dicta. Sin esto podía
+   * inyectar material en el grupo de otro docente (destino) o sacar el
+   * material privado de un colega (origen) con solo compartir la asignatura.
+   */
+  private async asegurarDocenteDelGrupo(
+    tenantId: string,
+    course: { id: string; teacherId: string },
+    user: CurrentUserData,
+  ) {
+    if (user.role !== 'TEACHER') return;
+
+    const docente = await this.prisma.teacher.findFirst({
+      where: { id: course.teacherId, tenantId },
+      select: { userId: true },
+    });
+    if (docente?.userId !== user.id) {
+      throw new ForbiddenException(
+        'Solo puede copiar material entre grupos que usted dicta',
+      );
+    }
   }
 
   private async asignatura(tenantId: string, subjectId: string) {
@@ -464,6 +487,10 @@ export class MaterialsService {
         'Ambos grupos deben dictar la misma asignatura de catálogo',
       );
     }
+
+    // Ambos grupos deben ser del docente que llama (la administración no)
+    await this.asegurarDocenteDelGrupo(tenantId, destino, user);
+    await this.asegurarDocenteDelGrupo(tenantId, origen, user);
 
     const materiales = await this.prisma.material.findMany({
       where: { tenantId, courseId: dto.fromCourseId },

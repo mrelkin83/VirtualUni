@@ -53,8 +53,12 @@ export class CourseTopicsController {
   @Post('copiar-del-grupo')
   @Roles(...EDITORES)
   @ApiOperation({ summary: 'Copiar el temario propio de otro grupo de la misma asignatura' })
-  copiarDelGrupo(@Body() dto: CopiarTemarioDto, @CurrentTenant() tenantId: string) {
-    return this.service.copiarDelGrupo(tenantId, dto);
+  copiarDelGrupo(
+    @Body() dto: CopiarTemarioDto,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.service.copiarDelGrupo(tenantId, dto, user);
   }
 
   @Post(':id/promover')

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, Search, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, X, UserCog } from 'lucide-react';
 import {
   asignaturasApi,
+  editoresApi,
   Asignatura,
   AsignaturaCreateDto,
 } from '../../../../api/endpoints/academico';
+import { teachersApi } from '../../../../api/endpoints/courses';
+import { comoArreglo } from '../../../../utils/respuestaApi';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from './errores';
 
@@ -18,6 +21,7 @@ export function AsignaturasTab() {
     asignatura: null,
   });
   const [usoVisible, setUsoVisible] = useState<Asignatura | null>(null);
+  const [editoresDe, setEditoresDe] = useState<Asignatura | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['asignaturas', busqueda, area],
@@ -98,6 +102,13 @@ export function AsignaturasTab() {
                 </td>
                 <td className="px-4 py-2 text-right">
                   <button
+                    onClick={() => setEditoresDe(asignatura)}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"
+                    title="Docentes que pueden editar su contenido maestro"
+                  >
+                    <UserCog size={15} />
+                  </button>
+                  <button
                     onClick={() => setModal({ abierta: true, asignatura })}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
                     title="Editar"
@@ -138,6 +149,117 @@ export function AsignaturasTab() {
       )}
 
       {usoVisible && <UsoModal asignatura={usoVisible} onClose={() => setUsoVisible(null)} />}
+
+      {editoresDe && (
+        <EditoresModal asignatura={editoresDe} onClose={() => setEditoresDe(null)} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Docentes habilitados para editar el contenido maestro de la asignatura.
+ * Sin esto el permiso existía en el backend pero no había forma de concederlo,
+ * así que ningún docente podía promover contenido a la asignatura.
+ */
+function EditoresModal({
+  asignatura,
+  onClose,
+}: {
+  asignatura: Asignatura;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const dialogRef = useModalA11y(true, onClose);
+  const [seleccionados, setSeleccionados] = useState<Set<string> | null>(null);
+
+  const { data: editores, isLoading } = useQuery({
+    queryKey: ['editores-asignatura', asignatura.id],
+    queryFn: () => editoresApi.deAsignatura(asignatura.id),
+  });
+  const { data: docentesRes } = useQuery({
+    queryKey: ['docentes'],
+    queryFn: () => teachersApi.getAll(),
+  });
+
+  const docentes = comoArreglo((docentesRes as any)?.data?.data ?? (docentesRes as any)?.data);
+
+  // La selección arranca con los editores actuales en cuanto llegan
+  const actuales = seleccionados ?? new Set((editores ?? []).map((e) => e.teacherId));
+
+  const guardar = useMutation({
+    mutationFn: () => editoresApi.fijar(asignatura.id, [...actuales]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['editores-asignatura', asignatura.id] });
+      onClose();
+    },
+    onError: (e) => alert(mensajeDeError(e)),
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Editores de ${asignatura.name}`}
+        tabIndex={-1}
+        className="bg-white rounded-lg p-6 max-w-md w-full max-h-[85vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-1">
+          <h3 className="text-lg font-bold text-gray-900">Editores del contenido</h3>
+          <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Quién puede editar y promover el contenido maestro de{' '}
+          <strong>{asignatura.name}</strong>. Los demás docentes solo lo ven desde
+          sus grupos, en modo lectura.
+        </p>
+
+        {isLoading && <p className="text-sm text-gray-500">Cargando...</p>}
+
+        <ul className="space-y-2 max-h-64 overflow-y-auto">
+          {docentes.map((docente: any) => {
+            const nombre =
+              [docente.user?.firstName, docente.user?.lastName].filter(Boolean).join(' ') ||
+              docente.employeeCode;
+            return (
+              <li key={docente.id}>
+                <label className="flex items-center gap-2 text-sm text-gray-800">
+                  <input
+                    type="checkbox"
+                    checked={actuales.has(docente.id)}
+                    onChange={(e) => {
+                      const copia = new Set(actuales);
+                      if (e.target.checked) copia.add(docente.id);
+                      else copia.delete(docente.id);
+                      setSeleccionados(copia);
+                    }}
+                  />
+                  {nombre}
+                  {docente.user?.email && (
+                    <span className="text-xs text-gray-500">{docente.user.email}</span>
+                  )}
+                </label>
+              </li>
+            );
+          })}
+          {docentes.length === 0 && (
+            <li className="text-sm text-gray-500">No hay docentes registrados.</li>
+          )}
+        </ul>
+
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => guardar.mutate()}
+            disabled={guardar.isPending}
+            className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-60"
+          >
+            Guardar editores
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
