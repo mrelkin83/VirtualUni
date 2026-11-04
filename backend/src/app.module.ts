@@ -62,6 +62,7 @@ import { SubjectsModule } from './modules/subjects/subjects.module';
 import { AcademicPeriodsModule } from './modules/academic-periods/academic-periods.module';
 import { ProgramEnrollmentsModule } from './modules/program-enrollments/program-enrollments.module';
 import { AcademicRecordsModule } from './modules/academic-records/academic-records.module';
+import { HomologationsModule } from './modules/homologations/homologations.module';
 
 @Module({
   imports: [
@@ -147,6 +148,7 @@ import { AcademicRecordsModule } from './modules/academic-records/academic-recor
     AcademicPeriodsModule,
     ProgramEnrollmentsModule,
     AcademicRecordsModule,
+    HomologationsModule,
   ],
   controllers: [AppController],
 })
