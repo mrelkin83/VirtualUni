@@ -256,6 +256,7 @@ export interface ComunidadComentario {
 
 export type StudentSectionType =
   | 'inicio'
+  | 'miprograma'
   | 'cursos'
   | 'tareas'
   | 'examenes'

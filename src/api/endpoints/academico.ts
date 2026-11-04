@@ -214,6 +214,129 @@ export interface Inscripcion {
   studyPlan?: { id: string; version: string; status: StudyPlanStatus };
 }
 
+/** Grupo del docente con su asignatura, periodo y programas de origen. */
+export interface GrupoDelDocente {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+  groupCode?: string | null;
+  capacity?: number | null;
+  modality?: Modality | null;
+  semester?: string | null;
+  estudiantes: number;
+  subject?: { id: string; code: string; name: string } | null;
+  academicPeriod?: {
+    id: string;
+    code: string;
+    name: string;
+    status: PeriodStatus;
+  } | null;
+  programasDeOrigen: {
+    id: string;
+    code: string;
+    name: string;
+    estudiantes: number;
+  }[];
+}
+
+/**
+ * Inscripción con el programa COMPLETO. `GET /program-enrollments` devuelve el
+ * programa resumido (ver `Inscripcion`), pero `mis-programas` lo incluye
+ * entero porque la vista del estudiante muestra modalidad, periodicidad,
+ * unidad, duración y título.
+ */
+export interface InscripcionConPrograma extends Omit<Inscripcion, 'program'> {
+  program?: Programa;
+}
+
+// ----- avance del pensum (módulo academic-records) -----
+
+export type EstadoAsignatura =
+  | 'APROBADA'
+  | 'EN_CURSO'
+  | 'PENDIENTE'
+  | 'BLOQUEADA_POR_PRERREQUISITO';
+
+export type OrigenRegistro =
+  | 'CURSADA'
+  | 'RECONOCIMIENTO_INTERNO'
+  | 'HOMOLOGACION_EQUIVALENCIA'
+  | 'RECONOCIMIENTO_EXTERNO'
+  | 'VALIDACION_SUFICIENCIA';
+
+export interface AsignaturaDeProgreso {
+  studyPlanSubjectId: string;
+  subjectId: string;
+  code: string;
+  name: string;
+  level: number;
+  subjectType: SubjectType;
+  credits: number | null;
+  hours: number | null;
+  blockId: string | null;
+  estado: EstadoAsignatura;
+  /** En la escala del programa (gradeScaleMax), no en la de captura. */
+  finalGrade: number | null;
+  origin: OrigenRegistro | null;
+  /** true si no la cursó en este programa (reconocida u homologada). */
+  reconocida: boolean;
+  viaSubjectId: string | null;
+  prerrequisitosPendientes: string[];
+}
+
+export interface NivelDeProgreso {
+  level: number;
+  asignaturas: AsignaturaDeProgreso[];
+}
+
+/**
+ * Avance del pensum. Lo calcula el módulo academic-records a partir del
+ * historial académico (incluye homologaciones y reconocimientos), así que la
+ * UI NO recalcula nada: los porcentajes vienen con un decimal (41.7, no
+ * 0.417) y el denominador siempre es el pensum destino.
+ */
+export interface ProgresoDePrograma {
+  programEnrollmentId: string;
+  studentId: string;
+  studentCode: string;
+  programId: string;
+  programCode: string;
+  programName: string;
+  studyPlanId: string;
+  studyPlanVersion: string;
+  academicUnit: AcademicUnit;
+  currentLevel: number;
+  status: ProgramEnrollmentStatus;
+  niveles: NivelDeProgreso[];
+  resumen: {
+    asignaturasTotales: number;
+    asignaturasAprobadas: number;
+    asignaturasReconocidas: number;
+    asignaturasEnCurso: number;
+    asignaturasPendientes: number;
+    asignaturasBloqueadas: number;
+    creditosTotales: number;
+    creditosAprobados: number;
+    horasTotales: number;
+    horasAprobadas: number;
+    porcentajeCreditos: number;
+    porcentajeHoras: number;
+    /** porcentajeCreditos si la unidad es CREDITOS; porcentajeHoras si no. */
+    porcentajeAvance: number;
+  };
+}
+
+export const progresoApi = {
+  /** Avance del pensum de una inscripción. Un STUDENT solo puede pedir la suya. */
+  dePrograma: async (programEnrollmentId: string) =>
+    (
+      await apiClient.get<ProgresoDePrograma>(
+        `/api/v1/academic-records/progress/${programEnrollmentId}`,
+      )
+    ).data,
+};
+
 export interface UsoAsignatura {
   programas: {
     id: string;
@@ -302,11 +425,32 @@ export const estudiantesApi = {
     (await apiClient.get<Paginado<EstudianteResumen>>('/api/v1/students', { params })).data,
 };
 
+export const gruposDocenteApi = {
+  /** Grupos del docente autenticado (resuelve su ficha desde el token). */
+  mios: async () =>
+    (await apiClient.get<GrupoDelDocente[]>('/api/v1/courses/mis-grupos')).data,
+};
+
 export const inscripcionesApi = {
   getAll: async (params?: {
     page?: number; limit?: number; programId?: string;
     studentId?: string; status?: ProgramEnrollmentStatus;
   }) => (await apiClient.get<Paginado<Inscripcion>>(ENROLLMENTS, { params })).data,
+
+  /** Programas del estudiante autenticado (resuelve su ficha desde el token). */
+  misProgramas: async () =>
+    (await apiClient.get<InscripcionConPrograma[]>(`${ENROLLMENTS}/mis-programas`)).data,
+
+  /**
+   * Pensum de una inscripción propia, agrupado por nivel. Incluye
+   * `currentLevel` para marcar en qué nivel va el estudiante.
+   */
+  miPensum: async (inscripcionId: string) =>
+    (
+      await apiClient.get<PensumDetalle & { currentLevel: number }>(
+        `${ENROLLMENTS}/${inscripcionId}/pensum`,
+      )
+    ).data,
   create: async (data: InscripcionCreateDto) =>
     (await apiClient.post<Inscripcion>(ENROLLMENTS, data)).data,
   update: async (id: string, data: InscripcionUpdateDto) =>

@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { StudentSidebar } from '../components/student/layout/StudentSidebar';
 import { StudentHeader } from '../components/student/layout/StudentHeader';
 import { InicioSection } from '../components/student/sections/InicioSection';
+import { MiProgramaSection } from '../components/student/sections/MiProgramaSection';
 import { CursosSection } from '../components/student/sections/CursosSection';
 import { TareasSection } from '../components/student/sections/TareasSection';
 import { CalificacionesSection } from '../components/student/sections/CalificacionesSection';
@@ -166,6 +167,10 @@ export default function StudentDashboard() {
             unirseClase={state.unirseClase}
           />
         );
+
+      // Autónoma: trae sus propios datos, no pasa por el hook del panel
+      case 'miprograma':
+        return <MiProgramaSection darkMode={darkMode} />;
 
       case 'cursos':
         return (
@@ -415,6 +420,7 @@ export default function StudentDashboard() {
   const getSectionTitle = () => {
     const titles: Record<string, string> = {
       inicio: 'Dashboard',
+      miprograma: 'Mi Programa',
       cursos: 'Mis Cursos',
       clases: 'Clases',
       tareas: 'Tareas',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, Settings, Plus, Edit3, Trash2, Upload, Eye, Download, FileText, Video, ClipboardCheck, X } from 'lucide-react';
 import { GestionMaterialesModal } from '../modals/GestionMaterialesModal';
+import { MisGruposPanel } from './MisGruposPanel';
 import { uploadsApi } from '../../../api/endpoints/uploads';
 import { materialsApi, MaterialType } from '../../../api/endpoints/materials';
 
@@ -632,6 +633,10 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
       <div className="flex justify-between items-center">
         <h2 className={`text-2xl font-bold ${text}`}>Mis Cursos</h2>
       </div>
+
+      {/* Contexto académico de cada grupo: asignatura, periodo y de qué
+          programas vienen sus alumnos. Autónomo: trae sus propios datos. */}
+      <MisGruposPanel darkMode={darkMode} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cursos.map((curso) => (

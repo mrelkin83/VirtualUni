@@ -66,17 +66,6 @@ export class ProgramEnrollmentsController {
     return this.service.misProgramas(tenantId, user);
   }
 
-  @Get(':id/pensum')
-  @Roles('STUDENT', 'TEACHER', ...STAFF)
-  @ApiOperation({ summary: 'Pensum de la inscripción, agrupado por nivel' })
-  miPensum(
-    @Param('id') id: string,
-    @CurrentTenant() tenantId: string,
-    @CurrentUser() user: CurrentUserData,
-  ) {
-    return this.service.miPensum(tenantId, id, user);
-  }
-
   @Post()
   @Roles(...STAFF)
   @ApiOperation({ summary: 'Inscribir un estudiante a un programa' })

@@ -15,6 +15,7 @@ import {
   Library,
   Clock,
   UsersRound,
+  GraduationCap,
   LogOut
 } from 'lucide-react';
 import { StudentSectionType } from '../../../types/student.types';
@@ -38,6 +39,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
 }) => {
   const menuItems = [
     { id: 'inicio' as StudentSectionType, icon: Home, label: 'Inicio' },
+    { id: 'miprograma' as StudentSectionType, icon: GraduationCap, label: 'Mi Programa' },
     { id: 'cursos' as StudentSectionType, icon: BookOpen, label: 'Mis Cursos' },
     { id: 'clases' as StudentSectionType, icon: Video, label: 'Clases' },
     { id: 'tareas' as StudentSectionType, icon: FileText, label: 'Tareas' },

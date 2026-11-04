@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { ProgramEnrollmentStatus, StudyPlanStatus } from '@prisma/client';
-import { StudyPlansService } from '../programs/study-plans.service';
 import {
   CrearInscripcionDto,
   ActualizarInscripcionDto,
@@ -28,11 +27,7 @@ const INCLUDE_RESUMEN = {
 
 @Injectable()
 export class ProgramEnrollmentsService {
-  constructor(
-    private prisma: PrismaService,
-    // Reutiliza el armado del pensum por niveles en vez de repetirlo aquí
-    private studyPlans: StudyPlansService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private async inscripcion(tenantId: string, id: string) {
     const inscripcion = await this.prisma.programEnrollment.findFirst({
@@ -195,38 +190,6 @@ export class ProgramEnrollmentsService {
         studyPlan: { select: { id: true, version: true, status: true } },
       },
     });
-  }
-
-  /**
-   * Pensum de UNA inscripción propia del estudiante, agrupado por nivel.
-   *
-   * Va por aquí en vez de abrir `GET /study-plans/:id/subjects` al alumnado:
-   * así el estudiante solo ve el plan de estudios de un programa en el que
-   * está inscrito, y el armado por niveles se reutiliza de StudyPlansService
-   * en lugar de duplicarse.
-   */
-  async miPensum(tenantId: string, inscripcionId: string, user: CurrentUserData) {
-    const inscripcion = await this.prisma.programEnrollment.findFirst({
-      where: { id: inscripcionId, tenantId },
-      select: {
-        id: true,
-        studyPlanId: true,
-        currentLevel: true,
-        student: { select: { userId: true } },
-      },
-    });
-    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
-
-    if (user.role === 'STUDENT' && inscripcion.student.userId !== user.id) {
-      throw new ForbiddenException('Solo puede consultar su propio pensum');
-    }
-
-    const pensum = await this.studyPlans.subjectsGrouped(
-      tenantId,
-      inscripcion.studyPlanId,
-    );
-
-    return { ...pensum, currentLevel: inscripcion.currentLevel };
   }
 
   /**

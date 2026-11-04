@@ -39,7 +39,10 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
   const menuItems = [
     { id: 'inicio' as SectionType, icon: Home, label: 'Inicio' },
     { id: 'cursos' as SectionType, icon: BookOpen, label: 'Mis Cursos' },
-    { id: 'grupos' as SectionType, icon: UsersRound, label: 'Grupos' },
+    // "Equipos de trabajo", no "Grupos": en la estructura académica un GRUPO
+    // es la asignatura dictada en un periodo (Course). Esta sección son los
+    // equipos de estudiantes DENTRO de un curso (CourseGroup).
+    { id: 'grupos' as SectionType, icon: UsersRound, label: 'Equipos de trabajo' },
     { id: 'estudiantes' as SectionType, icon: Users, label: 'Estudiantes' },
     { id: 'tareas' as SectionType, icon: ClipboardCheck, label: 'Tareas', badge: tareasNoRevisadas },
     { id: 'examenes' as SectionType, icon: FileText, label: 'Exámenes' },

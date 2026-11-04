@@ -5,11 +5,9 @@ import {
   StudentProgramsController,
 } from './program-enrollments.controller';
 import { PrismaModule } from '@/common/prisma/prisma.module';
-import { ProgramsModule } from '../programs/programs.module';
 
 @Module({
-  // ProgramsModule: reutiliza StudyPlansService para armar el pensum
-  imports: [PrismaModule, ProgramsModule],
+  imports: [PrismaModule],
   controllers: [ProgramEnrollmentsController, StudentProgramsController],
   providers: [ProgramEnrollmentsService],
   exports: [ProgramEnrollmentsService],
