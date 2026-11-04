@@ -9,21 +9,50 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 export class GradesService {
   constructor(private prisma: PrismaService) {}
 
-  /** Con las notas del grupo cerradas (acta en el historial) no se edita nada. */
+  /**
+   * El grupo tiene que ser del tenant Y tener las notas abiertas. Si no
+   * existe o es de otro tenant esto responde 404: un `findFirst` que no
+   * encuentra nada NO es permiso para escribir.
+   */
   private async asegurarNotasAbiertas(courseId: string, tenantId: string) {
     const course = await this.prisma.course.findFirst({
       where: { id: courseId, tenantId },
-      select: { gradesClosedAt: true },
+      select: { id: true, gradesClosedAt: true },
     });
-    if (course?.gradesClosedAt) {
+    if (!course) {
+      throw new NotFoundException('Grupo no encontrado');
+    }
+    if (course.gradesClosedAt) {
       throw new ConflictException(
         'Las notas de este grupo están cerradas; un administrador debe reabrirlas para editar',
       );
     }
+    return course;
   }
 
   async create(data: any, tenantId: string) {
     await this.asegurarNotasAbiertas(data.courseId, tenantId);
+
+    // studentId viene del cliente: debe ser del tenant y estar matriculado en
+    // ESE grupo. Sin esto se podía calificar a cualquiera en cualquier grupo.
+    const matricula = await this.prisma.enrollment.findFirst({
+      where: { tenantId, courseId: data.courseId, studentId: data.studentId },
+      select: { id: true },
+    });
+    if (!matricula) {
+      throw new NotFoundException(
+        'El estudiante no está matriculado en este grupo',
+      );
+    }
+
+    if (data.teacherId) {
+      const docente = await this.prisma.teacher.findFirst({
+        where: { id: data.teacherId, tenantId },
+        select: { id: true },
+      });
+      if (!docente) throw new NotFoundException('Docente no encontrado');
+    }
+
     return this.prisma.grade.create({
       data: { ...data, tenantId },
       include: {

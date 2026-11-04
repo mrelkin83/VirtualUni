@@ -99,3 +99,46 @@ calificación configurables por programa (Decreto 1290 para colegios), boletines
 y certificados de notas oficiales, homologaciones, admisiones/CRM, cobro por
 programa y facturación electrónica DIAN. `maxCourses` del plan sigue contando
 grupos.
+
+---
+
+## Homologación y rutas académicas (2026-11-03) — decisiones abiertas
+
+**Horas reales de los módulos (bloqueante para la institución):** el programa
+contable declara 12 créditos × 48 h = 576 h, por debajo del mínimo de 600 h de
+formación laboral. El sistema avisa pero no bloquea. Hay que confirmar con la
+institución las horas reales de cada módulo y su desglose teórico/práctico: sin
+ese dato, el porcentaje de práctica (que debería ser ≥ 50 %) no se puede
+validar de verdad.
+
+**Visibilidad del profesorado:** hoy un `TEACHER` puede consultar el historial,
+el avance, los bloques y las solicitudes de homologación de **cualquier**
+estudiante de su tenant, no solo de los de sus grupos (sí está restringido para
+cerrar notas, que exige ser el docente del grupo). Es deliberado — asesoría
+académica — pero conviene confirmarlo con la institución; si quieren
+"solo mis estudiantes", hace falta un chequeo de pertenencia a grupo en
+`historialEstudiante`, `progresoDeInscripcion`, `opcionesDobleTitulacion`,
+`bloquesDeEstudiante`, `listarSolicitudes` y `obtenerSolicitud`.
+
+**Registros duplicados por reconocimiento interno:** al inscribir en un
+programa nuevo se crea un `StudentSubjectRecord` `RECONOCIMIENTO_INTERNO` que
+apunta al original, aunque el avance ya se calcularía bien sin él (el historial
+es del estudiante). Se hace para dejar constancia de qué se reconoció y quién
+lo autorizó; el cálculo ignora los duplicados quedándose con el registro más
+antiguo de cada asignatura. Si molesta el ruido en el historial, la alternativa
+es una tabla de auditoría aparte.
+
+**Escala de la nota de origen en homologación externa:** se interpreta como
+escala del programa si el valor es ≤ `gradeScaleMax`, y como 0–100 si es mayor.
+Es una heurística: si la institución recibe transcripciones en escalas
+distintas (0–10, A–F), hace falta un campo de escala de origen explícito.
+
+**Certificados de bloque:** se identifican por el nombre del bloque dentro de
+`CertificateRequest.motivo` (`tipo: 'BLOQUE'`), porque `CertificateRequest` no
+tiene un campo para el bloque. Funciona, pero renombrar un bloque desliga sus
+certificados ya emitidos. Si los certificados intermedios se vuelven
+frecuentes, conviene un `blockId` en `CertificateRequest`.
+
+**Fuera de alcance anotado (no implementado a propósito):** cobro diferenciado
+o descuentos por créditos homologados (billing), escalas de desempeño de
+colegio, admisiones/CRM y facturación electrónica DIAN.
