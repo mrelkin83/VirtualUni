@@ -13,6 +13,8 @@ import {
   CrearFilaPensumDto,
   ActualizarFilaPensumDto,
 } from './dto/study-plan.dto';
+import { advertenciasDePensum } from '@/common/config/politica-academica';
+import { horasDeAsignatura } from '../academic-records/calculo-notas';
 
 @Injectable()
 export class StudyPlansService {
@@ -24,7 +26,16 @@ export class StudyPlansService {
     const plan = await this.prisma.studyPlan.findFirst({
       where: { id, tenantId },
       include: {
-        program: { select: { id: true, name: true, durationPeriods: true } },
+        program: {
+          select: {
+            id: true,
+            name: true,
+            durationPeriods: true,
+            educationLevel: true,
+            academicUnit: true,
+            hoursPerCredit: true,
+          },
+        },
         _count: { select: { programEnrollments: true } },
       },
     });
@@ -70,6 +81,24 @@ export class StudyPlansService {
       throw new ConflictException(
         'El pensum VIGENTE tiene estudiantes inscritos; duplíquelo como nueva versión y edite la copia.',
       );
+    }
+  }
+
+  /**
+   * `blockId` llega del cliente: tiene que ser un bloque del MISMO pensum (y
+   * por tanto del mismo tenant) antes de escribirlo en la fila.
+   */
+  private async asegurarBloqueDelPensum(
+    tenantId: string,
+    studyPlanId: string,
+    blockId: string,
+  ) {
+    const bloque = await this.prisma.studyPlanBlock.findFirst({
+      where: { id: blockId, tenantId, studyPlanId },
+      select: { id: true },
+    });
+    if (!bloque) {
+      throw new BadRequestException('El bloque no pertenece a este pensum');
     }
   }
 
@@ -149,12 +178,19 @@ export class StudyPlansService {
     });
   }
 
-  /** Activa esta versión; la VIGENTE anterior del mismo programa pasa a CERRADO. */
+  /**
+   * Activa esta versión; la VIGENTE anterior del mismo programa pasa a
+   * CERRADO. Devuelve las advertencias de horas: avisan, no bloquean.
+   */
   async activate(tenantId: string, id: string) {
     const plan = await this.pensum(tenantId, id);
-    if (plan.status === StudyPlanStatus.VIGENTE) return plan;
+    const { advertencias } = await this.subjectsGrouped(tenantId, id);
 
-    return this.prisma.$transaction(async (tx) => {
+    if (plan.status === StudyPlanStatus.VIGENTE) {
+      return { ...plan, advertencias };
+    }
+
+    const activado = await this.prisma.$transaction(async (tx) => {
       await tx.studyPlan.updateMany({
         where: {
           programId: plan.programId,
@@ -172,6 +208,8 @@ export class StudyPlansService {
         },
       });
     });
+
+    return { ...activado, advertencias };
   }
 
   /** Copia filas Y prerrequisitos a una versión nueva en BORRADOR. */
@@ -186,10 +224,15 @@ export class StudyPlansService {
       throw new ConflictException(`Ya existe la versión ${dto.version} del pensum`);
     }
 
-    const filas = await this.prisma.studyPlanSubject.findMany({
-      where: { studyPlanId: id, tenantId },
-      include: { prerequisites: true },
-    });
+    const [filas, bloques] = await Promise.all([
+      this.prisma.studyPlanSubject.findMany({
+        where: { studyPlanId: id, tenantId },
+        include: { prerequisites: true },
+      }),
+      this.prisma.studyPlanBlock.findMany({
+        where: { studyPlanId: id, tenantId },
+      }),
+    ]);
 
     return this.prisma.$transaction(async (tx) => {
       const nuevo = await tx.studyPlan.create({
@@ -201,6 +244,25 @@ export class StudyPlansService {
           notes: `Duplicado de la versión ${plan.version}`,
         },
       });
+
+      // Los bloques se copian antes que las filas para poder remapear blockId
+      const mapaBloques = new Map<string, string>();
+      for (const bloque of bloques) {
+        const creado = await tx.studyPlanBlock.create({
+          data: {
+            tenantId,
+            studyPlanId: nuevo.id,
+            name: bloque.name,
+            description: bloque.description,
+            orderIndex: bloque.orderIndex,
+            certifiable: bloque.certifiable,
+            certificateTemplateId: bloque.certificateTemplateId,
+            competencyStandardCode: bloque.competencyStandardCode,
+          },
+          select: { id: true },
+        });
+        mapaBloques.set(bloque.id, creado.id);
+      }
 
       // Mapa fila vieja → fila nueva para remapear los prerrequisitos
       const mapa = new Map<string, string>();
@@ -214,6 +276,9 @@ export class StudyPlansService {
             subjectType: fila.subjectType,
             credits: fila.credits,
             hours: fila.hours,
+            theoreticalHours: fila.theoreticalHours,
+            practicalHours: fila.practicalHours,
+            blockId: fila.blockId ? mapaBloques.get(fila.blockId) : null,
             orderIndex: fila.orderIndex,
           },
           select: { id: true },
@@ -243,29 +308,41 @@ export class StudyPlansService {
 
   // ------------------------------------------------------------ filas
 
-  /** Filas del pensum agrupadas por nivel, con totales para el editor. */
+  /**
+   * Filas del pensum agrupadas por nivel, con totales, bloques de competencia
+   * y las advertencias normativas de horas. Las horas se muestran siempre: si
+   * la asignatura no las trae, se derivan de créditos × hoursPerCredit.
+   */
   async subjectsGrouped(tenantId: string, id: string) {
     const plan = await this.pensum(tenantId, id);
 
-    const filas = await this.prisma.studyPlanSubject.findMany({
-      where: { studyPlanId: id, tenantId },
-      orderBy: [{ level: 'asc' }, { orderIndex: 'asc' }],
-      include: {
-        // planEntries alimenta la insignia "Transversal · N" del editor
-        subject: { include: { _count: { select: { planEntries: true, courses: true } } } },
-        prerequisites: {
-          include: {
-            required: {
-              select: {
-                id: true,
-                level: true,
-                subject: { select: { id: true, code: true, name: true } },
+    const [filas, bloques] = await Promise.all([
+      this.prisma.studyPlanSubject.findMany({
+        where: { studyPlanId: id, tenantId },
+        orderBy: [{ level: 'asc' }, { orderIndex: 'asc' }],
+        include: {
+          // planEntries alimenta la insignia "Transversal · N" del editor
+          subject: {
+            include: { _count: { select: { planEntries: true, courses: true } } },
+          },
+          prerequisites: {
+            include: {
+              required: {
+                select: {
+                  id: true,
+                  level: true,
+                  subject: { select: { id: true, code: true, name: true } },
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.prisma.studyPlanBlock.findMany({
+        where: { studyPlanId: id, tenantId },
+        orderBy: { orderIndex: 'asc' },
+      }),
+    ]);
 
     const niveles = new Map<number, typeof filas>();
     for (const fila of filas) {
@@ -273,10 +350,23 @@ export class StudyPlansService {
       niveles.get(fila.level)!.push(fila);
     }
 
+    const hpc = plan.program.hoursPerCredit;
     const creditosDe = (fila: (typeof filas)[number]) =>
       fila.credits ?? fila.subject.credits ?? 0;
     const horasDe = (fila: (typeof filas)[number]) =>
-      fila.hours ?? fila.subject.hours ?? 0;
+      horasDeAsignatura(fila.hours ?? fila.subject.hours, creditosDe(fila), hpc) ?? 0;
+    const practicasDe = (fila: (typeof filas)[number]) =>
+      fila.practicalHours ?? fila.subject.practicalHours ?? 0;
+    const teoricasDe = (fila: (typeof filas)[number]) =>
+      fila.theoreticalHours ?? fila.subject.theoreticalHours ?? 0;
+
+    const totalCredits = filas.reduce((s, f) => s + creditosDe(f), 0);
+    const totalHours = filas.reduce((s, f) => s + horasDe(f), 0);
+    const totalPracticalHours = filas.reduce((s, f) => s + practicasDe(f), 0);
+    const totalTheoreticalHours = filas.reduce((s, f) => s + teoricasDe(f), 0);
+    const sinDesglose = filas.filter(
+      (f) => practicasDe(f) === 0 && teoricasDe(f) === 0,
+    ).length;
 
     return {
       studyPlan: {
@@ -285,14 +375,32 @@ export class StudyPlansService {
         status: plan.status,
         program: plan.program,
       },
+      bloques: bloques.map((bloque) => {
+        const delBloque = filas.filter((f) => f.blockId === bloque.id);
+        return {
+          ...bloque,
+          asignaturas: delBloque.length,
+          totalCredits: delBloque.reduce((s, f) => s + creditosDe(f), 0),
+          totalHours: delBloque.reduce((s, f) => s + horasDe(f), 0),
+        };
+      }),
       niveles: [...niveles.entries()].map(([level, items]) => ({
         level,
         subjects: items,
         totalCredits: items.reduce((s, f) => s + creditosDe(f), 0),
         totalHours: items.reduce((s, f) => s + horasDe(f), 0),
       })),
-      totalCredits: filas.reduce((s, f) => s + creditosDe(f), 0),
-      totalHours: filas.reduce((s, f) => s + horasDe(f), 0),
+      totalCredits,
+      totalHours,
+      totalTheoreticalHours,
+      totalPracticalHours,
+      asignaturasSinDesgloseDeHoras: sinDesglose,
+      advertencias: advertenciasDePensum({
+        educationLevel: plan.program.educationLevel,
+        horasTotales: totalHours,
+        horasPracticas: totalPracticalHours,
+        asignaturasSinDesglose: sinDesglose,
+      }),
     };
   }
 
@@ -316,6 +424,10 @@ export class StudyPlansService {
       throw new ConflictException('La asignatura ya está en este pensum');
     }
 
+    if (dto.blockId) {
+      await this.asegurarBloqueDelPensum(tenantId, planId, dto.blockId);
+    }
+
     const orderIndex =
       dto.orderIndex ??
       (await this.prisma.studyPlanSubject.count({
@@ -331,6 +443,9 @@ export class StudyPlansService {
         subjectType: dto.subjectType,
         credits: dto.credits,
         hours: dto.hours,
+        theoreticalHours: dto.theoreticalHours,
+        practicalHours: dto.practicalHours,
+        blockId: dto.blockId,
         orderIndex,
       },
       include: { subject: true },
@@ -376,6 +491,10 @@ export class StudyPlansService {
             `${dependienteInvalido.entry.subject.code} (nivel ${dependienteInvalido.entry.level})`,
         );
       }
+    }
+
+    if (dto.blockId) {
+      await this.asegurarBloqueDelPensum(tenantId, fila.studyPlanId, dto.blockId);
     }
 
     return this.prisma.studyPlanSubject.update({

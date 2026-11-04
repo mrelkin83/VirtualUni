@@ -37,6 +37,12 @@ describe('StudyPlansService', () => {
       deleteMany: jest.fn(),
       createMany: jest.fn(),
     },
+    // Bloques de competencia: el editor y la activación los leen para los
+    // totales por bloque y las advertencias de horas.
+    studyPlanBlock: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+    },
     program: { findFirst: jest.fn() },
     subject: { findFirst: jest.fn() },
     $transaction: jest.fn(),
@@ -48,7 +54,14 @@ describe('StudyPlansService', () => {
     version: 'v1',
     status: 'BORRADOR',
     validFrom: null,
-    program: { id: PROGRAM_ID, name: 'Tecnólogo', durationPeriods: 6 },
+    program: {
+      id: PROGRAM_ID,
+      name: 'Tecnólogo',
+      durationPeriods: 6,
+      educationLevel: 'TECNOLOGICO',
+      academicUnit: 'CREDITOS',
+      hoursPerCredit: 48,
+    },
     _count: { programEnrollments: 0 },
   };
 
@@ -56,6 +69,7 @@ describe('StudyPlansService', () => {
     jest.clearAllMocks();
     // El callback de $transaction recibe el propio mock como `tx`
     prismaMock.$transaction.mockImplementation(async (fn: any) => fn(prismaMock));
+    prismaMock.studyPlanBlock.findMany.mockResolvedValue([]);
     const module: TestingModule = await Test.createTestingModule({
       providers: [StudyPlansService, { provide: PrismaService, useValue: prismaMock }],
     }).compile();
@@ -88,6 +102,8 @@ describe('StudyPlansService', () => {
   // Activar cierra la versión vigente anterior del mismo programa
   it('activate pasa la VIGENTE anterior a CERRADO', async () => {
     prismaMock.studyPlan.findFirst.mockResolvedValue(planEditable);
+    // activate consulta el pensum para devolver las advertencias de horas
+    prismaMock.studyPlanSubject.findMany.mockResolvedValue([]);
     prismaMock.studyPlan.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.studyPlan.update.mockResolvedValue({ id: PLAN_ID, status: 'VIGENTE' });
 

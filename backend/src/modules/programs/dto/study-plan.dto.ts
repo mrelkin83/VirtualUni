@@ -9,6 +9,7 @@ import {
   IsString,
   IsUUID,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { SubjectType } from '@prisma/client';
@@ -68,6 +69,26 @@ export class CrearFilaPensumDto {
   @IsOptional()
   hours?: number;
 
+  @ApiProperty({ required: false, description: 'Horas teóricas (ETDH)' })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  theoreticalHours?: number;
+
+  @ApiProperty({ required: false, description: 'Horas prácticas (ETDH)' })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  practicalHours?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Bloque de competencia del MISMO pensum',
+  })
+  @IsUUID()
+  @IsOptional()
+  blockId?: string;
+
   @ApiProperty({ required: false })
   @IsInt()
   @Min(0)
@@ -103,6 +124,28 @@ export class ActualizarFilaPensumDto {
   @Min(0)
   @IsOptional()
   hours?: number;
+
+  @ApiProperty({ required: false, description: 'Horas teóricas (ETDH)' })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  theoreticalHours?: number;
+
+  @ApiProperty({ required: false, description: 'Horas prácticas (ETDH)' })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  practicalHours?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Bloque de competencia del MISMO pensum; null lo desasigna',
+  })
+  // null es un valor válido aquí: desasigna el bloque de la fila.
+  @ValidateIf((dto: ActualizarFilaPensumDto) => dto.blockId !== null)
+  @IsUUID()
+  @IsOptional()
+  blockId?: string | null;
 
   @ApiProperty({ required: false })
   @IsInt()
