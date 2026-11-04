@@ -15,7 +15,9 @@
  * se borra ni se sobreescribe.
  *
  * CÓMO CORRERLO (desde backend/):
- *   npx ts-node prisma/scripts/seed-demo-homologacion.ts
+ *   npx ts-node prisma/scripts/seed-demo-homologacion.ts            # tenant uniprueba
+ *   npx ts-node prisma/scripts/seed-demo-homologacion.ts uet        # otro tenant
+ *   SEED_TENANT=uet npx ts-node prisma/scripts/seed-demo-homologacion.ts
  */
 
 import {
@@ -35,9 +37,18 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-const SUBDOMINIO = 'uniprueba';
-const EGRESADO_EMAIL = 'egresado.contable@uniprueba.com';
+/**
+ * Tenant destino: argumento de linea de comandos, luego SEED_TENANT, y por
+ * defecto el `uniprueba` del seed de desarrollo. Los correos demo se derivan
+ * del subdominio, asi que para `uniprueba` salen identicos a antes y el script
+ * sigue siendo idempotente sobre datos ya sembrados.
+ */
+const SUBDOMINIO = process.argv[2] ?? process.env.SEED_TENANT ?? 'uniprueba';
+const EGRESADO_EMAIL = `egresado.contable@${SUBDOMINIO}.com`;
 const EGRESADO_PASSWORD = 'Estudiante123!';
+const DOCENTE_EMAIL = `docente.contable@${SUBDOMINIO}.com`;
+const DOCENTE_PASSWORD = 'Docente123!';
+const DOCENTE_CODIGO = 'DOC-CONT-001';
 const PERIODO_DEMO = 'COHORTE-2027-1';
 
 /** Los 12 módulos del programa contable, con su bloque de competencia. */
@@ -265,6 +276,48 @@ async function filaDePensum(
   });
 }
 
+/**
+ * Docente demo: los grupos y el contenido maestro solo se pueden sembrar si el
+ * tenant tiene al menos un docente. En un tenant recien creado no hay ninguno,
+ * asi que se crea uno (idempotente por employeeCode).
+ */
+async function docenteDemo(tenantId: string) {
+  const existente = await prisma.teacher.findFirst({
+    where: { tenantId, employeeCode: DOCENTE_CODIGO },
+    select: { id: true },
+  });
+  if (existente) {
+    resumen.notas.push(`Docente demo reutilizado: ${DOCENTE_EMAIL}`);
+    return existente;
+  }
+
+  const passwordHash = await bcrypt.hash(DOCENTE_PASSWORD, 10);
+  const creado = await prisma.user.create({
+    data: {
+      tenantId,
+      email: DOCENTE_EMAIL,
+      passwordHash,
+      firstName: 'Hernan',
+      lastName: 'Rojas',
+      role: UserRole.TEACHER,
+      teacher: {
+        create: {
+          tenantId,
+          employeeCode: DOCENTE_CODIGO,
+          department: 'Contable-Financiera',
+          specialization: 'Contabilidad',
+          hireDate: new Date('2026-01-15'),
+        },
+      },
+    },
+    include: { teacher: true },
+  });
+  resumen.notas.push(
+    `Docente demo creado: ${DOCENTE_EMAIL} / ${DOCENTE_PASSWORD}`,
+  );
+  return { id: creado.teacher!.id };
+}
+
 async function main() {
   const tenant = await prisma.tenant.findFirst({
     where: { subdomain: SUBDOMINIO },
@@ -451,11 +504,14 @@ async function main() {
   // Dos grupos de la MISMA asignatura (Contabilidad 1) para poder probar de
   // verdad el contenido maestro: promover del grupo a la asignatura y copiar
   // el contenido propio de un grupo al otro.
-  const docente = await prisma.teacher.findFirst({
+  let docente = await prisma.teacher.findFirst({
     where: { tenantId },
     orderBy: { employeeCode: 'asc' },
     select: { id: true },
   });
+  if (!docente) {
+    docente = await docenteDemo(tenantId);
+  }
 
   let periodo = await prisma.academicPeriod.findFirst({
     where: { tenantId, code: PERIODO_DEMO },
@@ -474,73 +530,67 @@ async function main() {
     resumen.notas.push(`Periodo demo creado: ${PERIODO_DEMO}`);
   }
 
-  if (!docente) {
-    resumen.notas.push(
-      'Sin docentes en el tenant: no se crearon grupos ni contenido demo',
-    );
-  } else {
-    const subjectCont1 = subjectPorCodigo.get('CONT1')!;
+  const subjectCont1 = subjectPorCodigo.get('CONT1')!;
 
-    for (const grupo of ['A', 'B'] as const) {
-      const code = `CONT1-${grupo}-${PERIODO_DEMO}`;
-      let course = await prisma.course.findFirst({ where: { tenantId, code } });
-      if (!course) {
-        course = await prisma.course.create({
-          data: {
-            tenantId,
-            code,
-            name: `Contabilidad 1 – Grupo ${grupo} – ${PERIODO_DEMO}`,
-            teacherId: docente.id,
-            subjectId: subjectCont1,
-            academicPeriodId: periodo.id,
-            groupCode: grupo,
-            capacity: 25,
-            credits: 1,
-            modality: Modality.PRESENCIAL,
-            status: 'active',
-          },
-        });
-        resumen.grupos.creados++;
-      } else {
-        resumen.grupos.reutilizados++;
-      }
-
-      // Contenido PROPIO del grupo: es lo que se puede promover o copiar
-      const temaPropio = await prisma.courseTopic.findFirst({
-        where: { tenantId, courseId: course.id },
+  for (const grupo of ['A', 'B'] as const) {
+    const code = `CONT1-${grupo}-${PERIODO_DEMO}`;
+    let course = await prisma.course.findFirst({ where: { tenantId, code } });
+    if (!course) {
+      course = await prisma.course.create({
+        data: {
+          tenantId,
+          code,
+          name: `Contabilidad 1 – Grupo ${grupo} – ${PERIODO_DEMO}`,
+          teacherId: docente.id,
+          subjectId: subjectCont1,
+          academicPeriodId: periodo.id,
+          groupCode: grupo,
+          capacity: 25,
+          credits: 1,
+          modality: Modality.PRESENCIAL,
+          status: 'active',
+        },
       });
-      if (!temaPropio) {
-        await prisma.courseTopic.create({
-          data: {
-            tenantId,
-            courseId: course.id,
-            title: `Taller de partida doble (grupo ${grupo})`,
-            description:
-              'Contenido propio del grupo: sirve para probar Promover a la asignatura y Copiar desde otro grupo.',
-            orderIndex: 0,
-          },
-        });
-        resumen.contenido.temasDeGrupo++;
-      }
+      resumen.grupos.creados++;
+    } else {
+      resumen.grupos.reutilizados++;
     }
 
-    // Contenido MAESTRO de la asignatura: lo heredan todos sus grupos
-    const temaMaestro = await prisma.courseTopic.findFirst({
-      where: { tenantId, subjectId: subjectCont1 },
+    // Contenido PROPIO del grupo: es lo que se puede promover o copiar
+    const temaPropio = await prisma.courseTopic.findFirst({
+      where: { tenantId, courseId: course.id },
     });
-    if (!temaMaestro) {
+    if (!temaPropio) {
       await prisma.courseTopic.create({
         data: {
           tenantId,
-          subjectId: subjectCont1,
-          title: 'Ecuación patrimonial (contenido maestro)',
+          courseId: course.id,
+          title: `Taller de partida doble (grupo ${grupo})`,
           description:
-            'Contenido maestro de la asignatura: lo ven todos los grupos de Contabilidad 1.',
+            'Contenido propio del grupo: sirve para probar Promover a la asignatura y Copiar desde otro grupo.',
           orderIndex: 0,
         },
       });
-      resumen.contenido.temasDeAsignatura++;
+      resumen.contenido.temasDeGrupo++;
     }
+  }
+
+  // Contenido MAESTRO de la asignatura: lo heredan todos sus grupos
+  const temaMaestro = await prisma.courseTopic.findFirst({
+    where: { tenantId, subjectId: subjectCont1 },
+  });
+  if (!temaMaestro) {
+    await prisma.courseTopic.create({
+      data: {
+        tenantId,
+        subjectId: subjectCont1,
+        title: 'Ecuación patrimonial (contenido maestro)',
+        description:
+          'Contenido maestro de la asignatura: lo ven todos los grupos de Contabilidad 1.',
+        orderIndex: 0,
+      },
+    });
+    resumen.contenido.temasDeAsignatura++;
   }
 
   // ---- 5. Resumen --------------------------------------------------
