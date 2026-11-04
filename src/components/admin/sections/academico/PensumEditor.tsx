@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Plus, Trash2, Link2, Copy, CheckCircle2, X, Search,
+  ArrowLeft, Plus, Trash2, Link2, Copy, CheckCircle2, X, Search, AlertTriangle,
 } from 'lucide-react';
+import { BloquesPanel } from './BloquesPanel';
 import {
   programasApi,
   pensumApi,
@@ -219,7 +220,8 @@ export function PensumEditor({
         </p>
       )}
 
-      {/* Totales del programa */}
+      {/* Totales del programa. Las horas se derivan de los créditos cuando la
+          asignatura no las trae (créditos × hoursPerCredit del programa). */}
       {detalle && (
         <div className="flex flex-wrap gap-4 text-sm text-gray-700">
           <span>
@@ -230,7 +232,44 @@ export function PensumEditor({
             <strong>{detalle.totalHours}</strong> horas
             {programa.totalHours ? ` de ${programa.totalHours} previstas` : ''}
           </span>
+          {detalle.totalPracticalHours != null && (
+            <span>
+              <strong>{detalle.totalPracticalHours}</strong> h prácticas ·{' '}
+              <strong>{detalle.totalTheoreticalHours ?? 0}</strong> h teóricas
+            </span>
+          )}
         </div>
+      )}
+
+      {/* Advertencias normativas: avisan, no bloquean */}
+      {detalle?.advertencias && detalle.advertencias.length > 0 && (
+        <ul className="space-y-2">
+          {detalle.advertencias.map((advertencia) => (
+            <li
+              key={advertencia.codigo}
+              className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800"
+            >
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              {advertencia.mensaje}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Bloques de competencia certificables */}
+      {detalle && pensumId && (
+        <BloquesPanel
+          pensumId={pensumId}
+          editable={editable}
+          asignaturas={detalle.niveles.flatMap((nivel) =>
+            nivel.subjects.map((fila) => ({
+              id: fila.id,
+              blockId: fila.blockId ?? null,
+              level: fila.level,
+              subject: { code: fila.subject.code, name: fila.subject.name },
+            })),
+          )}
+        />
       )}
 
       {isLoading && <p className="text-sm text-gray-500">Cargando pensum...</p>}

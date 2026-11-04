@@ -1,21 +1,43 @@
 import React, { useState } from 'react';
-import { GraduationCap, BookOpen, CalendarDays, Layers } from 'lucide-react';
+import {
+  GraduationCap,
+  BookOpen,
+  CalendarDays,
+  Layers,
+  Network,
+  FileCheck,
+  ArrowLeftRight,
+} from 'lucide-react';
 import { ProgramasTab } from './ProgramasTab';
 import { AsignaturasTab } from './AsignaturasTab';
 import { PeriodosTab } from './PeriodosTab';
 import { GruposTab } from './GruposTab';
+import { ArticulacionTab } from './ArticulacionTab';
+import { HomologacionesTab } from './HomologacionesTab';
+import { EquivalenciasTab } from './EquivalenciasTab';
 
-export type PestanaAcademica = 'programas' | 'asignaturas' | 'periodos' | 'grupos';
+export type PestanaAcademica =
+  | 'programas'
+  | 'asignaturas'
+  | 'periodos'
+  | 'grupos'
+  | 'articulacion'
+  | 'homologaciones'
+  | 'equivalencias';
 
 const PESTANAS: { id: PestanaAcademica; label: string; icono: React.ElementType }[] = [
   { id: 'programas', label: 'Programas', icono: GraduationCap },
   { id: 'asignaturas', label: 'Asignaturas', icono: BookOpen },
   { id: 'periodos', label: 'Periodos', icono: CalendarDays },
   { id: 'grupos', label: 'Grupos', icono: Layers },
+  { id: 'articulacion', label: 'Articulación', icono: Network },
+  { id: 'homologaciones', label: 'Homologaciones', icono: FileCheck },
+  { id: 'equivalencias', label: 'Equivalencias', icono: ArrowLeftRight },
 ];
 
 /**
- * Gestión académica: Programas · Asignaturas · Periodos · Grupos.
+ * Gestión académica: Programas · Asignaturas · Periodos · Grupos ·
+ * Articulación · Homologaciones · Equivalencias.
  * La antigua sección "Cursos" vive aquí como la pestaña "Grupos" (un grupo es
  * una asignatura dictada en un periodo por un docente).
  */
@@ -54,6 +76,9 @@ export function GestionAcademicaSection({
       {pestana === 'asignaturas' && <AsignaturasTab />}
       {pestana === 'periodos' && <PeriodosTab />}
       {pestana === 'grupos' && <GruposTab />}
+      {pestana === 'articulacion' && <ArticulacionTab />}
+      {pestana === 'homologaciones' && <HomologacionesTab />}
+      {pestana === 'equivalencias' && <EquivalenciasTab />}
     </div>
   );
 }

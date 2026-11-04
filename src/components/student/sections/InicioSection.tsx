@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, FileText, Video, Award, Calendar, TrendingUp, ChevronRight, CircleDot, Clock, AlertCircle, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { StudentCourse, StudentTask, Clase } from '../../../types/student.types';
 import { useAuthStore } from '../../../store/authStore';
+import { RutaSegundoTitulo } from './RutaSegundoTitulo';
 
 interface InicioSectionProps {
   cursos: StudentCourse[];
@@ -375,6 +376,10 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
           </div>
         </div>
       )}
+
+      {/* Se oculta sola si el estudiante no tiene asignaturas aprobadas que
+          otro programa le reconozca. */}
+      <RutaSegundoTitulo />
     </div>
   );
 };

@@ -165,6 +165,10 @@ export interface FilaPensum {
   subjectType: SubjectType;
   credits?: number | null;
   hours?: number | null;
+  // Desglose ETDH y bloque de competencia (entrega de homologación y rutas)
+  theoreticalHours?: number | null;
+  practicalHours?: number | null;
+  blockId?: string | null;
   orderIndex: number;
   subject: Asignatura;
   prerequisites?: {
@@ -173,16 +177,43 @@ export interface FilaPensum {
   }[];
 }
 
+/** Advertencia normativa del pensum: avisa, no bloquea. */
+export interface AdvertenciaDePensum {
+  codigo: string;
+  mensaje: string;
+}
+
 export interface PensumDetalle {
   studyPlan: {
     id: string;
     version: string;
     status: StudyPlanStatus;
-    program: { id: string; name: string; durationPeriods?: number | null };
+    program: {
+      id: string;
+      name: string;
+      durationPeriods?: number | null;
+      educationLevel?: EducationLevel;
+      academicUnit?: AcademicUnit;
+      hoursPerCredit?: number;
+    };
   };
+  bloques?: {
+    id: string;
+    name: string;
+    description: string | null;
+    orderIndex: number;
+    certifiable: boolean;
+    asignaturas: number;
+    totalCredits: number;
+    totalHours: number;
+  }[];
   niveles: { level: number; subjects: FilaPensum[]; totalCredits: number; totalHours: number }[];
   totalCredits: number;
   totalHours: number;
+  totalTheoreticalHours?: number;
+  totalPracticalHours?: number;
+  asignaturasSinDesgloseDeHoras?: number;
+  advertencias?: AdvertenciaDePensum[];
 }
 
 export interface Periodo {
@@ -400,6 +431,32 @@ export const asignaturasApi = {
   update: async (id: string, data: AsignaturaUpdateDto) =>
     (await apiClient.patch<Asignatura>(`${SUBJECTS}/${id}`, data)).data,
   remove: async (id: string) => (await apiClient.delete(`${SUBJECTS}/${id}`)).data,
+};
+
+/** Docente habilitado por el admin para editar el contenido maestro. */
+export interface EditorDeAsignatura {
+  id: string;
+  subjectId: string;
+  teacherId: string;
+  teacher: {
+    id: string;
+    employeeCode: string;
+    user: { id: string; firstName: string; lastName: string; email: string };
+  };
+}
+
+export const editoresApi = {
+  /** Editores del contenido maestro de una asignatura (lectura: docentes y admin). */
+  deAsignatura: async (subjectId: string) =>
+    (await apiClient.get<EditorDeAsignatura[]>(`${SUBJECTS}/${subjectId}/editors`)).data,
+
+  /** Reemplaza el conjunto de editores (solo administración). */
+  fijar: async (subjectId: string, teacherIds: string[]) =>
+    (
+      await apiClient.put<EditorDeAsignatura[]>(`${SUBJECTS}/${subjectId}/editors`, {
+        teacherIds,
+      })
+    ).data,
 };
 
 export const periodosApi = {

@@ -10,6 +10,104 @@ interface AnalyticsData {
   generatedAt?: string;
 }
 
+/**
+ * Matriz de articulación: qué reconoce cada programa destino a un egresado
+ * del programa origen. Sirve también como pieza comercial, así que el PDF
+ * lleva el detalle de lo que falta por cursar en cada destino.
+ *
+ * Los porcentajes vienen calculados sobre el pensum DESTINO: no se recalculan
+ * aquí para que el PDF diga exactamente lo mismo que la pantalla.
+ */
+export const generateArticulationPDF = (matriz: {
+  origen: { programCode: string; programName: string; studyPlanVersion: string };
+  destinos: {
+    programName: string;
+    asignaturasReconocidas: number;
+    asignaturasTotales: number;
+    creditosReconocidos: number;
+    creditosTotales: number;
+    horasReconocidas: number;
+    horasTotales: number;
+    porcentajeAvance: number;
+    faltantes: { code: string; name: string }[];
+  }[];
+}) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+
+  doc.setFontSize(20);
+  doc.setTextColor(37, 99, 235);
+  doc.text('Rutas de doble titulación', pageWidth / 2, y, { align: 'center' });
+
+  y += 9;
+  doc.setFontSize(13);
+  doc.setTextColor(31, 41, 55);
+  doc.text(matriz.origen.programName, pageWidth / 2, y, { align: 'center' });
+
+  y += 7;
+  doc.setFontSize(10);
+  doc.setTextColor(107, 114, 128);
+  doc.text(
+    `Programa de origen ${matriz.origen.programCode} · pensum ${matriz.origen.studyPlanVersion} · generado el ${new Date().toLocaleDateString(
+      'es-CO',
+      { year: 'numeric', month: 'long', day: 'numeric' },
+    )}`,
+    pageWidth / 2,
+    y,
+    { align: 'center' },
+  );
+
+  y += 12;
+  autoTable(doc, {
+    startY: y,
+    head: [['Programa destino', 'Asignaturas', 'Créditos', 'Horas', 'Avance']],
+    body: matriz.destinos.map((d) => [
+      d.programName,
+      `${d.asignaturasReconocidas} de ${d.asignaturasTotales}`,
+      `${d.creditosReconocidos} de ${d.creditosTotales}`,
+      `${d.horasReconocidas} de ${d.horasTotales}`,
+      `${d.porcentajeAvance} %`,
+    ]),
+    headStyles: { fillColor: [37, 99, 235] },
+    styles: { fontSize: 9 },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 10;
+  doc.setFontSize(9);
+  doc.setTextColor(107, 114, 128);
+  doc.text(
+    'Los porcentajes se calculan sobre el total del pensum del programa destino.',
+    14,
+    y,
+  );
+
+  for (const destino of matriz.destinos) {
+    y += 12;
+    if (y > doc.internal.pageSize.getHeight() - 40) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(11);
+    doc.setTextColor(31, 41, 55);
+    doc.text(`${destino.programName}: le faltarían por cursar`, 14, y);
+
+    autoTable(doc, {
+      startY: y + 3,
+      head: [['Código', 'Asignatura']],
+      body:
+        destino.faltantes.length > 0
+          ? destino.faltantes.map((f) => [f.code, f.name])
+          : [['—', 'Ninguna: el pensum queda cubierto por completo']],
+      headStyles: { fillColor: [107, 114, 128] },
+      styles: { fontSize: 8 },
+    });
+    y = (doc as any).lastAutoTable.finalY;
+  }
+
+  doc.save(`articulacion-${matriz.origen.programCode}.pdf`);
+};
+
 export const generateAnalyticsPDF = (data: AnalyticsData) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();

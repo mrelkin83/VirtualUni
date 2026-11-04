@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, X, Search } from 'lucide-react';
+import { Plus, Trash2, X, Search, ClipboardCheck } from 'lucide-react';
+import { CierreDeNotasModal } from './CierreDeNotasModal';
 import { coursesAdminApi, teachersApi } from '../../../../api/endpoints/courses';
 import {
   asignaturasApi,
@@ -36,6 +37,7 @@ export function GruposTab() {
   const queryClient = useQueryClient();
   const [busqueda, setBusqueda] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [cierreDeNotas, setCierreDeNotas] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['grupos', busqueda],
@@ -106,17 +108,31 @@ export function GruposTab() {
                     {` · ${grupo._count?.enrollments ?? 0}${grupo.capacity ? `/${grupo.capacity}` : ''} estudiantes`}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    if (confirm(`¿Eliminar el grupo "${grupo.name}"?`)) {
-                      eliminar.mutate(grupo.id);
-                    }
-                  }}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded shrink-0"
-                  title="Eliminar grupo"
-                >
-                  <Trash2 size={17} />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  {/* El cierre de notas necesita la asignatura del catálogo:
+                      el historial académico se guarda por Subject. */}
+                  {grupo.subject && (
+                    <button
+                      onClick={() => setCierreDeNotas(grupo.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                      title="Cerrar o reabrir notas del grupo"
+                      aria-label={`Cierre de notas de ${grupo.name}`}
+                    >
+                      <ClipboardCheck size={17} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      if (confirm(`¿Eliminar el grupo "${grupo.name}"?`)) {
+                        eliminar.mutate(grupo.id);
+                      }
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    title="Eliminar grupo"
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -130,6 +146,16 @@ export function GruposTab() {
       </div>
 
       {modalAbierto && <CrearGrupoModal onClose={() => setModalAbierto(false)} />}
+
+      {cierreDeNotas && (
+        <CierreDeNotasModal
+          courseId={cierreDeNotas}
+          nombreGrupo={
+            grupos.find((g) => g.id === cierreDeNotas)?.name ?? 'Grupo'
+          }
+          onCerrar={() => setCierreDeNotas(null)}
+        />
+      )}
     </div>
   );
 }
