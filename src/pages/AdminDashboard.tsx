@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, useRef, useEffect } from 'react';
-import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Shield, Palette, Building2, Upload, Mail, Calendar, AlertCircle, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, Inbox, MessageSquare, Filter, BarChart3, TrendingDown, CreditCard, Megaphone, Paperclip, Circle, LogOut } from 'lucide-react';
+import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Building2, Upload, Mail, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, BarChart3, CreditCard, Megaphone, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
 import { tenantsApi } from '../api/endpoints/tenants';
@@ -27,7 +27,6 @@ import {
   InscripcionesProgramaSection
 } from '../components/admin/sections';
 import { CarnetizacionMejorada } from '../components/admin/carnetizacion/CarnetizacionMejorada';
-import { financeApi, announcementsApi, massMessagesApi, proceduresApi } from '../api/endpoints';
 
 // Context para configuración global
 const ConfigContext = createContext(null);
