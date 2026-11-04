@@ -55,6 +55,28 @@ export class ProgramEnrollmentsController {
     );
   }
 
+  // Ruta estática antes de cualquier :id
+  @Get('mis-programas')
+  @Roles('STUDENT')
+  @ApiOperation({ summary: 'Programas del estudiante autenticado' })
+  misProgramas(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.service.misProgramas(tenantId, user);
+  }
+
+  @Get(':id/pensum')
+  @Roles('STUDENT', 'TEACHER', ...STAFF)
+  @ApiOperation({ summary: 'Pensum de la inscripción, agrupado por nivel' })
+  miPensum(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.service.miPensum(tenantId, id, user);
+  }
+
   @Post()
   @Roles(...STAFF)
   @ApiOperation({ summary: 'Inscribir un estudiante a un programa' })

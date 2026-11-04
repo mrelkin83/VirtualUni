@@ -60,6 +60,19 @@ export class CoursesController {
     return this.coursesService.findAll(tenantId, pageNum, limitNum, search);
   }
 
+  // Ruta estática antes de :id
+  @Get('mis-grupos')
+  @Roles('TEACHER')
+  @ApiOperation({
+    summary: 'Grupos del docente autenticado, con asignatura, periodo y programas de origen',
+  })
+  misGrupos(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.coursesService.misGrupos(tenantId, user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get course by ID' })
   async findOne(

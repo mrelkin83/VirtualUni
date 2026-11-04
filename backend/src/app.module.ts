@@ -61,6 +61,7 @@ import { ProgramsModule } from './modules/programs/programs.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
 import { AcademicPeriodsModule } from './modules/academic-periods/academic-periods.module';
 import { ProgramEnrollmentsModule } from './modules/program-enrollments/program-enrollments.module';
+import { AcademicRecordsModule } from './modules/academic-records/academic-records.module';
 
 @Module({
   imports: [
@@ -145,6 +146,7 @@ import { ProgramEnrollmentsModule } from './modules/program-enrollments/program-
     SubjectsModule,
     AcademicPeriodsModule,
     ProgramEnrollmentsModule,
+    AcademicRecordsModule,
   ],
   controllers: [AppController],
 })

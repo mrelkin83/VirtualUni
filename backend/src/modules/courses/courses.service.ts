@@ -206,6 +206,83 @@ export class CoursesService {
     };
   }
 
+  /**
+   * Grupos del docente autenticado, con la asignatura de catálogo, el periodo,
+   * el código de grupo y el cupo, más los PROGRAMAS DE ORIGEN de sus alumnos:
+   * un grupo puede mezclar estudiantes de varios programas (p. ej.
+   * "Matemáticas I – Grupo A" con alumnos de Sistemas y de Industrial) y el
+   * docente necesita verlo para contextualizar su clase.
+   *
+   * No devuelve notas a propósito: el acta y su cierre son de otro módulo.
+   */
+  async misGrupos(tenantId: string, userId: string) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { userId, tenantId },
+      select: { id: true },
+    });
+    if (!teacher) {
+      throw new NotFoundException('El usuario no tiene ficha de docente');
+    }
+
+    const courses = await this.prisma.course.findMany({
+      where: { tenantId, teacherId: teacher.id },
+      orderBy: [{ createdAt: 'desc' }],
+      include: {
+        subject: { select: { id: true, code: true, name: true } },
+        academicPeriod: {
+          select: { id: true, code: true, name: true, status: true },
+        },
+        _count: { select: { enrollments: true } },
+        enrollments: {
+          select: {
+            student: {
+              select: {
+                programEnrollments: {
+                  select: {
+                    currentLevel: true,
+                    program: { select: { id: true, code: true, name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return courses.map((course) => {
+      // Programas distintos de los alumnos del grupo, con cuántos vienen de cada uno
+      const porPrograma = new Map<
+        string,
+        { id: string; code: string; name: string; estudiantes: number }
+      >();
+
+      for (const matricula of course.enrollments) {
+        for (const inscripcion of matricula.student.programEnrollments) {
+          const programa = inscripcion.program;
+          const acumulado = porPrograma.get(programa.id);
+          if (acumulado) {
+            acumulado.estudiantes++;
+          } else {
+            porPrograma.set(programa.id, { ...programa, estudiantes: 1 });
+          }
+        }
+      }
+
+      // `enrollments` solo se pidió para derivar los programas; no se expone
+      // (llevaría la lista de alumnos sin necesidad).
+      const { enrollments: _e, ...resto } = course;
+
+      return {
+        ...resto,
+        estudiantes: course._count.enrollments,
+        programasDeOrigen: [...porPrograma.values()].sort(
+          (a, b) => b.estudiantes - a.estudiantes,
+        ),
+      };
+    });
+  }
+
   /** El token lleva el id de usuario, no el de estudiante: hay que resolverlo. */
   async estudianteDelUsuario(
     userId: string,

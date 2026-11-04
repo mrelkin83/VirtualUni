@@ -1,11 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 
 @Injectable()
 export class GradesService {
   constructor(private prisma: PrismaService) {}
 
+  /** Con las notas del grupo cerradas (acta en el historial) no se edita nada. */
+  private async asegurarNotasAbiertas(courseId: string, tenantId: string) {
+    const course = await this.prisma.course.findFirst({
+      where: { id: courseId, tenantId },
+      select: { gradesClosedAt: true },
+    });
+    if (course?.gradesClosedAt) {
+      throw new ConflictException(
+        'Las notas de este grupo están cerradas; un administrador debe reabrirlas para editar',
+      );
+    }
+  }
+
   async create(data: any, tenantId: string) {
+    await this.asegurarNotasAbiertas(data.courseId, tenantId);
     return this.prisma.grade.create({
       data: { ...data, tenantId },
       include: {
@@ -73,6 +91,7 @@ export class GradesService {
     if (!grade) {
       throw new NotFoundException('Grade not found');
     }
+    await this.asegurarNotasAbiertas(grade.courseId, tenantId);
 
     return this.prisma.grade.update({
       where: { id },
@@ -88,6 +107,7 @@ export class GradesService {
     if (!grade) {
       throw new NotFoundException('Grade not found');
     }
+    await this.asegurarNotasAbiertas(grade.courseId, tenantId);
 
     await this.prisma.grade.delete({ where: { id } });
     return { message: 'Grade deleted successfully' };
