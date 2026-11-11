@@ -72,6 +72,12 @@ export class TenantMiddleware implements NestMiddleware {
     // Remove port if present
     const hostname = host.split(':')[0];
 
+    // Una IP desnuda no lleva subdominio: '169.58.249.64' daba '169' y se
+    // buscaba un tenant con ese subdominio.
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+      return null;
+    }
+
     // Split by dots
     const parts = hostname.split('.');
 

@@ -23,6 +23,12 @@ COPY . .
 ARG VITE_API_URL=""
 ENV VITE_API_URL=${VITE_API_URL}
 
+# Tenant que usa el frontend cuando el host no puede llevar subdominio (se
+# entra por IP, o por un dominio sin prefijo). Vacio = no hay tenant por
+# defecto y hay que indicarlo con ?tenant=<slug> en la URL.
+ARG VITE_DEFAULT_TENANT=""
+ENV VITE_DEFAULT_TENANT=${VITE_DEFAULT_TENANT}
+
 # Build the application
 RUN npm run build
 

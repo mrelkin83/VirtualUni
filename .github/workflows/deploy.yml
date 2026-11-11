@@ -74,8 +74,11 @@ jobs:
           # el nginx de esta imagen hace proxy de /api/ hacia el backend.
           # Definelo solo si el backend vive en otro dominio (el ORIGEN, sin
           # /api/v1).
+          # VITE_DEFAULT_TENANT: tenant usado cuando se entra por IP o por un
+          # dominio sin subdominio. Vacio = hay que pasar ?tenant=<slug>.
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_DEFAULT_TENANT=${{ secrets.VITE_DEFAULT_TENANT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

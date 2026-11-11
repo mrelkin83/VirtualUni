@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, GraduationCap, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
-import { getSubdomainFromUrl, isValidSubdomain } from '../utils/tenantDetection';
+import { resolveTenantSlug } from '../utils/tenantDetection';
 import { UserRole } from '../types/api.types';
 
 export default function Login() {
@@ -20,15 +20,10 @@ export default function Login() {
 
   // Load tenant on mount
   useEffect(() => {
-    const subdomain = getSubdomainFromUrl();
+    const subdomain = resolveTenantSlug();
 
     if (!subdomain) {
-      setTenantLoadError('No se pudo detectar el tenant. Por favor, accede desde un subdominio válido.');
-      return;
-    }
-
-    if (!isValidSubdomain(subdomain)) {
-      setTenantLoadError('El subdominio no es válido.');
+      setTenantLoadError('No se pudo detectar la institución a la que quieres entrar.');
       return;
     }
 
@@ -114,7 +109,9 @@ export default function Login() {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Error de Configuración</h2>
           <p className="text-gray-600 mb-4">{tenantLoadError}</p>
           <p className="text-sm text-gray-500">
-            Asegúrate de acceder desde un subdominio válido (ej: universidad.localhost:3000)
+            Entra por el subdominio de tu institución (ej: universidad.virtualuni.com) o añade
+            <span className="font-mono"> ?tenant=tu-institucion </span>
+            a la dirección.
           </p>
         </div>
       </div>
