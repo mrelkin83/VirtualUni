@@ -18,6 +18,7 @@ import { bancoPreguntasApi } from '../api/endpoints/question-bank';
 import { plantillasMensajeApi } from '../api/endpoints/message-templates';
 import { temarioApi } from '../api/endpoints/course-topics';
 import { generateStudentDataExcel } from '../utils/excelExport';
+import { comoArreglo } from '../utils/respuestaApi';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import { cursosDocente, estudiantesData, estudiantesDetalleData, tareasData, examenesData, examenesDetalladosData, bancoPreguntasData, modulosCursoData, mensajesData, gruposData, materialesData, carpetasMaterialesData, clasesVivoData } from '../data/teacherMockData';
@@ -152,8 +153,34 @@ export const useTeacherDashboard = () => {
           if (Array.isArray(d)) setPlantillas(d as any);
         }
         if (coursesData.status === "fulfilled") {
-          const data = (coursesData.value as any)?.data;
-          if (Array.isArray(data)) setCursos(data);
+          // GET /courses responde { data, meta } y el cliente lo envuelve otra
+          // vez, asi que `.data` es el sobre y no la lista: Array.isArray daba
+          // false siempre y "Mis Cursos" quedaba vacio aunque el docente
+          // tuviera grupos, dejando el temario fuera de alcance.
+          //
+          // Ademas la vista nacio contra el mock y lee nombre/codigo/color,
+          // mientras el API devuelve name/code y ningun color: sin traducir
+          // los campos las tarjetas salen en blanco. Se conserva el resto del
+          // curso (id uuid, subjectId) porque de ahi cuelgan los materiales.
+          const COLORES = [
+            'bg-blue-500',
+            'bg-green-500',
+            'bg-orange-500',
+            'bg-purple-500',
+            'bg-pink-500',
+            'bg-teal-500',
+          ];
+          setCursos(
+            comoArreglo<any>(coursesData.value).map((c, i) => ({
+              ...c,
+              nombre: c.nombre ?? c.name,
+              codigo: c.codigo ?? c.code,
+              estudiantes: c.estudiantes ?? c._count?.enrollments ?? 0,
+              tareasPendientesRevision: c.tareasPendientesRevision ?? 0,
+              progresoGeneral: c.progresoGeneral ?? 0,
+              color: c.color ?? COLORES[i % COLORES.length],
+            })) as any,
+          );
         }
         if (studentsData.status === 'fulfilled') {
           const data = (studentsData.value as any)?.data;
@@ -228,8 +255,8 @@ export const useTeacherDashboard = () => {
         // veia otra vez el temario de ejemplo. Un "modulo" es un CourseTopic y
         // cada "tema" uno de sus blocks (ver src/api/endpoints/course-topics.ts).
         if (coursesData.status === 'fulfilled') {
-          const cursosReales = (coursesData.value as any)?.data;
-          if (Array.isArray(cursosReales) && cursosReales.length > 0) {
+          const cursosReales = comoArreglo<any>(coursesData.value);
+          if (cursosReales.length > 0) {
             const temarios = await Promise.allSettled(
               cursosReales.map((c: any) => temarioApi.getByCourse(String(c.id))),
             );
