@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, Search, X, UserCog } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, X, UserCog, FolderOpen } from 'lucide-react';
 import {
   asignaturasApi,
   editoresApi,
@@ -10,6 +10,7 @@ import {
 import { teachersApi } from '../../../../api/endpoints/courses';
 import { comoArreglo } from '../../../../utils/respuestaApi';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
+import { MaterialesModal } from './MaterialesModal';
 import { mensajeDeError } from './errores';
 
 export function AsignaturasTab() {
@@ -22,6 +23,7 @@ export function AsignaturasTab() {
   });
   const [usoVisible, setUsoVisible] = useState<Asignatura | null>(null);
   const [editoresDe, setEditoresDe] = useState<Asignatura | null>(null);
+  const [contenidoDe, setContenidoDe] = useState<Asignatura | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['asignaturas', busqueda, area],
@@ -102,6 +104,13 @@ export function AsignaturasTab() {
                 </td>
                 <td className="px-4 py-2 text-right">
                   <button
+                    onClick={() => setContenidoDe(asignatura)}
+                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded"
+                    title="Contenido maestro: videos, PDF y enlaces que heredan todos sus grupos"
+                  >
+                    <FolderOpen size={15} />
+                  </button>
+                  <button
                     onClick={() => setEditoresDe(asignatura)}
                     className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"
                     title="Docentes que pueden editar su contenido maestro"
@@ -152,6 +161,13 @@ export function AsignaturasTab() {
 
       {editoresDe && (
         <EditoresModal asignatura={editoresDe} onClose={() => setEditoresDe(null)} />
+      )}
+
+      {contenidoDe && (
+        <MaterialesModal
+          destino={{ tipo: 'asignatura', id: contenidoDe.id, nombre: contenidoDe.name }}
+          onClose={() => setContenidoDe(null)}
+        />
       )}
     </div>
   );

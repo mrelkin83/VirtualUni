@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, X, Search, ClipboardCheck } from 'lucide-react';
+import { Plus, Trash2, X, Search, ClipboardCheck, FolderOpen } from 'lucide-react';
 import { CierreDeNotasModal } from './CierreDeNotasModal';
+import { MaterialesModal } from './MaterialesModal';
 import { coursesAdminApi, teachersApi } from '../../../../api/endpoints/courses';
 import {
   asignaturasApi,
@@ -38,6 +39,7 @@ export function GruposTab() {
   const [busqueda, setBusqueda] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [cierreDeNotas, setCierreDeNotas] = useState<string | null>(null);
+  const [materialesDe, setMaterialesDe] = useState<GrupoFila | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['grupos', busqueda],
@@ -109,6 +111,14 @@ export function GruposTab() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => setMaterialesDe(grupo)}
+                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
+                    title="Materiales del grupo: videos, PDF, Word, Excel, guías y enlaces"
+                    aria-label={`Materiales de ${grupo.name}`}
+                  >
+                    <FolderOpen size={17} />
+                  </button>
                   {/* El cierre de notas necesita la asignatura del catálogo:
                       el historial académico se guarda por Subject. */}
                   {grupo.subject && (
@@ -154,6 +164,13 @@ export function GruposTab() {
             grupos.find((g) => g.id === cierreDeNotas)?.name ?? 'Grupo'
           }
           onCerrar={() => setCierreDeNotas(null)}
+        />
+      )}
+
+      {materialesDe && (
+        <MaterialesModal
+          destino={{ tipo: 'grupo', id: materialesDe.id, nombre: materialesDe.name }}
+          onClose={() => setMaterialesDe(null)}
         />
       )}
     </div>
