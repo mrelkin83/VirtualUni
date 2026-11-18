@@ -11,7 +11,12 @@ export type MaterialType =
   | 'OTRO';
 
 export interface MaterialCreateDto {
-  courseId: string;
+  // Exactamente uno de los dos: `courseId` lo cuelga del grupo (solo lo ven
+  // sus matriculados) y `subjectId` lo hace contenido maestro de la
+  // asignatura, que heredan todos sus grupos. El backend rechaza con un 400
+  // tanto los dos juntos como ninguno (materials.service.ts:279).
+  courseId?: string;
+  subjectId?: string;
   folderId?: string;
   nombre: string;
   descripcion?: string;
@@ -25,7 +30,9 @@ export interface MaterialCreateDto {
 export type MaterialUpdateDto = Partial<MaterialCreateDto>;
 
 export interface FolderCreateDto {
+  // Igual que en los materiales: del grupo o de la asignatura, no de ambos.
   courseId?: string;
+  subjectId?: string;
   nombre: string;
   descripcion?: string;
   color?: string;
@@ -35,6 +42,8 @@ export type FolderUpdateDto = Partial<FolderCreateDto>;
 
 export interface QueryMaterialsParams {
   courseId?: string;
+  /** Solo el contenido maestro de esta asignatura. */
+  subjectId?: string;
   folderId?: string;
   tipo?: MaterialType;
   search?: string;
