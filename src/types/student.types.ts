@@ -258,6 +258,7 @@ export type StudentSectionType =
   | 'inicio'
   | 'miprograma'
   | 'cursos'
+  | 'materiales'
   | 'tareas'
   | 'examenes'
   | 'calificaciones'

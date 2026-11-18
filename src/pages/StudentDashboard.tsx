@@ -6,6 +6,7 @@ import { StudentHeader } from '../components/student/layout/StudentHeader';
 import { InicioSection } from '../components/student/sections/InicioSection';
 import { MiProgramaSection } from '../components/student/sections/MiProgramaSection';
 import { CursosSection } from '../components/student/sections/CursosSection';
+import { MaterialesSection } from '../components/student/sections/MaterialesSection';
 import { TareasSection } from '../components/student/sections/TareasSection';
 import { CalificacionesSection } from '../components/student/sections/CalificacionesSection';
 import { MensajesSection } from '../components/student/sections/MensajesSection';
@@ -190,6 +191,12 @@ export default function StudentDashboard() {
             setExpandirIdeasClave={setExpandirIdeasClave}
             generarCertificadoCurso={state.generarCertificadoCurso}
           />
+        );
+
+      // Autónoma, igual que MiProgramaSection: pide GET /materials/my
+      case 'materiales':
+        return (
+          <MaterialesSection darkMode={darkMode} card={card} text={text} border={border} />
         );
 
       case 'tareas':
