@@ -5,6 +5,7 @@ import {
   Video,
   Image as ImageIcon,
   Link as LinkIcon,
+  Music,
   File,
   Folder,
   FolderOpen,
@@ -21,8 +22,12 @@ import {
   Clock
 } from 'lucide-react';
 import { Material, CarpetaMaterial } from '../../../types/teacher.types';
-import { uploadsApi } from '../../../api/endpoints/uploads';
+import { uploadsApi, TAMANIO_MAXIMO_MB } from '../../../api/endpoints/uploads';
+import { ACCEPT_MATERIALES, TIPO_UI_POR_API, tipoDeMaterialPorMime } from '../../../utils/materiales';
 import { ContenidoDelGrupoPanel } from './ContenidoDelGrupoPanel';
+
+/** Lo que el modal entrega: un archivo a subir o, si no, una URL externa. */
+export type MaterialNuevo = Omit<Material, 'id'> & { archivo?: File | null };
 
 interface MaterialesSectionProps {
   materiales: Material[];
@@ -31,7 +36,7 @@ interface MaterialesSectionProps {
   card: string;
   text: string;
   border: string;
-  subirMaterial: (material: Omit<Material, 'id'>) => void;
+  subirMaterial: (material: MaterialNuevo) => void;
   eliminarMaterial: (materialId: number) => void;
   editarMaterial: (materialId: number, material: Partial<Material>) => void;
   crearCarpeta: (carpeta: Omit<CarpetaMaterial, 'id'>) => void;
@@ -74,7 +79,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
     return materiales.filter(m => carpeta.materiales.includes(m.id));
   };
 
-  const [nuevoMaterial, setNuevoMaterial] = useState<Omit<Material, 'id'>>({
+  const [nuevoMaterial, setNuevoMaterial] = useState<MaterialNuevo>({
     nombre: '',
     tipo: 'documento',
     url: '',
@@ -85,8 +90,47 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
     tamaño: '',
     duracion: '',
     descargas: 0,
-    vistas: 0
+    vistas: 0,
+    archivo: null
   });
+
+  // Un `<input type="file">` no se puede controlar por valor: para que al
+  // quitar el archivo deje de mostrar su nombre hay que remontarlo, y esta
+  // clave es lo que lo fuerza.
+  const [claveInputArchivo, setClaveInputArchivo] = useState(0);
+
+  const quitarArchivo = () => {
+    setNuevoMaterial((prev) => ({ ...prev, archivo: null, tamaño: '' }));
+    setClaveInputArchivo((n) => n + 1);
+  };
+
+  /**
+   * Al elegir un archivo se deduce el tipo de su MIME y se rellena el nombre
+   * si estaba vacío. La URL queda en blanco a propósito: la definitiva es la
+   * que devuelve el servidor al subirlo, no una ruta local.
+   */
+  const handleElegirArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > TAMANIO_MAXIMO_MB * 1024 * 1024) {
+      alert(
+        `"${file.name}" pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo es ` +
+          `${TAMANIO_MAXIMO_MB} MB. Para un video grande, súbelo a un hosting y agrégalo como enlace.`
+      );
+      e.target.value = '';
+      return;
+    }
+
+    setNuevoMaterial((prev) => ({
+      ...prev,
+      archivo: file,
+      url: '',
+      nombre: prev.nombre || file.name.replace(/\.[^.]+$/, ''),
+      tipo: (TIPO_UI_POR_API[tipoDeMaterialPorMime(file.type)] || 'otro') as Material['tipo'],
+      tamaño: `${(file.size / 1024 / 1024).toFixed(2)} MB`
+    }));
+  };
 
   const [nuevaCarpeta, setNuevaCarpeta] = useState({
     nombre: '',
@@ -116,6 +160,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
         return <FileText className="text-orange-500" size={24} />;
       case 'imagen':
         return <ImageIcon className="text-green-500" size={24} />;
+      case 'audio':
+        return <Music className="text-pink-500" size={24} />;
       case 'enlace':
         return <LinkIcon className="text-indigo-500" size={24} />;
       default:
@@ -135,6 +181,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
       case 'imagen':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'audio':
+        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
       case 'enlace':
         return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
       default:
@@ -143,8 +191,14 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   };
 
   const handleSubirMaterial = () => {
-    if (!nuevoMaterial.nombre || !nuevoMaterial.curso || !nuevoMaterial.url) {
-      alert('Por favor completa todos los campos obligatorios (nombre, curso, URL)');
+    if (!nuevoMaterial.nombre || !nuevoMaterial.curso) {
+      alert('Por favor completa los campos obligatorios (nombre y curso)');
+      return;
+    }
+
+    // Un archivo o un enlace, cualquiera de los dos sirve; ninguno, no.
+    if (!nuevoMaterial.archivo && !nuevoMaterial.url) {
+      alert('Elige un archivo para subir o indica el enlace del material.');
       return;
     }
 
@@ -161,8 +215,10 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       tamaño: '',
       duracion: '',
       descargas: 0,
-      vistas: 0
+      vistas: 0,
+      archivo: null
     });
+    setClaveInputArchivo((n) => n + 1);
   };
 
   const handleCrearCarpeta = () => {
@@ -589,6 +645,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                     <option value="documento">Documento</option>
                     <option value="presentacion">Presentación</option>
                     <option value="imagen">Imagen</option>
+                    <option value="audio">Audio</option>
                     <option value="enlace">Enlace externo</option>
                     <option value="otro">Otro</option>
                   </select>
@@ -612,16 +669,49 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>URL / Enlace del Material *</label>
+                <label className={`block ${text} mb-2 font-medium`}>Archivo</label>
+                <input
+                  key={claveInputArchivo}
+                  type="file"
+                  accept={ACCEPT_MATERIALES}
+                  onChange={handleElegirArchivo}
+                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} text-sm`}
+                />
+                {nuevoMaterial.archivo ? (
+                  <div className="flex items-center justify-between gap-2 mt-2">
+                    <p className="text-green-600 text-xs">
+                      Se subirá <strong>{nuevoMaterial.archivo.name}</strong> ({nuevoMaterial.tamaño})
+                    </p>
+                    <button
+                      type="button"
+                      onClick={quitarArchivo}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <p className={`${text} opacity-60 text-xs mt-1`}>
+                    PDF, Word, PowerPoint, Excel, imagen, audio o video, hasta {TAMANIO_MAXIMO_MB} MB.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className={`block ${text} mb-2 font-medium`}>
+                  ...o enlace externo {!nuevoMaterial.archivo && '*'}
+                </label>
                 <input
                   type="url"
                   value={nuevoMaterial.url}
                   onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, url: e.target.value })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  disabled={!!nuevoMaterial.archivo}
+                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} disabled:opacity-50`}
                   placeholder="https://..."
                 />
                 <p className={`${text} opacity-60 text-xs mt-1`}>
-                  En un caso real, aquí se subiría el archivo al servidor
+                  Para YouTube, Vimeo, Drive o cualquier material que ya viva fuera de la
+                  plataforma. Si subes un archivo, este campo se ignora.
                 </p>
               </div>
 

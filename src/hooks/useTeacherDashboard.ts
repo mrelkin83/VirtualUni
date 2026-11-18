@@ -976,7 +976,9 @@ export const useTeacherDashboard = () => {
     DOCUMENTO: 'pdf',
     VIDEO: 'video',
     ENLACE: 'enlace',
-    PRESENTACION: 'ppt',
+    // 'ppt' no es un valor de Material['tipo']: la presentación salía con el
+    // icono genérico y no la encontraba el filtro por tipo.
+    PRESENTACION: 'presentacion',
     IMAGEN: 'imagen',
     AUDIO: 'audio',
     OTRO: 'otro',

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { BookOpen, Settings, Plus, Edit3, Trash2, Upload, Eye, Download, FileText, Video, ClipboardCheck, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { BookOpen, Settings, Plus, Edit3, Trash2, Upload, Eye, FileText, Video, ClipboardCheck, X } from 'lucide-react';
 import { GestionMaterialesModal } from '../modals/GestionMaterialesModal';
 import { MisGruposPanel } from './MisGruposPanel';
 import { uploadsApi } from '../../../api/endpoints/uploads';
 import { materialsApi, MaterialType } from '../../../api/endpoints/materials';
+import { ETIQUETA_TIPO, formatearKb, marcaDeTema } from '../../../utils/materiales';
+import { comoArreglo } from '../../../utils/respuestaApi';
 
-const TIPO_MATERIAL_BACKEND: Record<string, MaterialType> = {
-  pdf: 'DOCUMENTO',
-  documento: 'DOCUMENTO',
-  video: 'VIDEO',
-  imagen: 'IMAGEN',
-  enlace: 'ENLACE',
-};
+interface MaterialDeTema {
+  id: string;
+  nombre: string;
+  descripcion?: string | null;
+  tipo: MaterialType;
+  url: string;
+  tamanioKb?: number | null;
+}
 
 interface CursosSectionProps {
   cursos: any[];
@@ -67,6 +71,19 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
     duracion: '',
     descripcion: ''
   });
+
+  // Los materiales viven en el backend, no en el temario: `tema.materiales`
+  // siempre llegaba vacio (useTeacherDashboard lo fija a [] al mapear los
+  // blocks), asi que el contador decia 0 aunque el docente ya hubiera subido.
+  const courseId = cursoDetalle?.id ? String(cursoDetalle.id) : '';
+  const { data: materialesRes } = useQuery({
+    queryKey: ['materiales-grupo', courseId],
+    queryFn: () => materialsApi.getAll({ courseId }),
+    enabled: !!courseId,
+  });
+  const materialesDelCurso: MaterialDeTema[] = comoArreglo((materialesRes as any)?.data);
+  const materialesDeTema = (titulo: string) =>
+    materialesDelCurso.filter((m) => (m.descripcion ?? '') === marcaDeTema(titulo));
 
   const handleCrearModulo = () => {
     if (!nuevoModulo.titulo || !nuevoModulo.descripcion) {
@@ -223,7 +240,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                             <span>{modulo.temas.length} tema{modulo.temas.length !== 1 ? 's' : ''}</span>
                             <span>•</span>
                             <span>
-                              {modulo.temas.reduce((acc: number, t: any) => acc + t.materiales.length, 0)} material{modulo.temas.reduce((acc: number, t: any) => acc + t.materiales.length, 0) !== 1 ? 'es' : ''}
+                              {modulo.temas.reduce((acc: number, t: any) => acc + materialesDeTema(t.titulo).length, 0)} material{modulo.temas.reduce((acc: number, t: any) => acc + materialesDeTema(t.titulo).length, 0) !== 1 ? 'es' : ''}
                             </span>
                           </div>
                         </div>
@@ -278,7 +295,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                     <div className="flex gap-3 text-xs text-gray-500 mt-1">
                                       <span>{tema.tipo === 'teoria' ? '📚 Teoría' : '💻 Práctica'}</span>
                                       <span>⏱️ {tema.duracion}</span>
-                                      <span>{tema.materiales.length} material{tema.materiales.length !== 1 ? 'es' : ''}</span>
+                                      <span>{materialesDeTema(tema.titulo).length} material{materialesDeTema(tema.titulo).length !== 1 ? 'es' : ''}</span>
                                     </div>
                                     {tema.descripcion && (
                                       <p className="text-xs text-gray-500 mt-1">{tema.descripcion}</p>
@@ -310,23 +327,32 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                 </div>
 
                                 {/* Materiales del Tema */}
-                                {tema.materiales.length > 0 && (
+                                {materialesDeTema(tema.titulo).length > 0 && (
                                   <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded p-2 mt-2 space-y-1`}>
-                                    {tema.materiales.map((material: any) => (
+                                    {materialesDeTema(tema.titulo).map((material) => (
                                       <div key={material.id} className="flex items-center justify-between text-sm">
-                                        <div className="flex items-center gap-2">
-                                          {material.tipo === 'pdf' && <FileText className="text-red-600" size={14} />}
-                                          {material.tipo === 'video' && <Video className="text-purple-600" size={14} />}
-                                          {material.tipo === 'documento' && <FileText className="text-blue-600" size={14} />}
-                                          <span>{material.nombre}</span>
-                                          {material.tamaño && <span className="text-xs text-gray-400">({material.tamaño})</span>}
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          {material.tipo === 'VIDEO' ? (
+                                            <Video className="text-purple-600 shrink-0" size={14} />
+                                          ) : (
+                                            <FileText className="text-blue-600 shrink-0" size={14} />
+                                          )}
+                                          <span className="truncate">{material.nombre}</span>
+                                          <span className="text-xs text-gray-400 shrink-0">
+                                            ({ETIQUETA_TIPO[material.tipo]} · {formatearKb(material.tamanioKb)})
+                                          </span>
                                         </div>
-                                        <div className="flex gap-1">
-                                          <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
+                                        <div className="flex gap-1 shrink-0">
+                                          <button
+                                            onClick={() =>
+                                              uploadsApi
+                                                .abrir(material.url)
+                                                .catch(() => alert('No se pudo abrir el material.'))
+                                            }
+                                            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                                            title="Abrir"
+                                          >
                                             <Eye size={14} />
-                                          </button>
-                                          <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
-                                            <Download size={14} />
                                           </button>
                                         </div>
                                       </div>
@@ -581,42 +607,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             tema={modalMateriales}
             isOpen={!!modalMateriales}
             onClose={() => setModalMateriales(null)}
-            onSave={async (_temaId: number, materiales: any[]) => {
-              // El modelo de datos actual asocia materiales al curso, no a un
-              // tema puntual del temario (Material no tiene topicId): se
-              // suben al curso y se deja el tema en la descripción para no
-              // perder esa referencia. Ver docs/DECISIONES_PENDIENTES.md para
-              // el mismo tipo de límite en otros módulos.
-              try {
-                for (const material of materiales) {
-                  let url = material.url;
-                  let formato: string | undefined;
-                  let tamanioKb: number | undefined;
-
-                  if (material.archivo instanceof File) {
-                    const { data: archivo } = await uploadsApi.subir(material.archivo, 'materiales');
-                    url = archivo.url;
-                    formato = archivo.formato;
-                    tamanioKb = archivo.tamanioKb;
-                  }
-
-                  if (!url) continue;
-
-                  await materialsApi.create({
-                    courseId: String(cursoDetalle.id),
-                    nombre: material.nombre,
-                    descripcion: modalMateriales?.titulo ? `Tema: ${modalMateriales.titulo}` : undefined,
-                    tipo: TIPO_MATERIAL_BACKEND[material.tipo] || 'OTRO',
-                    url,
-                    formato,
-                    tamanioKb,
-                  });
-                }
-                setModalMateriales(null);
-              } catch (err: any) {
-                alert('No se pudieron guardar los materiales: ' + (err?.message || 'error de conexión'));
-              }
-            }}
+            courseId={courseId}
             darkMode={darkMode}
             card={card}
             text={text}

@@ -159,7 +159,9 @@ export interface GrupoDetalle {
 export interface Material {
   id: number;
   nombre: string;
-  tipo: 'pdf' | 'video' | 'documento' | 'presentacion' | 'imagen' | 'enlace' | 'otro';
+  // 'audio' existe porque el backend acepta mp3/wav (MaterialType.AUDIO) y el
+  // selector de subida deduce el tipo del MIME del archivo elegido.
+  tipo: 'pdf' | 'video' | 'documento' | 'presentacion' | 'imagen' | 'enlace' | 'audio' | 'otro';
   url: string;
   tamaño?: string;
   duracion?: string;
