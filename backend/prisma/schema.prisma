@@ -2253,6 +2253,23 @@ model TenantSite {
   @@map("tenant_sites")
 }
 
+// Llaves de Wompi DE LA INSTITUCIÓN para cobrar su propia inscripción (§7).
+// Las llaves sensibles van cifradas con AES-256-GCM (clave maestra en
+// PAYMENTS_MASTER_KEY) y NUNCA vuelven al frontend: solo "configurada sí/no".
+// Separado por completo del billing de suscripciones de la plataforma.
+model TenantPaymentConfig {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique @map("tenant_id")
+  publicKey       String?  @map("public_key") // pub_test_/pub_prod_: no es secreta
+  integrityKeyEnc String?  @map("integrity_key_enc")
+  eventsKeyEnc    String?  @map("events_key_enc")
+  testMode        Boolean  @default(true) @map("test_mode")
+  active          Boolean  @default(false)
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("tenant_payment_configs")
+}
+
 // Convocatoria de inscripción a un programa en un periodo, con su pensum.
 model AdmissionCall {
   id               String              @id @default(uuid())

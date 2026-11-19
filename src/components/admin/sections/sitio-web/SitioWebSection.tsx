@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, Globe, Plus, Save, Trash2, Upload } from 'lucide-react';
-import { sitioWebApi, SitioConfig, HeroSlide } from '../../../../api/endpoints/sitio-web';
+import { sitioWebApi, wompiTenantApi, SitioConfig, HeroSlide } from '../../../../api/endpoints/sitio-web';
 import { uploadsApi } from '../../../../api/endpoints/uploads';
 import { mensajeDeError } from '../academico/errores';
 
@@ -379,6 +379,8 @@ export function SitioWebSection() {
         />
       </section>
 
+      <TarjetaWompi />
+
       {/* ------------------------------------------------ política de datos */}
       <section className="bg-white rounded-lg shadow p-5 space-y-4">
         <h3 className="font-bold text-gray-900">Política de tratamiento de datos</h3>
@@ -402,5 +404,84 @@ export function SitioWebSection() {
         </p>
       </section>
     </div>
+  );
+}
+
+/**
+ * Pagos en línea con la cuenta Wompi DE LA INSTITUCIÓN (§7). Las llaves son
+ * write-only: se cifran en el servidor y aquí solo se ve "configurada".
+ */
+function TarjetaWompi() {
+  const queryClient = useQueryClient();
+  const { data: estado } = useQuery({ queryKey: ['wompi-tenant'], queryFn: wompiTenantApi.estado });
+  const [publicKey, setPublicKey] = useState('');
+  const [integrityKey, setIntegrityKey] = useState('');
+  const [eventsKey, setEventsKey] = useState('');
+
+  const guardar = useMutation({
+    mutationFn: (extra: { active?: boolean } = {}) =>
+      wompiTenantApi.guardar({
+        publicKey: publicKey || undefined,
+        integrityKey: integrityKey || undefined,
+        eventsKey: eventsKey || undefined,
+        ...extra,
+      }),
+    onSuccess: () => {
+      setIntegrityKey(''); setEventsKey('');
+      queryClient.invalidateQueries({ queryKey: ['wompi-tenant'] });
+    },
+    onError: (e) => alert(mensajeDeError(e)),
+  });
+
+  const campo = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
+
+  return (
+    <section className="bg-white rounded-lg shadow p-5 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="font-bold text-gray-900">Pagos en línea (Wompi de la institución)</h3>
+        {estado && (
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${estado.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+            {estado.active ? 'Activo' : 'Inactivo'}
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-gray-500">
+        El dinero de la inscripción llega directo a la cuenta Wompi de la institución. Las llaves
+        secretas se cifran en el servidor y nunca se vuelven a mostrar.
+      </p>
+      <div className="grid sm:grid-cols-3 gap-3">
+        <input
+          placeholder={estado?.publicKey ? `Pública: ${estado.publicKey.slice(0, 18)}…` : 'Llave pública (pub_test_/pub_prod_)'}
+          value={publicKey} onChange={(e) => setPublicKey(e.target.value.trim())} className={campo}
+        />
+        <input
+          type="password"
+          placeholder={estado?.integrityConfigurada ? 'Integridad: configurada ✔' : 'Llave de integridad'}
+          value={integrityKey} onChange={(e) => setIntegrityKey(e.target.value.trim())} className={campo}
+        />
+        <input
+          type="password"
+          placeholder={estado?.eventsConfigurada ? 'Eventos: configurada ✔' : 'Llave de eventos (webhook)'}
+          value={eventsKey} onChange={(e) => setEventsKey(e.target.value.trim())} className={campo}
+        />
+      </div>
+      <p className="text-xs text-gray-500">
+        URL del webhook para el panel de Wompi:
+        <code className="bg-gray-100 rounded px-1.5 py-0.5 ml-1">{window.location.origin}/public/payments/wompi/&lt;slug-institución&gt;</code>
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => guardar.mutate({})}
+          disabled={guardar.isPending || (!publicKey && !integrityKey && !eventsKey)}
+          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold disabled:opacity-50"
+        >Guardar llaves</button>
+        {estado && (
+          <button
+            onClick={() => guardar.mutate({ active: !estado.active })}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold text-white ${estado.active ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+          >{estado.active ? 'Desactivar' : 'Activar pagos en línea'}</button>
+        )}
+      </div>
+    </section>
   );
 }

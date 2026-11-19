@@ -55,3 +55,24 @@ export const sitioWebApi = {
   guardar: async (data: Partial<SitioConfig>) =>
     (await apiClient.put<SitioConfig>(BASE, data)).data,
 };
+
+// ----- Wompi por institución (las llaves son write-only)
+
+export interface WompiEstado {
+  publicKey: string | null;
+  integrityConfigurada: boolean;
+  eventsConfigurada: boolean;
+  testMode: boolean;
+  active: boolean;
+  urlWebhook: string;
+}
+
+const WOMPI = '/api/v1/admissions/pagos-wompi';
+
+export const wompiTenantApi = {
+  estado: async () => (await apiClient.get<WompiEstado>(WOMPI)).data,
+  guardar: async (data: {
+    publicKey?: string; integrityKey?: string; eventsKey?: string;
+    testMode?: boolean; active?: boolean;
+  }) => (await apiClient.put<WompiEstado>(WOMPI, data)).data,
+};

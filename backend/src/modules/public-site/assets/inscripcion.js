@@ -357,11 +357,22 @@
             : '<p class="mt-1">La institución te indicará cómo pagar.</p>') +
           (s.status === 'PAGO_EN_VERIFICACION'
             ? '<p class="mt-2 font-semibold">✔ Comprobante recibido: estamos verificando tu pago.</p>'
-            : '<label class="mt-2 inline-block font-semibold underline cursor-pointer">Subir comprobante (PDF o foto)' +
+            : (s.pagoEnLinea
+                ? '<button type="button" data-wompi data-code="' + s.code + '" class="mt-2 mr-3 inline-block rounded-lg px-4 py-2 text-white font-bold" style="background:var(--c1)">Pagar en línea</button>'
+                : '') +
+              '<label class="mt-2 inline-block font-semibold underline cursor-pointer">Subir comprobante (PDF o foto)' +
               '<input type="file" data-comprobante data-code="' + s.code + '" accept="application/pdf,image/jpeg,image/png" class="hidden" /></label>') +
           '</div>'
         : '') +
       '<ul class="mt-3 text-sm divide-y divide-gray-100">' + docs + '</ul>';
+    el.addEventListener('click', function (e) {
+      var btn = e.target;
+      if (!btn.hasAttribute || !btn.hasAttribute('data-wompi')) return;
+      btn.disabled = true;
+      api('/borrador/' + btn.getAttribute('data-code') + '/wompi')
+        .then(function (r) { location.href = r.url; })
+        .catch(function (err) { alert(err.message); btn.disabled = false; });
+    });
     el.addEventListener('change', function (e) {
       var input = e.target;
       if (!input.hasAttribute || !input.files || !input.files[0]) return;

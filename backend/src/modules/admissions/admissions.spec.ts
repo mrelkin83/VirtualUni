@@ -1,6 +1,8 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { AdmissionsService } from './admissions.service';
 import { PublicCatalogService } from '../public-site/public-catalog.service';
+import { PagosWompiService, WompiWebhookPayload } from './pagos-wompi.service';
 
 /**
  * Fase 3 — inscripciones. Protege las reglas que no cubre el e2e manual:
@@ -139,6 +141,91 @@ describe('admisión (Fase 4)', () => {
   it('confirmar un pago ya confirmado → rechazo (idempotencia)', async () => {
     prisma.application.findFirst.mockResolvedValue({ id: 'a1', tenantId: 't1', status: 'PAGADA', paidAt: new Date() });
     await expect(servicio.confirmarPago('t1', 'a1', undefined, 'admin1')).rejects.toThrow(/ya estaba confirmado/);
+  });
+});
+
+describe('Wompi por institución (Fase 5)', () => {
+  const prismaW = () => ({
+    tenant: { findUnique: jest.fn() },
+    tenantPaymentConfig: { findUnique: jest.fn() },
+    application: { findFirst: jest.fn(), update: jest.fn() },
+    applicationDocument: { count: jest.fn() },
+    applicationEvent: { create: jest.fn() },
+  });
+  let prisma: ReturnType<typeof prismaW>;
+  let servicio: PagosWompiService;
+
+  beforeEach(() => {
+    prisma = prismaW();
+    servicio = new PagosWompiService(prisma as never, {} as never);
+    process.env.PAYMENTS_MASTER_KEY = 'clave-maestra-de-prueba';
+  });
+
+  it('cifra y descifra las llaves (AES-256-GCM) de ida y vuelta', () => {
+    const secreto = 'test_events_abc123';
+    const empaquetado = servicio.cifrar(secreto);
+    expect(empaquetado).not.toContain(secreto);
+    expect(servicio.descifrar(empaquetado)).toBe(secreto);
+  });
+
+  // Vector calculado A MANO (exigencia de billing-regression-check): el test
+  // no reutiliza la lógica del servicio para derivar el valor esperado.
+  const EVENTS_KEY = 'ev_secreto';
+  const payloadValido = (): WompiWebhookPayload => {
+    const tx = { id: 'tx-1', status: 'APPROVED', reference: 'INSW-app9', amount_in_cents: 5000000 };
+    const timestamp = 1700000000;
+    const cadena = `${tx.id}${tx.status}${tx.amount_in_cents}${timestamp}${EVENTS_KEY}`;
+    return {
+      event: 'transaction.updated',
+      data: { transaction: tx },
+      signature: {
+        properties: ['transaction.id', 'transaction.status', 'transaction.amount_in_cents'],
+        checksum: createHash('sha256').update(cadena).digest('hex').toUpperCase(),
+        timestamp,
+      },
+    };
+  };
+
+  it('acepta el checksum correcto (rutas completas desde payload.data, case-insensitive)', () => {
+    expect(servicio.verificarChecksum(payloadValido(), EVENTS_KEY)).toBe(true);
+  });
+
+  it('rechaza un checksum alterado y una llave de eventos ajena', () => {
+    const p = payloadValido();
+    expect(servicio.verificarChecksum(p, 'otra-llave')).toBe(false);
+    p.signature.checksum = 'f'.repeat(64);
+    expect(servicio.verificarChecksum(p, EVENTS_KEY)).toBe(false);
+  });
+
+  it('webhook con firma inválida → excepción (status no-2xx para que Wompi reintente)', async () => {
+    prisma.tenant.findUnique.mockResolvedValue({ id: 't1' });
+    prisma.tenantPaymentConfig.findUnique.mockResolvedValue({ eventsKeyEnc: servicio.cifrar(EVENTS_KEY) });
+    const p = payloadValido();
+    p.signature.checksum = 'a'.repeat(64);
+    await expect(servicio.procesarWebhook('demo', p)).rejects.toThrow(BadRequestException);
+    expect(prisma.application.update).not.toHaveBeenCalled();
+  });
+
+  it('idempotencia: el mismo transaction.id repetido no vuelve a marcar nada', async () => {
+    prisma.tenant.findUnique.mockResolvedValue({ id: 't1' });
+    prisma.tenantPaymentConfig.findUnique.mockResolvedValue({ eventsKeyEnc: servicio.cifrar(EVENTS_KEY) });
+    prisma.application.findFirst.mockResolvedValue({
+      id: 'app9', paidAt: new Date(), paymentRef: 'tx-1', call: { applicationFee: 50000 },
+    });
+    const r = await servicio.procesarWebhook('demo', payloadValido());
+    expect(r).toMatchObject({ received: true, duplicated: true });
+    expect(prisma.application.update).not.toHaveBeenCalled();
+  });
+
+  it('un monto distinto al de la convocatoria no marca el pago', async () => {
+    prisma.tenant.findUnique.mockResolvedValue({ id: 't1' });
+    prisma.tenantPaymentConfig.findUnique.mockResolvedValue({ eventsKeyEnc: servicio.cifrar(EVENTS_KEY) });
+    prisma.application.findFirst.mockResolvedValue({
+      id: 'app9', paidAt: null, paymentRef: null, call: { applicationFee: 99999 }, // esperado 9 999 900
+    });
+    const r = await servicio.procesarWebhook('demo', payloadValido());
+    expect(r).toMatchObject({ received: true, ignored: true });
+    expect(prisma.application.update).not.toHaveBeenCalled();
   });
 });
 

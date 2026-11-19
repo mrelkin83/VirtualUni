@@ -571,6 +571,11 @@ export class AdmissionsService {
       where: { tenantId },
       select: { paymentInstructions: true },
     });
+    const wompi = await this.prisma.tenantPaymentConfig.findUnique({
+      where: { tenantId },
+      select: { active: true, publicKey: true, integrityKeyEnc: true, eventsKeyEnc: true },
+    });
+    const pagoEnLinea = !!(wompi?.active && wompi.publicKey && wompi.integrityKeyEnc && wompi.eventsKeyEnc);
     const apps = await this.prisma.application.findMany({
       where: { tenantId, applicant: { email }, status: { not: 'INTERESADO' } },
       orderBy: { createdAt: 'desc' },
@@ -594,6 +599,7 @@ export class AdmissionsService {
           ? site?.paymentInstructions ?? null
           : null,
       comprobanteSubido: app.documents.some((d) => d.requiredDocId === null),
+      pagoEnLinea: pagoEnLinea && app.status === 'PAGO_PENDIENTE',
       submittedAt: app.submittedAt,
       documentos: (app.call?.requiredDocuments ?? []).map((d) => {
         const subido = app.documents.find((x) => x.requiredDocId === d.id);

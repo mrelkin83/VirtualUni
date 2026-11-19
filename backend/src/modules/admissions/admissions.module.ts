@@ -7,6 +7,12 @@ import { ArchivosAdmisionService } from './archivos.service';
 import { AspiranteController, ContactoController } from './aspirante.controller';
 import { AdmissionsRenderController } from './admissions-render.controller';
 import { AdmissionsAdminController } from './admissions-admin.controller';
+import { PagosWompiService } from './pagos-wompi.service';
+import {
+  PagosWompiAdminController,
+  PagosWompiAspiranteController,
+  PagosWompiWebhookController,
+} from './pagos-wompi.controller';
 
 /**
  * Inscripciones en línea (§6). Regla API-first: toda la lógica vive en
@@ -16,8 +22,16 @@ import { AdmissionsAdminController } from './admissions-admin.controller';
  */
 @Module({
   imports: [PrismaModule, PublicSiteModule],
-  controllers: [AspiranteController, ContactoController, AdmissionsRenderController, AdmissionsAdminController],
-  providers: [AdmissionsService, MailService, ArchivosAdmisionService],
+  controllers: [
+    AspiranteController,
+    ContactoController,
+    AdmissionsRenderController,
+    AdmissionsAdminController,
+    PagosWompiAdminController,
+    PagosWompiAspiranteController,
+    PagosWompiWebhookController,
+  ],
+  providers: [AdmissionsService, MailService, ArchivosAdmisionService, PagosWompiService],
   exports: [AdmissionsService],
 })
 export class AdmissionsModule {}
