@@ -3,8 +3,16 @@
 (function () {
   'use strict';
 
+  // Dentro del widget (iframe de otro origen) el navegador no entrega la
+  // cookie SameSite: la sesión viaja por cabecera con el token del borrador.
+  var tokenSesion = null;
+
   var api = function (ruta, opciones) {
-    return fetch('/aspirante/api' + ruta, Object.assign({ credentials: 'same-origin' }, opciones || {})).then(
+    var o = Object.assign({ credentials: 'same-origin' }, opciones || {});
+    if (tokenSesion) {
+      o.headers = Object.assign({}, o.headers, { 'X-Asp-Session': tokenSesion });
+    }
+    return fetch('/aspirante/api' + ruta, o).then(
       function (r) {
         return r.json().catch(function () { return {}; }).then(function (cuerpo) {
           if (!r.ok) {
@@ -72,6 +80,9 @@
       });
       error(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      try {
+        if (window.virtualuniEmit) window.virtualuniEmit('step', { paso: String(n) });
+      } catch (e) { /* no-op */ }
     }
 
     // Menor de edad → bloque del acudiente (fuera de colegio, donde ya es fijo)
@@ -124,6 +135,8 @@
         phone: valor('phone'),
         birthDate: valor('birthDate'),
         city: valor('city'),
+        // La convocatoria puede exigir escolaridad desde el paso 1 (ETDH).
+        previousEducation: valor('previousEducation'),
         targetLevel: valor('targetLevel') ? Number(valor('targetLevel')) : undefined,
         guardian: requiereAcudiente ? acudiente() : undefined,
         guardianConsent: requiereAcudiente ? !!valor('guardianConsent') : undefined,
@@ -137,6 +150,7 @@
         body: JSON.stringify(cuerpo),
       })
         .then(function (r) {
+          if (r.sessionToken) tokenSesion = r.sessionToken;
           estado.code = r.code;
           estado.docs = r.requiredDocuments;
           estado.datos = cuerpo;
@@ -188,6 +202,7 @@
       var xhr = new XMLHttpRequest();
       xhr.open('POST', '/aspirante/api/borrador/' + estado.code + '/documentos/' + doc.id);
       xhr.withCredentials = true;
+      if (tokenSesion) xhr.setRequestHeader('X-Asp-Session', tokenSesion);
       xhr.upload.onprogress = function (e) {
         if (e.lengthComputable) barra.value = Math.round((e.loaded / e.total) * 100);
       };
@@ -242,8 +257,16 @@
         .then(function () { btn.disabled = false; });
     }
 
+    /** Hacia la página madre cuando corre dentro del widget (§13.2). */
+    function emitir(tipo, datos) {
+      try {
+        if (window.virtualuniEmit) window.virtualuniEmit(tipo, datos);
+      } catch (e) { /* nunca romper el flujo */ }
+    }
+
     /** Evento de conversión al ENVIAR la solicitud (§3). */
     function conversion(code) {
+      emitir('application_submitted', { code: code });
       var ga4 = form.getAttribute('data-ga4');
       var ads = form.getAttribute('data-ads');
       try {

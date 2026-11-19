@@ -129,3 +129,50 @@ Seed idempotente `backend/prisma/seed-sitio-web.ts`:
 admin@etdhdemo.com/Admin123!), `colegiodemo` (preescolar–11° con cupos por
 grado y acudiente; admin@colegiodemo.com/Admin123!). En dev:
 `http://<slug>.localhost:4000/`.
+
+## Fase 7 — Integración con webs propias (§13)
+
+Tres niveles sobre los MISMOS servicios de admisiones (API-first):
+
+**Nivel 1 — Enlaces y QR**: panel Integraciones genera enlaces listos (oferta,
+estado, validación) con `utm_source` y su QR. `siteMode=ADMISSIONS_ONLY`
+apaga la portada y deja solo /programas, /inscripcion, /aspirante y /validar
+con el logo apuntando a `externalWebsiteUrl`.
+
+**Nivel 2 — Widget**: `<div data-virtualuni="inscripcion|oferta|programa|
+estado|validar">` + `<script src="https://<host-del-tenant>/embed.js">`.
+Iframe a `/embed/*` (mismas vistas, layout sin cromo), altura automática y
+eventos reenviados a la página madre como CustomEvent
+(`virtualuni:application_submitted` con el código, `virtualuni:step`). Solo
+carga con `enableEmbed` y la CSP `frame-ancestors` se arma con la lista
+blanca del tenant: fuera de ella el navegador bloquea el iframe (verificado
+en vivo desde dos orígenes, uno autorizado y uno no). En iframe de tercer
+origen la cookie SameSite no viaja: la sesión del asistente va además por
+cabecera `X-Asp-Session` con el token firmado que devuelve el borrador.
+
+**Nivel 3 — API `/public/v1`** (docs en `/public/docs`, OpenAPI propia):
+llaves por tenant (`pk_`/`sk_` × `live`/`test`, hash en BD, completas UNA
+vez, rotar/revocar), tenant resuelto SOLO por la llave, `sk_` con Origin de
+navegador rechazada, `pk_` solo lectura y limitada a sus orígenes (CORS),
+scopes por endpoint, `Idempotency-Key` obligatoria en POST (misma respuesta
+24 h), límites con cabeceras `RateLimit-*`, paginación por cursor, errores
+`{error:{code,message}}`. Endpoints: programs, admission-calls (con cupos y
+documentos), applications (POST exige la constancia `consent` — la
+institución la recoge y responde por ella —, acepta `externalId` y `utm`;
+GET con `updatedSince` para sincronizar), documents, leads,
+certificates/verify. Las llaves `*_test_` operan datos `isTest` que no tocan
+bandeja ni cupos.
+
+**Webhooks salientes** (§13.4): endpoints por tenant (solo HTTPS, SSRF
+bloqueado al crear y al enviar), secreto HMAC mostrado una vez, firma
+`VirtualUni-Signature: t=<epoch>,v1=hmac(secret, t.cuerpo)` (verificada a
+mano en la prueba), dispatcher que consume el outbox cada 15 s, reintentos
+con espera creciente (~24 h) y desactivación tras fallos seguidos, evento de
+prueba y reenvío manual desde el panel.
+
+**Validación de certificados** (§13.5): al EMITIR un certificado se sella un
+código no adivinable; `/validar/:codigo` (página y widget) y la API muestran
+lo mínimo (titular, tipo, fecha, estado) con respuesta genérica si no existe.
+
+**Flags de plan** (§13.7): `Tenant.enableEmbed` / `enablePublicApi`; qué plan
+incluye cada nivel queda anotado como decisión comercial pendiente.

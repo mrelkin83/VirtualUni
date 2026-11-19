@@ -92,18 +92,24 @@ export class AdmissionsService {
     return `${expMs}.${Buffer.from(email.toLowerCase()).toString('base64url')}.${firma}`;
   }
 
-  abrirSesion(res: Response, tenantId: string, email: string) {
+  abrirSesion(res: Response, tenantId: string, email: string): string {
     const exp = Date.now() + 24 * 3600_000;
-    res.cookie('vu_asp', this.firmarSesion(tenantId, email, exp), {
+    const token = this.firmarSesion(tenantId, email, exp);
+    res.cookie('vu_asp', token, {
       maxAge: 24 * 3600_000,
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
     });
+    return token;
   }
 
   emailDeSesion(req: Request, tenantId: string): string | null {
-    const crudo = /(?:^|;\s*)vu_asp=([^;]+)/.exec(req.headers.cookie || '')?.[1];
+    // Cookie (sitio propio) o cabecera X-Asp-Session (widget en iframe de
+    // tercer origen, donde el navegador no entrega cookies SameSite=Lax).
+    const crudo =
+      /(?:^|;\s*)vu_asp=([^;]+)/.exec(req.headers.cookie || '')?.[1] ??
+      (req.headers['x-asp-session'] as string | undefined);
     if (!crudo) return null;
     const [expStr, emailB64, firma] = decodeURIComponent(crudo).split('.');
     const exp = Number(expStr);
@@ -163,7 +169,7 @@ export class AdmissionsService {
       if (!grado) throw new BadRequestException('Esa convocatoria no ofrece ese grado');
       if (grado.capacity) {
         const ocupados = await this.prisma.application.count({
-          where: { tenantId: call.tenantId, callId: call.id, targetLevel, status: { in: OCUPAN_CUPO } },
+          where: { tenantId: call.tenantId, callId: call.id, targetLevel, status: { in: OCUPAN_CUPO }, isTest: false },
         });
         if (ocupados >= grado.capacity) {
           throw new ConflictException(`No hay cupo disponible para ${grado.label}`);
@@ -174,7 +180,7 @@ export class AdmissionsService {
 
     if (call.capacity) {
       const ocupados = await this.prisma.application.count({
-        where: { tenantId: call.tenantId, callId: call.id, status: { in: OCUPAN_CUPO } },
+        where: { tenantId: call.tenantId, callId: call.id, status: { in: OCUPAN_CUPO }, isTest: false },
       });
       if (ocupados >= call.capacity) throw new ConflictException('La convocatoria ya no tiene cupo');
     }
@@ -316,8 +322,8 @@ export class AdmissionsService {
             data: { targetLevel: dto.targetLevel, submittedByGuardian: dto.submittedByGuardian ?? false },
           });
         }
-        this.abrirSesion(res, tenantId, email);
-        return this.estadoBorrador(tenantId, existente.code);
+        const token = this.abrirSesion(res, tenantId, email);
+        return { ...(await this.estadoBorrador(tenantId, existente.code)), sessionToken: token };
       }
       throw new ConflictException(
         `Ya tienes una solicitud (${existente.code}) para esta convocatoria; consúltala en "Estado de tu solicitud"`,
@@ -337,8 +343,8 @@ export class AdmissionsService {
     });
     await this.evento(tenantId, app.id, 'created', null, { callSlug: call.slug });
 
-    this.abrirSesion(res, tenantId, email);
-    return this.estadoBorrador(tenantId, app.code);
+    const token = this.abrirSesion(res, tenantId, email);
+    return { ...(await this.estadoBorrador(tenantId, app.code)), sessionToken: token };
   }
 
   /** Vista del borrador para el asistente por pasos. */
@@ -668,12 +674,219 @@ export class AdmissionsService {
     return { ok: true };
   }
 
+  // =============================================== API pública (Fase 7)
+
+  /**
+   * POST /public/v1/applications: la institución recoge el consentimiento en
+   * SU formulario y manda la constancia completa; la solicitud nace ENVIADA
+   * (o PAGO_PENDIENTE si la convocatoria cobra). Con llave *_test_ el dato
+   * queda marcado isTest y no toca bandeja ni cupos reales.
+   */
+  async crearDesdeApi(
+    tenantId: string,
+    dto: {
+      callSlug: string; documentType: string; documentNumber: string;
+      firstName: string; lastName: string; email: string; phone: string;
+      birthDate?: string; city?: string; previousEducation?: string;
+      targetLevel?: number; guardian?: unknown; guardianConsent?: boolean;
+      consent: { acceptedAt: string; ip: string; policyVersion: string };
+      externalId?: string; utm?: Record<string, string>;
+    },
+    testMode: boolean,
+  ) {
+    const call = await this.convocatoriaPorSlug(tenantId, dto.callSlug);
+    this.asegurarAbierta(call);
+    this.validarRequisitos(call, dto as never);
+    if (!testMode) await this.asegurarCupo(call, dto.targetLevel);
+
+    const email = dto.email.toLowerCase();
+    const applicant = await this.prisma.applicant.upsert({
+      where: {
+        tenantId_documentType_documentNumber: {
+          tenantId, documentType: dto.documentType, documentNumber: dto.documentNumber,
+        },
+      },
+      update: {
+        firstName: dto.firstName, lastName: dto.lastName, email, phone: dto.phone,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+        city: dto.city, previousEducation: dto.previousEducation,
+        guardian: (dto.guardian as Prisma.InputJsonValue) ?? undefined,
+        guardianConsent: dto.guardianConsent ?? undefined,
+        consentAt: new Date(dto.consent.acceptedAt),
+        consentIp: dto.consent.ip,
+        consentVersion: dto.consent.policyVersion,
+      },
+      create: {
+        tenantId, documentType: dto.documentType, documentNumber: dto.documentNumber,
+        firstName: dto.firstName, lastName: dto.lastName, email, phone: dto.phone,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
+        city: dto.city, previousEducation: dto.previousEducation,
+        guardian: (dto.guardian as Prisma.InputJsonValue) ?? undefined,
+        guardianConsent: dto.guardianConsent ?? false,
+        consentAt: new Date(dto.consent.acceptedAt),
+        consentIp: dto.consent.ip,
+        consentVersion: dto.consent.policyVersion,
+        isTest: testMode,
+        utm: (dto.utm as Prisma.InputJsonValue) ?? undefined,
+      },
+    });
+
+    const existente = await this.prisma.application.findUnique({
+      where: { applicantId_callId: { applicantId: applicant.id, callId: call.id } },
+      select: { id: true, code: true, status: true },
+    });
+    if (existente) {
+      throw new ConflictException(
+        `Ya existe una solicitud (${existente.code}) de ese documento para esta convocatoria`,
+      );
+    }
+
+    const app = await this.prisma.application.create({
+      data: {
+        tenantId,
+        applicantId: applicant.id,
+        callId: call.id,
+        targetLevel: dto.targetLevel,
+        submittedByGuardian: !!dto.guardian,
+        code: await this.generarCode(tenantId),
+        status: call.applicationFee > 0 ? 'PAGO_PENDIENTE' : 'ENVIADA',
+        submittedAt: new Date(),
+        isTest: testMode,
+        externalId: dto.externalId,
+      },
+    });
+    await this.evento(tenantId, app.id, 'created', null, { via: 'public-api', externalId: dto.externalId });
+    await this.evento(tenantId, app.id, 'submitted', null, { via: 'public-api' });
+    return this.vistaApi(tenantId, app.id);
+  }
+
+  /** Representación de una solicitud para la API pública (sin datos internos). */
+  async vistaApi(tenantId: string, id: string) {
+    const app = await this.prisma.application.findFirst({
+      where: { id, tenantId },
+      include: {
+        applicant: {
+          select: {
+            documentType: true, documentNumber: true, firstName: true, lastName: true,
+            email: true, phone: true,
+          },
+        },
+        call: { select: { slug: true, name: true, applicationFee: true, program: { select: { name: true, slug: true } } } },
+        documents: { select: { id: true, requiredDocId: true, status: true, originalName: true } },
+      },
+    });
+    if (!app) throw new NotFoundException({ error: { code: 'not_found', message: 'Solicitud no encontrada' } });
+    return {
+      id: app.id,
+      code: app.code,
+      status: app.status,
+      isTest: app.isTest,
+      externalId: app.externalId,
+      targetLevel: app.targetLevel,
+      submittedAt: app.submittedAt,
+      updatedAt: app.updatedAt,
+      paidAt: app.paidAt,
+      applicant: app.applicant,
+      call: app.call,
+      documents: app.documents,
+    };
+  }
+
+  /** Listado de sincronización para la API pública (cursor + updatedSince). */
+  async listarApi(tenantId: string, testMode: boolean, opts: { updatedSince?: string; cursor?: string; limit?: number }) {
+    const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+    const filas = await this.prisma.application.findMany({
+      where: {
+        tenantId,
+        isTest: testMode,
+        ...(opts.updatedSince ? { updatedAt: { gte: new Date(opts.updatedSince) } } : {}),
+      },
+      orderBy: { id: 'asc' },
+      ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
+      take: limit + 1,
+      select: { id: true },
+    });
+    const pagina = filas.slice(0, limit);
+    const datos = [];
+    for (const f of pagina) datos.push(await this.vistaApi(tenantId, f.id));
+    return {
+      data: datos,
+      nextCursor: filas.length > limit ? pagina[pagina.length - 1].id : null,
+    };
+  }
+
+  /** Subida de documento vía API (llave secreta): mismo validador de firma real. */
+  async subirDocumentoApi(
+    tenantId: string,
+    testMode: boolean,
+    applicationId: string,
+    requiredDocId: string,
+    archivo: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+  ) {
+    const app = await this.prisma.application.findFirst({
+      where: { id: applicationId, tenantId, isTest: testMode },
+      include: { call: { include: { requiredDocuments: true } } },
+    });
+    if (!app) throw new NotFoundException({ error: { code: 'not_found', message: 'Solicitud no encontrada' } });
+    const regla = app.call?.requiredDocuments.find((d) => d.id === requiredDocId);
+    if (!regla) throw new NotFoundException({ error: { code: 'not_found', message: 'Documento requerido no encontrado' } });
+
+    const { fileKey, sizeKb } = await this.archivos.guardarValido(tenantId, app.id, archivo, regla);
+    await this.prisma.applicationDocument.deleteMany({ where: { applicationId: app.id, requiredDocId } });
+    await this.prisma.applicationDocument.create({
+      data: {
+        tenantId, applicationId: app.id, requiredDocId, fileKey,
+        originalName: archivo.originalname.slice(0, 180), mimeType: archivo.mimetype, sizeKb,
+      },
+    });
+    await this.evento(tenantId, app.id, 'doc_uploaded', null, { via: 'public-api', requisito: regla.name });
+    return this.vistaApi(tenantId, app.id);
+  }
+
+  /** Lead desde la API (Meta Lead Ads, formularios propios). */
+  async crearLeadApi(
+    tenantId: string,
+    dto: { nombre: string; telefono: string; email: string; mensaje?: string; consent: { acceptedAt: string; ip: string; policyVersion: string }; utm?: Record<string, string> },
+    testMode: boolean,
+  ) {
+    const email = dto.email.toLowerCase();
+    const [firstName, ...resto] = dto.nombre.trim().split(/\s+/);
+    const applicant = await this.prisma.applicant.upsert({
+      where: {
+        tenantId_documentType_documentNumber: {
+          tenantId, documentType: 'SIN_DOCUMENTO',
+          documentNumber: email.slice(0, 20).replace(/[^A-Za-z0-9-]/g, '-'),
+        },
+      },
+      update: { phone: dto.telefono, firstName, lastName: resto.join(' ') || '-' },
+      create: {
+        tenantId, documentType: 'SIN_DOCUMENTO',
+        documentNumber: email.slice(0, 20).replace(/[^A-Za-z0-9-]/g, '-'),
+        firstName, lastName: resto.join(' ') || '-', email, phone: dto.telefono,
+        consentAt: new Date(dto.consent.acceptedAt),
+        consentIp: dto.consent.ip,
+        consentVersion: dto.consent.policyVersion,
+        isTest: testMode,
+        utm: (dto.utm as Prisma.InputJsonValue) ?? undefined,
+      },
+    });
+    const app = await this.prisma.application.create({
+      data: {
+        tenantId, applicantId: applicant.id,
+        code: await this.generarCode(tenantId), status: 'INTERESADO', isTest: testMode,
+      },
+    });
+    await this.evento(tenantId, app.id, 'lead', null, { via: 'public-api', mensaje: dto.mensaje?.slice(0, 500) });
+    return { id: app.id, code: app.code, status: app.status };
+  }
+
   // ======================================================= lado admin
 
   async listar(tenantId: string, filtros: {
     callId?: string; status?: string; desde?: string; hasta?: string; utmSource?: string; q?: string;
   }) {
-    const where: Prisma.ApplicationWhereInput = { tenantId };
+    // Los datos creados con llaves *_test_ jamás aparecen en la bandeja real.
+    const where: Prisma.ApplicationWhereInput = { tenantId, isTest: false };
     if (filtros.callId) where.callId = filtros.callId;
     if (filtros.status) where.status = filtros.status as ApplicationStatus;
     if (filtros.desde || filtros.hasta) {
@@ -1219,7 +1432,7 @@ export class AdmissionsService {
    * le trae MATRICULADOS, no solo clics.
    */
   async embudo(tenantId: string, callId?: string) {
-    const where: Prisma.ApplicationWhereInput = { tenantId, ...(callId ? { callId } : {}) };
+    const where: Prisma.ApplicationWhereInput = { tenantId, isTest: false, ...(callId ? { callId } : {}) };
     const apps = await this.prisma.application.findMany({
       where,
       select: {
@@ -1271,7 +1484,10 @@ export class AdmissionsService {
     tipoEvento: string | null,
     data?: Record<string, unknown>,
   ) {
-    await this.prisma.application.update({ where: { id: applicationId }, data: { status } });
+    // updateMany para poder acotar por tenant en el propio where: aunque todos
+    // los llamadores ya validaron pertenencia, el invariante queda en la capa
+    // de datos y no depende de que el próximo llamador lo recuerde.
+    await this.prisma.application.updateMany({ where: { id: applicationId, tenantId }, data: { status } });
     await this.evento(tenantId, applicationId, tipoEvento ?? `status_${status.toLowerCase()}`, actorUserId, data);
   }
 

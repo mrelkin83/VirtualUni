@@ -3,6 +3,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { PublicApiModule } from './modules/public-api/public-api.module';
 import { asegurarEntornoValido } from './common/config/validate-env';
 
 async function bootstrap() {
@@ -66,6 +67,52 @@ async function bootstrap() {
     }),
   );
 
+  // Documentación OpenAPI PROPIA de la API pública /public/v1 (§13.3),
+  // separada de la interna del campus y publicada en /public/docs.
+  const configPublica = new DocumentBuilder()
+    .setTitle('VirtualUni — API pública de integraciones')
+    .setDescription(
+      [
+        'API para que la institución conecte su propia web o CRM: catálogo, convocatorias, solicitudes, documentos, leads y validación de certificados.',
+        '',
+        '**Autenticación**: cabecera `Authorization: Bearer <llave>` (o `X-Api-Key`). El tenant sale SOLO de la llave.',
+        'Llaves `pk_` (publicables): solo lectura, usables en navegador, limitadas a sus orígenes. Llaves `sk_` (secretas): servidor a servidor; una petición con `Origin` de navegador se rechaza. Las `*_test_` operan sobre datos de prueba.',
+        '',
+        '**Idempotencia**: todos los POST exigen `Idempotency-Key`; repetirla devuelve la misma respuesta por 24 h.',
+        '',
+        '**Ejemplo curl**:',
+        '```bash',
+        'curl -H "Authorization: Bearer sk_live_..." -H "Idempotency-Key: crm-123" \\',
+        '  -H "Content-Type: application/json" https://su-subdominio.ejemplo.edu.co/public/v1/applications \\',
+        '  -d \'{"callSlug":"auxiliar-contable","documentType":"CC","documentNumber":"1012...","firstName":"Ana","lastName":"Rojas","email":"ana@x.co","phone":"3001112233","previousEducation":"Bachiller","consent":{"acceptedAt":"2027-01-10T14:30:00Z","ip":"190.0.0.10","policyVersion":"2"}}\'',
+        '```',
+        '',
+        '**Ejemplo PHP**:',
+        '```php',
+        '$ch = curl_init("https://su-subdominio.ejemplo.edu.co/public/v1/programs");',
+        'curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer pk_live_..."]);',
+        'curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);',
+        '$programas = json_decode(curl_exec($ch), true);',
+        '```',
+        '',
+        '**Ejemplo JavaScript (servidor)**:',
+        '```js',
+        'const r = await fetch(base + "/public/v1/admission-calls?status=ABIERTA", { headers: { Authorization: "Bearer sk_live_..." } });',
+        '```',
+        '',
+        '**Webhooks salientes**: firmados con `VirtualUni-Signature: t=<epoch>,v1=<hmac-sha256(secret, `${t}.${cuerpo}`)>`; rechaza marcas de tiempo viejas y verifica con el secreto mostrado al crear el endpoint.',
+      ].join('\n'),
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const docPublica = SwaggerModule.createDocument(app, configPublica, {
+    include: [PublicApiModule],
+  });
+  SwaggerModule.setup('public/docs', app, docPublica, {
+    customSiteTitle: 'VirtualUni API pública',
+  });
+
   // API prefix. Las rutas del sitio público renderizado en servidor viven en
   // la raíz del host del tenant (public-site, §2): se excluyen del prefijo.
   app.setGlobalPrefix('api/v1', {
@@ -81,7 +128,9 @@ async function bootstrap() {
       'sitemap.xml',
       'robots.txt',
       'public-assets/:archivo',
+      'validar',
       'validar/:codigo',
+      'embed.js',
       'embed/(.*)',
       'public/(.*)',
     ],

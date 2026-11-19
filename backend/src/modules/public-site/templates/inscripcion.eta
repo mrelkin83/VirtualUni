@@ -74,6 +74,18 @@
             <input data-campo="birthDate" type="date" class="campo" />
           </div>
           <input data-campo="city" placeholder="Ciudad" class="campo" />
+          <% if (c.minEducation) { %>
+          <select data-campo="previousEducation" class="campo">
+            <option value="">Último nivel de estudios alcanzado *</option>
+            <option>Primaria</option>
+            <option>9° aprobado</option>
+            <option>Bachiller</option>
+            <option>Técnico</option>
+            <option>Tecnólogo</option>
+            <option>Profesional</option>
+            <option>Especialista o más</option>
+          </select>
+          <% } %>
           <% if (it.esColegio) { %>
           <select data-campo="targetLevel" class="campo">
             <option value="">Grado al que aspira *</option>

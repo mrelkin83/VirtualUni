@@ -65,6 +65,7 @@ import { AcademicRecordsModule } from './modules/academic-records/academic-recor
 import { HomologationsModule } from './modules/homologations/homologations.module';
 import { PublicSiteModule } from './modules/public-site/public-site.module';
 import { AdmissionsModule } from './modules/admissions/admissions.module';
+import { PublicApiModule } from './modules/public-api/public-api.module';
 
 @Module({
   imports: [
@@ -155,6 +156,7 @@ import { AdmissionsModule } from './modules/admissions/admissions.module';
     // Sitio web publico e inscripciones en linea
     PublicSiteModule,
     AdmissionsModule,
+    PublicApiModule,
   ],
   controllers: [AppController],
 })

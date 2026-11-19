@@ -99,6 +99,40 @@ export class SiteRendererService {
       .send(this.eta.render('layout', { ...comun, body }));
   }
 
+  /**
+   * Igual que render() pero con un layout a elegir (layout-embed para los
+   * widgets) y acento opcional del atributo data-color del fragmento.
+   */
+  renderConLayout(
+    res: Response,
+    ctx: ContextoSitio,
+    layout: string,
+    plantilla: string,
+    datos: Record<string, unknown>,
+    meta: { title: string; description: string; canonical: string; noindex?: boolean },
+    colorAcento?: string,
+  ) {
+    const colorOk = (c: string, porDefecto: string) => (/^#[0-9a-fA-F]{3,8}$/.test(c) ? c : porDefecto);
+    const comun = {
+      tenant: ctx.tenant,
+      site: ctx.site,
+      textos: ctx.textos,
+      esPreview: ctx.esPreview,
+      modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
+      brand: {
+        c1: colorAcento ?? colorOk(ctx.tenant.primaryColor, '#3B82F6'),
+        c2: colorOk(ctx.tenant.secondaryColor, '#8B5CF6'),
+      },
+      analytics: null,
+      anio: new Date().getFullYear(),
+      fecha: (d: Date | string) => this.fecha(d),
+      meta: { ...meta, noindex: true },
+      ...datos,
+    };
+    const body = this.eta.render(plantilla, comun);
+    res.status(200).type('html').setHeader('Cache-Control', 'no-store').send(this.eta.render(layout, { ...comun, body }));
+  }
+
   /** 404 genérico: no distingue "tenant no existe" de "recurso no existe". */
   e404(res: Response, ctx: ContextoSitio | null) {
     if (!ctx) {

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { CertificateStatus, Prisma, Student } from '@prisma/client';
 import {
@@ -94,7 +95,13 @@ export class CertificatesService {
       data: {
         ...dto,
         ...(dto.estado === CertificateStatus.EMITIDO
-          ? { fechaEmision: new Date() }
+          ? {
+              fechaEmision: new Date(),
+              // Código no adivinable para la validación pública /validar/:codigo
+              // (§13.5). Se sella al emitir; volver a marcar EMITIDO lo rota
+              // (y con él, el QR impreso), igual que la fecha de emisión.
+              verificationCode: randomBytes(16).toString('base64url'),
+            }
           : {}),
       },
       include: STUDENT_INCLUDE,

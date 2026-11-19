@@ -1,0 +1,32 @@
+<section class="mx-auto max-w-xl px-4 py-12">
+  <h1 class="text-2xl font-black text-gray-900">Validación de certificados</h1>
+  <p class="text-sm text-gray-500 mt-1">Verifica la autenticidad de un certificado o carnet emitido por <%= it.tenant.name %>.</p>
+
+  <form method="get" action="<%= it.accionBase %>" class="mt-6 flex gap-2">
+    <input
+      name="codigo" value="<%= it.codigo || '' %>" maxlength="64"
+      placeholder="Código de verificación (está junto al QR)"
+      class="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm"
+    />
+    <button class="px-5 rounded-lg font-bold text-white text-sm" style="background:var(--c1)">Validar</button>
+  </form>
+
+  <% if (it.resultado) { %>
+    <% if (it.resultado.valido) { %>
+    <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+      <p class="text-emerald-800 font-black text-lg">✔ Documento válido</p>
+      <dl class="mt-3 text-sm text-emerald-900 space-y-1">
+        <div><dt class="inline font-semibold">Titular:</dt> <dd class="inline"><%= it.resultado.titular %></dd></div>
+        <div><dt class="inline font-semibold">Tipo:</dt> <dd class="inline"><%= it.resultado.tipo %></dd></div>
+        <% if (it.resultado.programa) { %><div><dt class="inline font-semibold">Programa:</dt> <dd class="inline"><%= it.resultado.programa %></dd></div><% } %>
+        <% if (it.resultado.fechaEmision) { %><div><dt class="inline font-semibold">Emitido:</dt> <dd class="inline"><%= it.fecha(it.resultado.fechaEmision) %></dd></div><% } %>
+      </dl>
+    </div>
+    <% } else { %>
+    <div class="mt-6 rounded-xl border border-red-200 bg-red-50 p-5">
+      <p class="text-red-800 font-black text-lg">✖ <%= it.resultado.estado === 'Anulado' ? 'Documento anulado' : 'Código no reconocido' %></p>
+      <p class="text-sm text-red-700 mt-1">Verifica que el código esté bien escrito. Si la duda persiste, contacta a la institución.</p>
+    </div>
+    <% } %>
+  <% } %>
+</section>

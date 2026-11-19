@@ -165,7 +165,8 @@ colegio, admisiones/CRM y facturación electrónica DIAN.
   accesibilidad/best-practices/SEO = 100 en portada, oferta y ficha, pero no
   emite la categoría performance; dejar un job de CI con
   `lighthouse --preset=mobile` para la cifra formal (meta ≥ 90).
-- **Registro de las secciones nuevas del admin** (`Sitio web`, `Admisiones`)
+- **Registro de las secciones nuevas del admin** (`Sitio web`, `Admisiones`,
+  `Integraciones`)
   vive en `navegacion.ts`/`AdminDashboard.tsx`, que cargan un rediseño ajeno
   sin commitear: las 7 líneas de registro están en el working tree y viajarán
   con ese trabajo (o en un commit propio cuando el árbol se estabilice).
@@ -176,3 +177,19 @@ colegio, admisiones/CRM y facturación electrónica DIAN.
 - **Planes por nivel de integración (§13.7)**: `enableEmbed`/`enablePublicApi`
   quedan como banderas; qué plan incluye qué es decisión comercial.
   Sugerencia: enlace+widget en básicos, API+webhooks en el superior.
+- **QR en el navegador**: los códigos QR del panel Integraciones se dibujan
+  en el cliente (librería `qrcode` sobre canvas) y se descargan como PNG;
+  generarlos en el servidor (p. ej. para incluirlos en PDFs o correos) queda
+  pendiente de que haya un caso que lo pida.
+- **Widget «estado» y cookies de terceros**: dentro del iframe la cookie de
+  sesión del aspirante es de tercer origen y navegadores que las bloquean
+  (Safari ITP) no la envían; el flujo de inscripción ya no depende de ella
+  (token por cabecera `X-Asp-Session`), pero el widget de CONSULTA de estado
+  tras canjear un enlace mágico sí usa cookie: en esos navegadores el
+  aspirante debe consultar en el sitio del tenant, no incrustado. Documentado
+  en el panel; una solución completa (token en URL post-canje) queda
+  pendiente.
+- **Rate limit de la API pública en memoria**: la ventana de límites vive en
+  el proceso; con varias réplicas del backend el límite efectivo se
+  multiplica. Mover el contador a Postgres/Redis cuando haya más de una
+  réplica.

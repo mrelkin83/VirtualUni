@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= it.meta.title %></title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="/public-assets/site.css" />
+  <style>:root{--c1:<%= it.brand.c1 %>;--c2:<%= it.brand.c2 %>}body{background:#fff}</style>
+</head>
+<body class="text-gray-800">
+  <main data-embed-root><%~ it.body %></main>
+  <script>
+    // Altura hacia la página madre + reenvío de eventos del asistente como
+    // mensajes "virtualuni:*" (embed.js los convierte en CustomEvent).
+    (function () {
+      var ultimo = 0;
+      function avisarAltura() {
+        var h = document.documentElement.scrollHeight;
+        if (Math.abs(h - ultimo) > 4) {
+          ultimo = h;
+          parent.postMessage({ virtualuni: 'height', height: h }, '*');
+        }
+      }
+      new MutationObserver(avisarAltura).observe(document.body, { childList: true, subtree: true, attributes: true });
+      window.addEventListener('load', avisarAltura);
+      setInterval(avisarAltura, 800);
+      window.virtualuniEmit = function (tipo, datos) {
+        parent.postMessage({ virtualuni: tipo, data: datos || {} }, '*');
+      };
+    })();
+  </script>
+  <script src="/public-assets/site.js" defer></script>
+</body>
+</html>

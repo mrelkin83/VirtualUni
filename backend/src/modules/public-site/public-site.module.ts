@@ -6,6 +6,7 @@ import { SiteRenderController } from './site-render.controller';
 import { SiteAdminController } from './site-admin.controller';
 import { SiteAdminService } from './site-admin.service';
 import { SiteRendererService } from './site-renderer.service';
+import { VerificacionService } from './verificacion.service';
 
 /**
  * Sitio web público por institución (§2): controladores HTML sin prefijo
@@ -16,7 +17,7 @@ import { SiteRendererService } from './site-renderer.service';
 @Module({
   imports: [PrismaModule],
   controllers: [SiteRenderController, SiteAdminController],
-  providers: [PublicTenantService, PublicCatalogService, SiteAdminService, SiteRendererService],
-  exports: [PublicTenantService, PublicCatalogService, SiteRendererService],
+  providers: [PublicTenantService, PublicCatalogService, SiteAdminService, SiteRendererService, VerificacionService],
+  exports: [PublicTenantService, PublicCatalogService, SiteRendererService, VerificacionService],
 })
 export class PublicSiteModule {}

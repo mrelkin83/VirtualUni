@@ -6,6 +6,7 @@ import { MailService } from './mail.service';
 import { ArchivosAdmisionService } from './archivos.service';
 import { AspiranteController, ContactoController } from './aspirante.controller';
 import { AdmissionsRenderController } from './admissions-render.controller';
+import { EmbedRenderController } from './embed-render.controller';
 import { AdmissionsAdminController } from './admissions-admin.controller';
 import { PagosWompiService } from './pagos-wompi.service';
 import {
@@ -26,12 +27,13 @@ import {
     AspiranteController,
     ContactoController,
     AdmissionsRenderController,
+    EmbedRenderController,
     AdmissionsAdminController,
     PagosWompiAdminController,
     PagosWompiAspiranteController,
     PagosWompiWebhookController,
   ],
   providers: [AdmissionsService, MailService, ArchivosAdmisionService, PagosWompiService],
-  exports: [AdmissionsService],
+  exports: [AdmissionsService, PagosWompiService],
 })
 export class AdmissionsModule {}

@@ -30,6 +30,10 @@ model Tenant {
 
   // Features
   enableMessaging    Boolean @default(true) @map("enable_messaging")
+  // Integraciones del sitio público (§13.7): qué plan incluye cuál es
+  // decisión comercial pendiente; por ahora son banderas por tenant.
+  enableEmbed        Boolean @default(false) @map("enable_embed")
+  enablePublicApi    Boolean @default(false) @map("enable_public_api")
   enableVideoConf    Boolean @default(false) @map("enable_video_conf")
   enablePayments     Boolean @default(false) @map("enable_payments")
   enableCertificates Boolean @default(false) @map("enable_certificates")
@@ -909,6 +913,8 @@ model CardIssuance {
   id         String  @id @default(uuid())
   tenantId   String  @map("tenant_id")
   templateId String? @map("template_id")
+  /// Código no adivinable para /validar/:codigo (§13.5).
+  verificationCode String? @unique @map("verification_code")
 
   // Información de expedición
   lote            String // Número de lote (auto-generado)
@@ -1660,6 +1666,8 @@ model CertificateRequest {
   estado        CertificateStatus @default(PENDIENTE)
   costo         Float             @default(0)
   fechaEmision  DateTime?         @map("fecha_emision")
+  /// Código no adivinable para /validar/:codigo (§13.5); se genera al emitir.
+  verificationCode String?        @unique @map("verification_code")
   archivoUrl    String?           @map("archivo_url")
   observaciones String?           @db.Text
   createdAt     DateTime          @default(now()) @map("created_at")
@@ -2248,9 +2256,90 @@ model TenantSite {
   privacyPolicyUrl   String?         @map("privacy_policy_url")
   privacyVersion     String          @default("1") @map("privacy_version")
   dataControllerName String?         @map("data_controller_name") // responsable del tratamiento
+  /// Dominios autorizados a incrustar los widgets /embed/* (frame-ancestors).
+  embedAllowedOrigins String[]       @default([]) @map("embed_allowed_origins")
   updatedAt          DateTime        @updatedAt @map("updated_at")
 
   @@map("tenant_sites")
+}
+
+// ============================================================================
+// Integraciones con webs propias (Fase 7, §13)
+// ============================================================================
+
+enum ApiKeyType {
+  PUBLISHABLE // pk_: solo lectura pública, usable en navegador, limitada a allowedOrigins
+  SECRET // sk_: servidor a servidor; con cabecera Origin se RECHAZA
+}
+
+// La llave completa se muestra UNA sola vez al crearla; aquí vive su hash.
+model ApiKey {
+  id             String     @id @default(uuid())
+  tenantId       String     @map("tenant_id")
+  name           String
+  type           ApiKeyType
+  prefix         String // visible: pk_live_ab12…, sk_test_…
+  keyHash        String     @unique @map("key_hash") // sha256 de la llave completa
+  testMode       Boolean    @default(false) @map("test_mode")
+  scopes         String[]
+  allowedOrigins String[]   @default([]) @map("allowed_origins") // solo publicables
+  lastUsedAt     DateTime?  @map("last_used_at")
+  revokedAt      DateTime?  @map("revoked_at")
+  createdById    String?    @map("created_by_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("api_keys")
+}
+
+// Idempotencia de los POST de la API pública: misma llave → misma respuesta, 24 h.
+model ApiIdempotencyKey {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  key       String
+  status    Int
+  response  Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, key])
+  @@index([createdAt])
+  @@map("api_idempotency_keys")
+}
+
+model WebhookEndpoint {
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  url          String // solo HTTPS (y http://localhost en dev)
+  events       String[] // application.submitted, payment.confirmed…
+  secretEnc    String    @map("secret_enc") // cifrado AES-256-GCM; se muestra al crear
+  active       Boolean   @default(true)
+  failureCount Int       @default(0) @map("failure_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  deliveries WebhookDelivery[]
+
+  @@index([tenantId])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  endpointId    String    @map("endpoint_id")
+  eventType     String    @map("event_type")
+  payload       Json
+  attempt       Int       @default(0)
+  responseCode  Int?      @map("response_code")
+  lastError     String?   @map("last_error")
+  nextAttemptAt DateTime? @map("next_attempt_at")
+  deliveredAt   DateTime? @map("delivered_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([nextAttemptAt])
+  @@index([tenantId, createdAt])
+  @@map("webhook_deliveries")
 }
 
 // Outbox de eventos de dominio (§9): cada hito de una solicitud queda aquí
@@ -2360,6 +2449,8 @@ model Applicant {
   consentIp         String    @map("consent_ip")
   consentVersion    String    @map("consent_version")
   guardianConsent   Boolean   @default(false) @map("guardian_consent")
+  /// Creado con una llave *_test_ de la API pública: no cuenta ni aparece en la bandeja real.
+  isTest            Boolean   @default(false) @map("is_test")
   utm               Json? // utm_*, gclid, fbclid, landing, referrer
   studentId         String?   @map("student_id")
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -2389,6 +2480,8 @@ model Application {
   paidAt               DateTime?         @map("paid_at")
   reviewerId           String?           @map("reviewer_id")
   decisionNotes        String?           @db.Text @map("decision_notes")
+  isTest               Boolean           @default(false) @map("is_test") // llaves *_test_: fuera de bandeja y cupos
+  externalId           String?           @map("external_id") // id del CRM de la institución (API pública)
   accessTokenHash      String?           @map("access_token_hash") // enlace mágico: nunca el token plano
   accessTokenExpiresAt DateTime?         @map("access_token_expires_at")
   submittedAt          DateTime?         @map("submitted_at")
