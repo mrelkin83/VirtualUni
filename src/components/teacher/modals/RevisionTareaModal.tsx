@@ -118,7 +118,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
         </div>
 
         {/* Stats Bar */}
-        <div className={`p-4 border-pn-line border-b grid grid-cols-3 gap-4`}>
+        <div className={`p-4 border-pn-line border-b grid grid-cols-1 sm:grid-cols-3 gap-4`}>
           <div className="text-center">
             <p className={`text-2xl font-bold text-pn-ink`}>{submissions.length}</p>
             <p className={`text-xs text-pn-ink-2`}>Total entregas</p>
@@ -233,7 +233,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
                 <div className={`p-6 border-pn-line border-b overflow-y-auto flex-1`}>
                   <div className="mb-6">
                     <h5 className={`font-bold text-pn-ink mb-2`}>Información del Estudiante</h5>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className={`text-sm text-pn-ink-2`}>Nombre:</p>
                         <p className={`font-medium text-pn-ink`}>{selectedSubmission.estudianteNombre}</p>

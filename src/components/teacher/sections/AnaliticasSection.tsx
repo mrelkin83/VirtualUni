@@ -57,12 +57,14 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Analíticas y Reportes</h2>
           <p className="text-pn-muted mt-1">Panel de seguimiento y análisis de desempeño</p>
         </div>
-        <div className="flex gap-3">
+        {/* Los dos filtros juntos miden más que la pantalla a 390 px: envuelven
+            y cada uno se queda con la mitad. */}
+        <div className="flex flex-wrap gap-3 [&>select]:min-w-0 [&>select]:flex-1">
           <select
             value={periodoSeleccionado}
             onChange={(e) => setPeriodoSeleccionado(e.target.value)}

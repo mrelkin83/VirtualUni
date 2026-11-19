@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, X, Check, Trash2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { pulsable } from '../../../utils/pulsable';
+import { useCerrarConEscape } from '../../../hooks/useCerrarConEscape';
 
 interface Mensaje {
   id: number;
@@ -31,6 +32,8 @@ export const MensajesDropdown: React.FC<MensajesDropdownProps> = ({
 }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const mensajesPorPagina = 10;
+
+  useCerrarConEscape(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -78,7 +81,7 @@ export const MensajesDropdown: React.FC<MensajesDropdownProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-pn-muted hover:text-pn-ink-2"
+            className="text-pn-muted hover:text-pn-ink-2 p-2 -m-2 rounded"
           >
             <X size={20} />
           </button>

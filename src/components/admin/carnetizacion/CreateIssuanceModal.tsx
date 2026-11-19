@@ -353,7 +353,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
                   Agregar Usuario
                 </h4>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     placeholder="ID de Usuario *"

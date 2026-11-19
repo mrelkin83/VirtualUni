@@ -171,9 +171,9 @@ export const MensajesSection: React.FC<MensajesSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Comunicación</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setModalMasivo(true)}
             className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg flex items-center gap-2"

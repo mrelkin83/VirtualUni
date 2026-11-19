@@ -96,7 +96,7 @@ const GrupoCard: React.FC<{
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <div className={`p-3 rounded-lg bg-pn-surface-2`}>
           <div className="flex items-center gap-2 mb-1">
             <Users size={16} className="text-pn-accent-text" />

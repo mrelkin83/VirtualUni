@@ -132,7 +132,7 @@ export function PensumEditor({
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={onVolver}
-          className="flex items-center gap-1 text-sm text-pn-ink-2 hover:text-pn-ink"
+          className="flex items-center gap-1 text-sm text-pn-ink-2 hover:text-pn-ink p-2 -m-2 rounded"
         >
           <ArrowLeft size={16} /> Programas
         </button>
@@ -372,14 +372,14 @@ function TarjetaAsignatura({
             <button
               onClick={onPrerrequisitos}
               title="Prerrequisitos"
-              className="p-1 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded"
+              className="p-2 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded"
             >
               <Link2 size={14} />
             </button>
             <button
               onClick={onRetirar}
               title="Retirar del pensum"
-              className="p-1 text-pn-danger hover:bg-pn-danger-soft rounded"
+              className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded"
             >
               <Trash2 size={14} />
             </button>
@@ -550,7 +550,7 @@ function AgregarAsignaturaModal({
               crearYAgregar.mutate();
             }}
           >
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-pn-ink-2">Código *</label>
                 <input
@@ -579,7 +579,7 @@ function AgregarAsignaturaModal({
                 className={campo}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-pn-ink-2">Créditos</label>
                 <input

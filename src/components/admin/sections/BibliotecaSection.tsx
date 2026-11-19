@@ -510,7 +510,7 @@ export const BibliotecaSection: React.FC = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>ISBN *</label>
                   <input
@@ -540,7 +540,7 @@ export const BibliotecaSection: React.FC = () => {
                   placeholder="Ej: Matemáticas, Programación, etc."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Total *</label>
                   <input
@@ -624,7 +624,7 @@ export const BibliotecaSection: React.FC = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>ISBN</label>
                   <input
@@ -653,7 +653,7 @@ export const BibliotecaSection: React.FC = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Total</label>
                   <input

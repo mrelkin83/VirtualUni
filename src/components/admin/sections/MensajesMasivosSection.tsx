@@ -381,7 +381,7 @@ export const MensajesMasivosSection: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Roles Objetivo
@@ -473,7 +473,7 @@ export const MensajesMasivosSection: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-pn-accent-soft p-4 rounded-lg">
                   <p className="text-sm text-pn-ink-2">Total</p>
                   <p className="text-2xl font-bold text-pn-accent-text">

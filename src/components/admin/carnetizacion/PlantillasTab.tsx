@@ -253,7 +253,7 @@ export const PlantillasTab: React.FC = () => {
                 )}
 
                 {/* Actions */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     onClick={() => handlePreview(plantilla.id)}
                     className="flex items-center justify-center gap-1 px-3 py-2 bg-pn-surface-3 text-pn-ink-2 rounded hover:bg-pn-surface-3 transition text-sm"

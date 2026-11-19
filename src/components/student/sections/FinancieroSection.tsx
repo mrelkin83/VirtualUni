@@ -465,7 +465,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                 <p className="text-sm text-pn-muted">Monto</p>
                 <p className={`text-2xl font-bold text-pn-ok`}>{formatearCop(detalleModal.monto)}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-pn-muted">Fecha</p>
                   <p className={`font-semibold text-pn-ink`}>{detalleModal.fecha}</p>
@@ -515,7 +515,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   </div>
                   <button
                     onClick={cerrarModalPago}
-                    className="text-pn-muted hover:text-pn-ink-2"
+                    className="text-pn-muted hover:text-pn-ink-2 p-2 -m-2 rounded"
                   >
                     <X size={24} />
                   </button>

@@ -632,7 +632,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-pn-ink mb-2 font-medium`}>Tipo de Material *</label>
                   <select
@@ -715,7 +715,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-pn-ink mb-2 font-medium`}>Módulo (opcional)</label>
                   <input
@@ -739,7 +739,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-pn-ink mb-2 font-medium`}>Tamaño (opcional)</label>
                   <input
@@ -965,7 +965,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
               <div className={`border-pn-line border-t pt-4`}>
                 <h5 className={`text-pn-ink font-medium mb-2`}>Estadísticas</h5>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className={`border-pn-line border rounded-lg p-3`}>
                     <div className="flex items-center gap-2 mb-1">
                       <Eye size={16} className="text-pn-accent-text" />

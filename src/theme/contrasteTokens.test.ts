@@ -79,6 +79,55 @@ function porcentajeDeMezcla(token: string): number {
   return Number(m[1]) / 100;
 }
 
+/**
+ * Resuelve un token a color siguiendo las indirecciones del CSS: un `var()`
+ * que apunta a otro token y un `color-mix()` de dos términos.
+ *
+ * Hace falta porque los textos de acento se declaran como `var(--pn-accent)`:
+ * `tokensDe` solo recoge hexadecimales literales y por eso no los veía, que es
+ * justo por lo que el texto de acento no estaba cubierto (módulo 7).
+ *
+ * Si el tema oscuro no redefine un token, se cae a `:root`, que es lo que hace
+ * la cascada de verdad.
+ */
+function resolver(
+  selector: string,
+  nombre: string,
+  vistos: Set<string> = new Set(),
+): Rgb {
+  if (vistos.has(`${selector}|${nombre}`)) {
+    throw new Error(`Ciclo de tokens en ${nombre}`);
+  }
+  vistos.add(`${selector}|${nombre}`);
+
+  // `selector` es siempre el contexto donde se evalúa. Si el tema no redefine
+  // el token se toma la declaración de `:root`, pero los `var()` de dentro se
+  // siguen resolviendo en `selector`: así sustituye el navegador las custom
+  // properties, y por eso --pn-accent-soft en oscuro mezcla con la superficie
+  // oscura aunque su declaración viva en :root.
+  const declarado = (sel: string) =>
+    bloqueDe(sel).match(new RegExp(`${nombre}:\\s*([^;]+);`))?.[1].trim();
+  const valor = declarado(selector) ?? declarado(':root');
+  if (!valor) throw new Error(`No está ${nombre} en index.css`);
+
+  if (/^#[0-9a-fA-F]{6}$/.test(valor)) return parsearHex(valor)!;
+
+  const indirecto = valor.match(/^var\((--pn-[\w-]+)\)$/);
+  if (indirecto) return resolver(selector, indirecto[1], vistos);
+
+  // color-mix(in srgb, <A> N%, <B>) — el porcentaje es la parte de A.
+  const mezcla = valor.match(/^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+?)\)$/);
+  if (mezcla) {
+    const termino = (t: string): Rgb => {
+      const v = t.match(/^var\((--pn-[\w-]+)\)$/);
+      return v ? resolver(selector, v[1], new Set(vistos)) : parsearHex(t)!;
+    };
+    return mezclar(termino(mezcla[3]), termino(mezcla[1]), Number(mezcla[2]) / 100);
+  }
+
+  throw new Error(`No sé resolver ${nombre}: ${valor}`);
+}
+
 const CLARO = tokensDe(':root');
 const OSCURO = tokensDe("[data-theme='dark']");
 
@@ -143,6 +192,48 @@ describe.each([
     expect(razonDeContraste(t[texto], t[fondo])).toBeGreaterThanOrEqual(
       CONTRASTE_AA,
     );
+  });
+});
+
+/**
+ * Los colores de acento, que hasta el módulo 7 no se medían: son el texto de
+ * los enlaces y las insignias, y la tinta de todos los botones primarios.
+ */
+describe.each([
+  ['claro', ':root'],
+  ['oscuro', "[data-theme='dark']"],
+])('contraste de los acentos, tema %s', (_tema, sel) => {
+  const sobre = (fondo: string) => resolver(sel, fondo);
+
+  it.each(['--pn-surface', '--pn-surface-2', '--pn-surface-3', '--pn-ground', '--pn-accent-soft'])(
+    '--pn-accent-text se lee sobre %s',
+    (fondo) => {
+      expect(
+        razonDeContraste(resolver(sel, '--pn-accent-text'), sobre(fondo)),
+      ).toBeGreaterThanOrEqual(CONTRASTE_AA);
+    },
+  );
+
+  it.each(['--pn-surface', '--pn-surface-3', '--pn-accent-2-soft'])(
+    '--pn-accent-2-text se lee sobre %s',
+    (fondo) => {
+      expect(
+        razonDeContraste(resolver(sel, '--pn-accent-2-text'), sobre(fondo)),
+      ).toBeGreaterThanOrEqual(CONTRASTE_AA);
+    },
+  );
+
+  // La pareja del botón primario, que es el control más repetido de la app.
+  it('--pn-accent-ink se lee sobre el relleno de acento', () => {
+    expect(
+      razonDeContraste(resolver(sel, '--pn-accent-ink'), sobre('--pn-accent')),
+    ).toBeGreaterThanOrEqual(CONTRASTE_AA);
+  });
+
+  it('--pn-accent-2-ink se lee sobre el relleno de acento 2', () => {
+    expect(
+      razonDeContraste(resolver(sel, '--pn-accent-2-ink'), sobre('--pn-accent-2')),
+    ).toBeGreaterThanOrEqual(CONTRASTE_AA);
   });
 });
 

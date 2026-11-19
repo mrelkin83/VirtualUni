@@ -124,7 +124,7 @@ const ReplyCard: React.FC<{
           </span>
         </div>
         <p className={`text-pn-ink mb-3`}>{respuesta.contenido}</p>
-        <button className={`flex items-center gap-1 text-sm text-pn-ink-2 hover:text-pn-accent-text`}>
+        <button className={`flex items-center gap-1 text-sm text-pn-ink-2 hover:text-pn-accent-text p-2 -m-2 rounded`}>
           <ThumbsUp size={14} />
           {respuesta.likes}
         </button>
@@ -357,7 +357,7 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
                   placeholder="Describe tu tema..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>Categoría</label>
                   <select

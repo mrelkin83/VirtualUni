@@ -188,14 +188,16 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       {/* Controles del Calendario */}
       <div className={`bg-pn-surface rounded-lg shadow p-4`}>
         <div className="flex flex-wrap justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
+          {/* Envuelve y el título cede ancho: con 200 px fijos, a 390 px el
+              botón «Hoy» se salía 32 px y el shell lo recortaba. */}
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={mesAnterior}
               className={`p-2 hover:bg-pn-surface-3 rounded`}
             >
               <ChevronLeft size={20} />
             </button>
-            <h3 className={`text-lg font-bold text-pn-ink capitalize min-w-[200px] text-center`}>
+            <h3 className={`text-lg font-bold text-pn-ink capitalize min-w-[140px] sm:min-w-[200px] text-center`}>
               {nombreMes}
             </h3>
             <button
@@ -238,6 +240,10 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       {/* Vista de Calendario */}
       {vistaActual === 'mes' && (
         <div className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
+          {/* Encabezado y celdas comparten un solo scroll: separados, a 390 px
+              la cabecera se encogía a la pantalla y dejaba de cuadrar con los días. */}
+          <div className="pn-scroll overflow-x-auto">
+          <div className="min-w-[640px]">
           {/* Días de la semana */}
           <div className={`grid grid-cols-7 bg-pn-surface-3`}>
             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((dia) => (
@@ -248,8 +254,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
           </div>
 
           {/* Días del mes */}
-          <div className="pn-scroll -mx-2 overflow-x-auto px-2">
-          <div className="grid min-w-[640px] grid-cols-7">
+          <div className="grid grid-cols-7">
             {getDiasDelMes().map((dia, index) => {
               const eventosDelDia = getEventosPorFecha(dia.fecha);
               const esHoy = dia.fecha.toDateString() === new Date().toDateString();
@@ -286,7 +291,8 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
               );
             })}
           </div>
-        </div>
+          </div>
+          </div>
         </div>
       )}
 
@@ -395,7 +401,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>Tipo *</label>
                   <select
@@ -422,7 +428,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium text-pn-ink mb-2`}>Hora Inicio *</label>
                   <input

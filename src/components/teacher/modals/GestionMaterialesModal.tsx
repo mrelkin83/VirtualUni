@@ -206,7 +206,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-pn-muted hover:text-pn-ink-2"
+            className="text-pn-muted hover:text-pn-ink-2 p-2 -m-2 rounded"
             aria-label="Cerrar"
           >
             <X size={24} />

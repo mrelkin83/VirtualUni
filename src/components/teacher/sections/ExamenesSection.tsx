@@ -387,8 +387,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
         ) : (
           examenesFiltrados.map(examen => (
             <div key={examen.id} className={`bg-pn-surface p-6 rounded-lg border-pn-line border`}>
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
+              <div className="flex flex-wrap justify-between items-start gap-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className={`text-lg font-semibold text-pn-ink`}>{examen.titulo}</h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoBadge(examen.estado)}`}>
@@ -542,7 +542,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-pn-ink mb-2 font-medium`}>
                         Curso *
@@ -697,7 +697,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
               {tabActiva === 'config' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-pn-ink mb-2 font-medium`}>
                         Nota Mínima Aprobatoria
@@ -977,7 +977,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-pn-ink mb-2 font-medium`}>Tipo de Pregunta</label>
                   <select
@@ -1074,7 +1074,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-pn-ink mb-2 font-medium`}>Puntos</label>
                   <input

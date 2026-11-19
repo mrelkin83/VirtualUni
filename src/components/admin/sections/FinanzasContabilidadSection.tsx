@@ -726,7 +726,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmitTransaction} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Tipo *</label>
                   <select
@@ -763,7 +763,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Categoría *</label>
                   <input
@@ -800,7 +800,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Fecha *</label>
                   <input
@@ -823,7 +823,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Referencia</label>
                   <input
@@ -900,7 +900,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Tipo *</label>
                   <select
@@ -997,7 +997,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Categoría *</label>
                   <input
@@ -1023,7 +1023,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-1">Fecha Inicio *</label>
                   <input

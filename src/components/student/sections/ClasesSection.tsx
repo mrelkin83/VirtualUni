@@ -111,7 +111,7 @@ const ClaseCard: React.FC<{
             {clase.materialesAdjuntos.map((material, idx) => (
               <button
                 key={idx}
-                className={`flex items-center gap-1 text-xs px-2 py-1 rounded border border-pn-line ${
+                className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded border border-pn-line ${
                   'hover:bg-pn-surface-3'
                 } transition`}
               >

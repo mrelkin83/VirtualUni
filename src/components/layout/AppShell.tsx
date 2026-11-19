@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react';
-import { Menu } from 'lucide-react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Menu, Search } from 'lucide-react';
 import { IconButton } from '../ui/Button';
 import { cn } from '../ui/cn';
 import { SidebarNav } from './SidebarNav';
+import { PaletaComandos } from './PaletaComandos';
 import type { GrupoNav } from './navegacion';
 
 /**
@@ -49,6 +50,22 @@ export function AppShell<T extends string>({
   children,
 }: AppShellProps<T>) {
   const [cajonAbierto, setCajonAbierto] = useState(false);
+  const [paletaAbierta, setPaletaAbierta] = useState(false);
+
+  const cerrarPaleta = useCallback(() => setPaletaAbierta(false), []);
+
+  // Ctrl+K / ⌘K desde cualquier parte, incluido dentro de un campo de texto:
+  // es el atajo que la gente ya trae aprendido de otras aplicaciones.
+  useEffect(() => {
+    const alTeclear = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletaAbierta((abierta) => !abierta);
+      }
+    };
+    document.addEventListener('keydown', alTeclear);
+    return () => document.removeEventListener('keydown', alTeclear);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-pn-ground">
@@ -92,6 +109,11 @@ export function AppShell<T extends string>({
           )}
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <IconButton
+              icono={Search}
+              etiqueta="Ir a una sección (Ctrl+K)"
+              onClick={() => setPaletaAbierta(true)}
+            />
             {accionesCabecera}
           </div>
         </header>
@@ -106,6 +128,13 @@ export function AppShell<T extends string>({
           {children}
         </main>
       </div>
+
+      <PaletaComandos
+        grupos={grupos}
+        abierta={paletaAbierta}
+        onCerrar={cerrarPaleta}
+        onIr={onCambiarSeccion}
+      />
     </div>
   );
 }

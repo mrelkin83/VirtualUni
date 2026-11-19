@@ -148,7 +148,7 @@ const RequestCard: React.FC<{
           <div className="flex gap-2">
             <button
               onClick={onVerDetalle}
-              className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 font-semibold"
+              className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 font-semibold p-2 -m-2 rounded"
             >
               <Eye size={16} />
               Ver detalle
@@ -156,7 +156,7 @@ const RequestCard: React.FC<{
             {solicitud.estado === 'completado' && solicitud.archivoUrl && onDescargar && (
               <button
                 onClick={onDescargar}
-                className="text-pn-ok hover:text-pn-ok text-sm flex items-center gap-1 font-semibold"
+                className="text-pn-ok hover:text-pn-ok text-sm flex items-center gap-1 font-semibold p-2 -m-2 rounded"
               >
                 <Download size={16} />
                 Descargar
@@ -325,7 +325,7 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-pn-muted">Costo</p>
                   <p className={`font-semibold text-pn-ink`}>
@@ -411,7 +411,7 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-pn-muted">Fecha de Solicitud</p>
                   <p className={`font-semibold text-pn-ink`}>

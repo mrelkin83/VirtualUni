@@ -117,7 +117,7 @@ export const PerfilEstudianteModal: React.FC<PerfilEstudianteModalProps> = ({
         </div>
 
         {/* Estadísticas principales */}
-        <div className={`p-4 border-pn-line border-b grid grid-cols-4 gap-4`}>
+        <div className={`p-4 border-pn-line border-b grid grid-cols-2 sm:grid-cols-4 gap-4`}>
           <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
             <div className="flex items-center gap-3">
               <div className="p-3 bg-pn-accent-soft rounded-lg">

@@ -65,7 +65,7 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
           </div>
           <button
             onClick={onClose}
-            className="text-pn-muted hover:text-pn-ink-2"
+            className="text-pn-muted hover:text-pn-ink-2 p-2 -m-2 rounded"
           >
             <X size={24} />
           </button>
@@ -78,7 +78,7 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
               <BookOpen size={20} />
               Información Básica
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                   Nombre del Curso *
@@ -167,7 +167,7 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
               <Users size={20} />
               Inscripción y Modalidad
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                   Cupo Máximo

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, X, Check, AlertCircle, Info, CheckCircle, Trash2 } from 'lucide-react';
+import { useCerrarConEscape } from '../../../hooks/useCerrarConEscape';
 
 interface Notificacion {
   id: number;
@@ -27,6 +28,8 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
   marcarTodasComoLeidas,
   eliminarNotificacion
 }) => {
+  useCerrarConEscape(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const noLeidas = notificaciones.filter(n => !n.leida).length;
@@ -67,7 +70,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-pn-muted hover:text-pn-ink-2"
+            className="text-pn-muted hover:text-pn-ink-2 p-2 -m-2 rounded"
           >
             <X size={20} />
           </button>
@@ -78,7 +81,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
           <div className={`px-4 py-2 border-b border-pn-line flex justify-between`}>
             <button
               onClick={marcarTodasComoLeidas}
-              className="text-sm text-pn-accent-text hover:text-pn-accent-text flex items-center gap-1"
+              className="text-sm text-pn-accent-text hover:text-pn-accent-text flex items-center gap-1 p-2 -m-2 rounded"
             >
               <Check size={14} />
               Marcar todas como leídas

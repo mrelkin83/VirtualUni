@@ -279,7 +279,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
@@ -308,7 +308,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-pn-ink-2 mb-2">Orientación</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label
                     className={`flex items-center justify-center gap-2 p-4 border-2 rounded-lg cursor-pointer transition ${
                       orientacion === 'horizontal'
@@ -374,7 +374,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                     Ancho (mm)
@@ -504,7 +504,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
               <div>
                 <h4 className="font-semibold text-pn-ink mb-3">Fuentes</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Fuente Principal

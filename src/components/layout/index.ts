@@ -4,6 +4,9 @@ export type { AppShellProps } from './AppShell';
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps } from './SidebarNav';
 
+export { PaletaComandos, normalizar, puntuar } from './PaletaComandos';
+export type { PaletaComandosProps } from './PaletaComandos';
+
 export { CLAVE_PLEGADA, leerPlegada, guardarPlegada } from './plegado';
 
 export {

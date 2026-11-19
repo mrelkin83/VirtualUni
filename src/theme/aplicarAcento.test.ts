@@ -51,6 +51,41 @@ describe('calcularAcento', () => {
     expect(calcularAcento('#0a6e7e')?.tinta).toBe('#ffffff');
     expect(calcularAcento('#ffd400')?.tinta).toBe('#0b0e12');
   });
+
+  /**
+   * El texto de marca se posa sobre el tinte suave y sobre --pn-surface-3, y
+   * en tema claro el segundo es el más exigente de los dos. Medir solo el
+   * tinte dejaba pasar colores que fallaban en pestañas y filas: es
+   * exactamente lo que le ocurría al naranja secundario por defecto.
+   */
+  describe.each([
+    ['naranja por defecto', '#ff701e'],
+    ['ámbar', '#d97706'],
+    ['verde medio', '#2e9e4f'],
+    ['azul de marca', '#1e52db'],
+    ['amarillo imposible', '#ffd400'],
+  ])('el texto de %s se lee en los dos fondos', (_n, color) => {
+    const FONDOS: Record<'light' | 'dark', Array<[string, [number, number, number]]>> = {
+      light: [
+        ['--pn-surface', [255, 255, 255]],
+        ['--pn-surface-3', [232, 238, 248]],
+      ],
+      dark: [
+        ['--pn-surface', [15, 23, 34]],
+        ['--pn-surface-3', [28, 40, 56]],
+      ],
+    };
+
+    it.each(['light', 'dark'] as const)('en tema %s', (tema) => {
+      const texto = parsearHex(calcularAcento(color, tema)!.texto)!;
+      for (const [nombre, fondo] of FONDOS[tema]) {
+        expect(
+          razonDeContraste(texto, fondo),
+          `${color} sobre ${nombre} en tema ${tema}`,
+        ).toBeGreaterThanOrEqual(CONTRASTE_AA);
+      }
+    });
+  });
 });
 
 describe('aplicarAcento', () => {

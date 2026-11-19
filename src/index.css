@@ -64,7 +64,10 @@
      texto no sirve: el naranja por defecto da 2.77:1 sobre blanco. Esta es su
      version legible, que calcula aplicarAcento.ts igual que --pn-accent-text.
      El valor de aqui es solo el de reserva, cuando no hay color de tenant. */
-  --pn-accent-2-text: #b55015;
+  /* #b55015 se quedaba corto justo en los dos fondos donde más se usa:
+     4.37:1 sobre --pn-surface-3 y 4.42:1 sobre su propio tinte. Oscurecido un
+     2,5% da 4.57 y 4.61, y 5.32 sobre blanco (módulo 7). */
+  --pn-accent-2-text: #b04e14;
   --pn-accent-line: color-mix(in srgb, var(--pn-accent) 35%, var(--pn-surface));
   --pn-accent-hover: color-mix(in srgb, var(--pn-accent) 85%, #000000);
 

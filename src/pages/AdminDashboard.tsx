@@ -2192,7 +2192,7 @@ export default function AdminDashboard() {
                   ></textarea>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2">Tamaño</label>
                     <select
@@ -2293,7 +2293,7 @@ export default function AdminDashboard() {
                     )}
 
                     {nuevoComponente.tipo !== 'qr_code' && nuevoComponente.tipo !== 'firma' && (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input
                           type="number"
                           placeholder="Tamaño (px)"
@@ -2312,7 +2312,7 @@ export default function AdminDashboard() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
                         type="text"
                         placeholder="Top (ej: 100px)"

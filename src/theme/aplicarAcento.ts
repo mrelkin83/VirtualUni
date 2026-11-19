@@ -29,7 +29,19 @@ import {
 /** Superficie sobre la que se mide el contraste en cada tema. */
 const SUPERFICIE: Record<'light' | 'dark', Rgb> = {
   light: [255, 255, 255], // --pn-surface
-  dark: [20, 25, 33], //    --pn-surface en [data-theme='dark']
+  dark: [15, 23, 34], //    --pn-surface en [data-theme='dark'] (#0f1722)
+};
+
+/**
+ * La tercera superficie: pestañas, filas al pasar el ratón, insignias neutras.
+ * El texto de marca también se posa aquí, y en tema claro (#e8eef8) resulta ser
+ * un fondo MÁS exigente que el tinte suave: el naranja secundario por defecto
+ * daba 4.42:1 sobre su propio tinte pero 4.37:1 aquí, y se colaba por debajo
+ * de AA sin que nadie lo midiera (módulo 7).
+ */
+const SUPERFICIE_3: Record<'light' | 'dark', Rgb> = {
+  light: [232, 238, 248], // #e8eef8
+  dark: [28, 40, 56], //    #1c2838
 };
 
 /**
@@ -72,7 +84,14 @@ export function calcularAcento(
   const contrasteOriginal = razonDeContraste(rgb, superficie);
   // mezclar(a, b, t) = a + (b - a) * t, asi que la base va primero.
   const tinteSuave = mezclar(superficie, rgb, TINTE_SUAVE);
-  const texto = acentoLegible(rgb, tinteSuave, CONTRASTE_AA);
+
+  // Se ajusta contra el fondo que menos contraste da de los dos. Ambos son
+  // claros en tema claro y oscuros en el oscuro, así que alejar el texto del
+  // peor lo aleja también del otro: pasar ahí es pasar en los dos.
+  const peorFondo = [tinteSuave, SUPERFICIE_3[tema]].reduce((peor, fondo) =>
+    razonDeContraste(rgb, fondo) < razonDeContraste(rgb, peor) ? fondo : peor,
+  );
+  const texto = acentoLegible(rgb, peorFondo, CONTRASTE_AA);
 
   return {
     acento: aHex(rgb),
