@@ -10,10 +10,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 85",
+    "lint": "eslint . --ext ts,tsx --ignore-pattern e2e --report-unused-disable-directives --max-warnings 85",
+    "lint:e2e": "eslint e2e playwright.config.ts -c eslint.e2e.config.js --max-warnings 0",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:capturas": "playwright test capturas --update-snapshots"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -34,6 +39,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.6",

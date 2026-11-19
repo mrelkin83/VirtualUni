@@ -1,0 +1,12 @@
+{
+  // El tsconfig principal solo incluye `src`, así que a las pruebas de extremo
+  // a extremo no las comprobaba nadie: Playwright las transpila sin verificar
+  // tipos. Esto las pone bajo `tsc` sin tocar la compilación de la aplicación.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["e2e", "playwright.config.ts"],
+  "references": []
+}

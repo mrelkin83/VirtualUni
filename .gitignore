@@ -15,6 +15,15 @@ dist-ssr
 # Claude Code hook cache (tsc --incremental buildinfo, machine-specific)
 .claude/hooks/.cache/
 
+# Playwright: informes y rastros de cada corrida. Las capturas de linea base
+# (e2e/*-snapshots/) SI se versionan: son la referencia contra la que se mide.
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# Sesiones abiertas por sesion.setup.ts: llevan tokens, aunque sean del seed.
+/e2e/.auth/
+
 # Claude Code local settings (per-machine, not shared)
 .claude/settings.local.json
 
