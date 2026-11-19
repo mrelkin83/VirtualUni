@@ -66,8 +66,26 @@ async function bootstrap() {
     }),
   );
 
-  // API prefix
-  app.setGlobalPrefix('api/v1');
+  // API prefix. Las rutas del sitio público renderizado en servidor viven en
+  // la raíz del host del tenant (public-site, §2): se excluyen del prefijo.
+  app.setGlobalPrefix('api/v1', {
+    exclude: [
+      '/',
+      'programas',
+      'programas/:slug',
+      'inscripcion/:slug',
+      'aspirante',
+      'aspirante/(.*)',
+      'contacto',
+      'privacidad',
+      'sitemap.xml',
+      'robots.txt',
+      'public-assets/:archivo',
+      'validar/:codigo',
+      'embed/(.*)',
+      'public/(.*)',
+    ],
+  });
 
   // Swagger API Documentation
   const config = new DocumentBuilder()

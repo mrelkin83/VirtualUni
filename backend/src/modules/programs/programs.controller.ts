@@ -14,6 +14,7 @@ import { EducationLevel, ProgramStatus } from '@prisma/client';
 import { ProgramsService } from './programs.service';
 import { StudyPlansService } from './study-plans.service';
 import { CrearProgramaDto, ActualizarProgramaDto } from './dto/program.dto';
+import { PublicacionProgramaDto } from './dto/publicacion.dto';
 import { CrearPensumDto } from './dto/study-plan.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TenantGuard } from '@/common/guards/tenant.guard';
@@ -78,6 +79,17 @@ export class ProgramsController {
     @CurrentTenant() tenantId: string,
   ) {
     return this.studyPlans.createForProgram(tenantId, id, dto);
+  }
+
+  @Patch(':id/publicacion')
+  @Roles(...STAFF)
+  @ApiOperation({ summary: 'Campos públicos del programa en el sitio web' })
+  actualizarPublicacion(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: PublicacionProgramaDto,
+  ) {
+    return this.programs.actualizarPublicacion(tenantId, id, dto);
   }
 
   @Get(':id')

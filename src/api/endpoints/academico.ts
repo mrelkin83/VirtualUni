@@ -397,6 +397,9 @@ export const programasApi = {
   create: async (data: ProgramaCreateDto) => (await apiClient.post<Programa>(PROGRAMS, data)).data,
   update: async (id: string, data: ProgramaUpdateDto) =>
     (await apiClient.patch<Programa>(`${PROGRAMS}/${id}`, data)).data,
+  /** Campos públicos del sitio web (pestaña Publicación). */
+  actualizarPublicacion: async (id: string, data: Record<string, unknown>) =>
+    (await apiClient.patch<Programa>(`${PROGRAMS}/${id}/publicacion`, data)).data,
   remove: async (id: string) => (await apiClient.delete(`${PROGRAMS}/${id}`)).data,
   pensums: async (id: string) => (await apiClient.get<Pensum[]>(`${PROGRAMS}/${id}/study-plans`)).data,
   crearPensum: async (id: string, data: PensumCreateDto) =>

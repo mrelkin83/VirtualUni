@@ -1,0 +1,64 @@
+<section class="mx-auto max-w-6xl px-4 py-12">
+  <h1 class="text-3xl md:text-4xl font-black text-gray-900"><%= it.textos.ofertaTitulo %></h1>
+  <p class="text-gray-500 mt-2 max-w-2xl"><%= it.textos.ofertaSubtitulo %></p>
+
+  <form method="get" action="/programas" data-filtros class="mt-8 grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
+    <input type="search" name="q" value="<%= it.filtros.q || '' %>" placeholder="Buscar por nombre o palabra clave…"
+           aria-label="Buscar" class="rounded-lg border border-gray-300 px-4 py-2.5" />
+    <% if (it.categorias.length > 1) { %>
+    <select name="nivel" aria-label="Nivel" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+      <option value="">Todos los niveles</option>
+      <% for (const cat of it.categorias) { %>
+      <option value="<%= cat.slug %>" <%= it.filtros.categoria === cat.slug ? 'selected' : '' %>><%= cat.label %> (<%= cat.count %>)</option>
+      <% } %>
+    </select>
+    <% } %>
+    <% if (it.modalidades.length > 1) { %>
+    <select name="modalidad" aria-label="Modalidad" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+      <option value="">Todas las modalidades</option>
+      <% for (const m of it.modalidades) { %>
+      <option value="<%= m.slug %>" <%= it.filtros.modalidad === m.slug ? 'selected' : '' %>><%= m.label %></option>
+      <% } %>
+    </select>
+    <% } %>
+    <% if (it.areas.length > 1) { %>
+    <select name="area" aria-label="Área" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+      <option value="">Todas las áreas</option>
+      <% for (const a of it.areas) { %>
+      <option value="<%= a %>" <%= it.filtros.area === a ? 'selected' : '' %>><%= a %></option>
+      <% } %>
+    </select>
+    <% } %>
+    <noscript><button class="rounded-lg px-4 py-2.5 font-bold text-white" style="background:var(--c1)">Filtrar</button></noscript>
+  </form>
+
+  <% if (it.programas.length === 0) { %>
+  <div class="mt-12 rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-500">
+    No encontramos programas con esos filtros. <a href="/programas" class="font-bold" style="color:var(--c1)">Ver toda la oferta</a>
+  </div>
+  <% } else { %>
+  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <% for (const p of it.programas) { %><%~ include('partials/tarjeta', { p }) %><% } %>
+  </div>
+  <% } %>
+</section>
+
+<% if (!it.hayFiltros && it.directorio.length > 1) { %>
+<section class="bg-gray-50 py-12">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="text-2xl font-black text-gray-900">Directorio completo</h2>
+    <div class="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <% for (const g of it.directorio) { %>
+      <div>
+        <h3 class="font-bold text-gray-900 border-b-2 pb-1.5" style="border-color:var(--c1)"><%= g.area %></h3>
+        <ul class="mt-3 space-y-1.5 text-sm">
+          <% for (const p of g.programas) { %>
+          <li><a href="/programas/<%= p.slug %>" class="text-gray-600 hover:text-[var(--c1)]"><%= p.nombre %><% if (p.esNuevo) { %> <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 align-middle">NUEVO</span><% } %></a></li>
+          <% } %>
+        </ul>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+<% } %>

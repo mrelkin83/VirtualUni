@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* El acento del tenant llega por variables (--c1, --c2) inyectadas en el
+   layout; aquí solo vive lo que Tailwind no genera. */
+details > summary::-webkit-details-marker { display: none; }

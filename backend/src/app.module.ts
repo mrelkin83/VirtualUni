@@ -63,6 +63,7 @@ import { AcademicPeriodsModule } from './modules/academic-periods/academic-perio
 import { ProgramEnrollmentsModule } from './modules/program-enrollments/program-enrollments.module';
 import { AcademicRecordsModule } from './modules/academic-records/academic-records.module';
 import { HomologationsModule } from './modules/homologations/homologations.module';
+import { PublicSiteModule } from './modules/public-site/public-site.module';
 
 @Module({
   imports: [
@@ -149,6 +150,9 @@ import { HomologationsModule } from './modules/homologations/homologations.modul
     ProgramEnrollmentsModule,
     AcademicRecordsModule,
     HomologationsModule,
+
+    // Sitio web publico e inscripciones en linea
+    PublicSiteModule,
   ],
   controllers: [AppController],
 })

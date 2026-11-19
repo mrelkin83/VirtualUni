@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, Network, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Network, Search, Globe } from 'lucide-react';
 import {
   programasApi,
   Programa,
@@ -17,6 +17,7 @@ import {
   colorDeEstadoPrograma,
 } from './etiquetas';
 import { ProgramaFormModal } from './ProgramaFormModal';
+import { PublicacionProgramaModal } from './PublicacionProgramaModal';
 import { PensumEditor } from './PensumEditor';
 import { mensajeDeError } from './errores';
 
@@ -28,6 +29,7 @@ export function ProgramasTab() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [programaEnEdicion, setProgramaEnEdicion] = useState<Programa | null>(null);
   const [programaEnPensum, setProgramaEnPensum] = useState<Programa | null>(null);
+  const [programaEnPublicacion, setProgramaEnPublicacion] = useState<Programa | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['programas', busqueda, nivel, estado],
@@ -140,6 +142,13 @@ export function ProgramasTab() {
                   <Network size={17} />
                 </button>
                 <button
+                  onClick={() => setProgramaEnPublicacion(programa)}
+                  title="Publicación en el sitio web"
+                  className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
+                >
+                  <Globe size={17} />
+                </button>
+                <button
                   onClick={() => { setProgramaEnEdicion(programa); setModalAbierto(true); }}
                   title="Editar programa"
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded"
@@ -167,6 +176,13 @@ export function ProgramasTab() {
         <ProgramaFormModal
           programa={programaEnEdicion}
           onClose={() => setModalAbierto(false)}
+        />
+      )}
+
+      {programaEnPublicacion && (
+        <PublicacionProgramaModal
+          programa={programaEnPublicacion}
+          onClose={() => setProgramaEnPublicacion(null)}
         />
       )}
     </div>

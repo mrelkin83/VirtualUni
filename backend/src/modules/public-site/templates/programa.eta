@@ -1,0 +1,138 @@
+<% const f = it.ficha; const p = f.programa; %>
+<section class="text-white" style="background:linear-gradient(135deg,var(--c1),var(--c2))">
+  <div class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-wide text-white/80">
+      <%= f.nivelEtiqueta %><% if (f.esNuevo) { %> <span class="ml-2 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-400 text-amber-950">NUEVO</span><% } %>
+    </p>
+    <h1 class="mt-1 text-3xl md:text-4xl font-black max-w-3xl"><%= p.name %></h1>
+    <p class="mt-3 max-w-2xl text-white/90"><%= p.shortDescription %></p>
+    <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/90">
+      <% if (f.duracion) { %><span>⏱ <%= f.duracion %></span><% } %>
+      <span>📍 <%= f.modalidadEtiqueta %></span>
+      <% if (p.schedule) { %><span>🕒 <%= p.schedule %></span><% } %>
+    </div>
+    <% if (f.convocatorias.length) { %>
+    <a href="/inscripcion/<%= f.convocatorias[0].slug %>" class="mt-7 inline-block px-7 py-3 rounded-lg bg-white font-bold shadow" style="color:var(--c1)"><%= it.textos.inscribete %></a>
+    <% } %>
+  </div>
+</section>
+
+<div class="mx-auto max-w-6xl px-4 py-10 grid gap-10 lg:grid-cols-[1fr_340px]">
+  <div class="space-y-10 min-w-0">
+    <% if (p.publicDescription) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900">Sobre el programa</h2>
+      <p class="mt-3 text-gray-600 whitespace-pre-line"><%= p.publicDescription %></p>
+    </section>
+    <% } %>
+
+    <% if (p.occupationalProfile || p.graduateProfile) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900"><%= p.occupationalProfile ? 'Perfil ocupacional' : 'Perfil de egreso' %></h2>
+      <p class="mt-3 text-gray-600 whitespace-pre-line"><%= p.occupationalProfile || p.graduateProfile %></p>
+    </section>
+    <% } %>
+
+    <% if (f.pensum.length) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900">Plan de estudios</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <% for (const nivel of f.pensum) { %>
+        <div class="rounded-xl border border-gray-200 p-4">
+          <h3 class="font-bold text-sm" style="color:var(--c1)"><%= nivel.nombre %></h3>
+          <ul class="mt-2 space-y-1 text-sm text-gray-600">
+            <% for (const a of nivel.asignaturas) { %>
+            <li class="flex justify-between gap-2"><span><%= a.nombre %></span><% if (a.medida) { %><span class="text-gray-400 shrink-0"><%= a.medida %></span><% } %></li>
+            <% } %>
+          </ul>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (f.bloques.length) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900">Certificaciones intermedias</h2>
+      <p class="text-sm text-gray-500 mt-1">Al completar cada bloque recibes una certificación que ya vale en el mercado laboral.</p>
+      <ul class="mt-3 space-y-2">
+        <% for (const b of f.bloques) { %>
+        <li class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3"><span class="font-semibold text-gray-800"><%= b.nombre %></span><% if (b.descripcion) { %><span class="text-sm text-gray-500"> — <%= b.descripcion %></span><% } %></li>
+        <% } %>
+      </ul>
+    </section>
+    <% } %>
+
+    <% if (f.articulacion.length) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900">Sigue avanzando</h2>
+      <ul class="mt-3 space-y-2">
+        <% for (const a of f.articulacion) { %>
+        <li class="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
+          <span class="font-black text-lg" style="color:var(--c2)"><%= a.pct %>%</span>
+          <span class="text-sm text-gray-600">Con este programa avanzas en <a class="font-semibold" style="color:var(--c1)" href="/programas/<%= a.slug %>"><%= a.nombre %></a></span>
+        </li>
+        <% } %>
+      </ul>
+    </section>
+    <% } %>
+
+    <% if (f.faq.length) { %>
+    <section>
+      <h2 class="text-xl font-black text-gray-900">Preguntas frecuentes</h2>
+      <div class="mt-3 divide-y divide-gray-100 border border-gray-200 rounded-xl">
+        <% for (const q of f.faq) { %>
+        <details class="group px-4 py-3">
+          <summary class="cursor-pointer font-semibold text-gray-800 list-none flex justify-between items-center"><%= q.q %><span class="text-gray-400 group-open:rotate-45 transition">+</span></summary>
+          <p class="mt-2 text-sm text-gray-600"><%= q.a %></p>
+        </details>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+  </div>
+
+  <aside class="space-y-5">
+    <div class="rounded-xl border border-gray-200 p-5 lg:sticky lg:top-20">
+      <h2 class="font-black text-gray-900">Información clave</h2>
+      <dl class="mt-3 space-y-3 text-sm">
+        <% if (f.otorgaTexto) { %>
+        <div><dt class="text-gray-500"><%= f.otorgaRotulo %></dt><dd class="font-semibold text-gray-800"><%= f.otorgaTexto %></dd></div>
+        <% } %>
+        <% if (f.duracion) { %>
+        <div><dt class="text-gray-500">Duración</dt><dd class="font-semibold text-gray-800"><%= f.duracion %></dd></div>
+        <% } %>
+        <div><dt class="text-gray-500">Modalidad</dt><dd class="font-semibold text-gray-800"><%= f.modalidadEtiqueta %><% if (p.schedule) { %> · <%= p.schedule %><% } %></dd></div>
+        <% if (p.officialCode) { %>
+        <div><dt class="text-gray-500"><%= f.identificadorRotulo %></dt><dd class="font-semibold text-gray-800"><%= p.officialCode %></dd></div>
+        <% } %>
+        <% if (p.tuitionDisplay) { %>
+        <div><dt class="text-gray-500">Inversión</dt><dd class="font-semibold text-gray-800"><%= p.tuitionDisplay %></dd></div>
+        <% } %>
+      </dl>
+
+      <% for (const cv of f.convocatorias) { %>
+      <div class="mt-5 rounded-lg bg-gray-50 border border-gray-200 p-4">
+        <p class="font-bold text-sm text-gray-900"><%= cv.name %></p>
+        <ul class="mt-2 text-xs text-gray-600 space-y-1">
+          <% if (cv.rolling) { %><li>✅ Inscripción permanente</li><% } else if (cv.closesAt) { %><li>🗓 Cierra el <%= it.fecha(cv.closesAt) %></li><% } %>
+          <% if (cv.startsAt) { %><li>🚀 Inicio: <%= it.fecha(cv.startsAt) %></li><% } %>
+          <% if (cv.minEducation) { %><li>🎓 Requisito: <%= cv.minEducation %></li><% } %>
+          <% if (cv.minAge) { %><li>🔞 Edad mínima: <%= cv.minAge %> años</li><% } %>
+          <% if (cv.applicationFee > 0) { %><li>💳 Inscripción: $<%= cv.applicationFee.toLocaleString('es-CO') %></li><% } else { %><li>💳 Inscripción gratuita</li><% } %>
+        </ul>
+        <% if (cv.requiredDocuments.length) { %>
+        <p class="mt-2 text-xs font-semibold text-gray-700">Documentos:</p>
+        <ul class="text-xs text-gray-600 list-disc ml-4">
+          <% for (const d of cv.requiredDocuments) { %><li><%= d.name %><%= d.required ? '' : ' (opcional)' %></li><% } %>
+        </ul>
+        <% } %>
+        <a href="/inscripcion/<%= cv.slug %>" class="mt-3 block text-center px-4 py-2.5 rounded-lg font-bold text-white text-sm" style="background:var(--c1)"><%= it.textos.inscribete %></a>
+      </div>
+      <% } %>
+      <% if (!f.convocatorias.length) { %>
+      <p class="mt-5 text-sm text-gray-500">Por ahora no hay <%= it.textos.inscripciones.toLowerCase() %> abiertas para este <%= it.textos.unidadOferta %>.<% if (it.site.whatsappNumber) { %> <a class="font-semibold" style="color:var(--c1)" href="https://wa.me/<%= it.site.whatsappNumber %>" target="_blank" rel="noopener">Déjanos tus datos</a> y te avisamos.<% } %></p>
+      <% } %>
+    </div>
+  </aside>
+</div>

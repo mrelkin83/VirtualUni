@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,7 @@ import {
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { EducationLevel, ProgramStatus } from '@prisma/client';
 import { CrearProgramaDto, ActualizarProgramaDto } from './dto/program.dto';
+import { PublicacionProgramaDto } from './dto/publicacion.dto';
 
 @Injectable()
 export class ProgramsService {
@@ -84,6 +86,58 @@ export class ProgramsService {
       throw new ConflictException(`Ya existe un programa con el código ${dto.code}`);
     }
     return this.prisma.program.create({ data: { tenantId, ...dto } });
+  }
+
+  /**
+   * Campos públicos del programa (sitio web). Publicar exige slug,
+   * descripción corta y estado ACTIVO (§4); el slug es único por tenant.
+   */
+  async actualizarPublicacion(tenantId: string, id: string, dto: PublicacionProgramaDto) {
+    const programa = await this.prisma.program.findFirst({ where: { id, tenantId } });
+    if (!programa) throw new NotFoundException('Programa no encontrado');
+
+    const slug = dto.slug !== undefined ? dto.slug : programa.slug;
+    const shortDescription =
+      dto.shortDescription !== undefined ? dto.shortDescription : programa.shortDescription;
+    const publicado = dto.isPublished !== undefined ? dto.isPublished : programa.isPublished;
+
+    if (publicado) {
+      if (!slug || !shortDescription) {
+        throw new BadRequestException(
+          'Para publicar el programa necesita un slug y una descripción corta',
+        );
+      }
+      if (programa.status !== 'ACTIVO') {
+        throw new BadRequestException('Solo se publica un programa en estado ACTIVO');
+      }
+    }
+
+    if (slug && slug !== programa.slug) {
+      const duplicado = await this.prisma.program.findFirst({
+        where: { tenantId, slug, id: { not: id } },
+        select: { id: true },
+      });
+      if (duplicado) throw new BadRequestException('Ya hay otro programa con ese slug');
+    }
+
+    return this.prisma.program.update({
+      where: { id: programa.id },
+      data: {
+        slug,
+        isPublished: publicado,
+        shortDescription,
+        publicDescription: dto.publicDescription,
+        graduateProfile: dto.graduateProfile,
+        occupationalProfile: dto.occupationalProfile,
+        imageUrl: dto.imageUrl,
+        isNewUntil:
+          dto.isNewUntil === undefined ? undefined : dto.isNewUntil ? new Date(dto.isNewUntil) : null,
+        area: dto.area,
+        schedule: dto.schedule,
+        tuitionDisplay: dto.tuitionDisplay,
+        faq: dto.faq === undefined ? undefined : (dto.faq as unknown as object[]),
+      },
+    });
   }
 
   async update(tenantId: string, id: string, dto: ActualizarProgramaDto) {

@@ -45,3 +45,6 @@ lerna-debug.log*
 # migrate deploy` no tiene nada que aplicar en un entorno nuevo — el mismo
 # bloqueador "P1000" que documenta docs/AUDITORIA_FORENSE_2026-07-26.md tiene
 # esto como una causa real: no había forma de reconstruir el esquema.
+
+# CSS compilado del sitio publico (lo genera npm run css:sitio)
+src/modules/public-site/assets/site.css

@@ -127,12 +127,21 @@ async function programaPublicado(
     status: ProgramStatus.ACTIVO,
   };
 
-  const programa = await prisma.program.upsert({
+  let programa = await prisma.program.upsert({
     where: { tenantId_code: { tenantId, code: data.code } },
     // Si el programa ya existía (seed principal), solo se publica.
     update: publicos,
     create: { tenantId, ...academico, ...publicos },
   });
+
+  // El identificador oficial se muestra en la ficha pública: si el programa
+  // preexistente no lo tenía, se completa con el del demo (nunca se pisa).
+  if (!programa.officialCode && academico.officialCode) {
+    programa = await prisma.program.update({
+      where: { id: programa.id },
+      data: { officialCode: academico.officialCode, degreeTitle: programa.degreeTitle ?? academico.degreeTitle },
+    });
+  }
 
   const plan = await prisma.studyPlan.upsert({
     where: { programId_version: { programId: programa.id, version: '2027' } },

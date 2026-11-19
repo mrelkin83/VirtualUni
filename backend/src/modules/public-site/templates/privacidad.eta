@@ -1,0 +1,16 @@
+<section class="mx-auto max-w-3xl px-4 py-12">
+  <h1 class="text-3xl font-black text-gray-900">Tratamiento de datos personales</h1>
+  <% if (it.site.dataControllerName) { %>
+  <p class="mt-2 text-sm text-gray-500">Responsable del tratamiento: <%= it.site.dataControllerName %></p>
+  <% } %>
+  <% if (it.site.privacyPolicyUrl) { %>
+  <p class="mt-6 text-gray-600">La política de tratamiento de datos de <%= it.tenant.name %> está publicada en
+    <a href="<%= it.site.privacyPolicyUrl %>" class="font-semibold" style="color:var(--c1)" rel="noopener"><%= it.site.privacyPolicyUrl %></a>.
+  </p>
+  <% } else if (it.site.privacyPolicy) { %>
+  <div class="mt-6 text-gray-600 whitespace-pre-line leading-relaxed"><%= it.site.privacyPolicy %></div>
+  <% } else { %>
+  <p class="mt-6 text-gray-600">La institución aún no ha publicado su política de tratamiento de datos. Escríbenos para solicitarla.</p>
+  <% } %>
+  <p class="mt-8 text-xs text-gray-400">Versión <%= it.site.privacyVersion %></p>
+</section>

@@ -1,0 +1,19 @@
+<a href="/programas/<%= it.p.slug %>" class="group flex flex-col rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-lg hover:border-[var(--c1)] transition">
+  <div class="h-36 bg-gray-100 relative overflow-hidden">
+    <% if (it.p.imageUrl) { %>
+      <img src="<%= it.p.imageUrl %>" alt="" loading="lazy" width="400" height="144" class="w-full h-full object-cover group-hover:scale-105 transition" />
+    <% } else { %>
+      <div class="w-full h-full grid place-items-center text-4xl font-black text-white" style="background:linear-gradient(135deg,var(--c1),var(--c2))"><%= it.p.nombre.charAt(0) %></div>
+    <% } %>
+    <div class="absolute top-2 left-2 flex gap-1.5">
+      <% if (it.p.esNuevo) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-400 text-amber-950">NUEVO</span><% } %>
+      <% if (it.p.inscripcionesAbiertas) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500 text-white">Inscripciones abiertas</span><% } %>
+    </div>
+  </div>
+  <div class="p-4 flex flex-col gap-1.5 flex-1">
+    <span class="text-[11px] font-semibold uppercase tracking-wide" style="color:var(--c1)"><%= it.p.nivelEtiqueta %></span>
+    <h3 class="font-bold text-gray-900 leading-snug group-hover:text-[var(--c1)]"><%= it.p.nombre %></h3>
+    <p class="text-sm text-gray-500 line-clamp-2 flex-1"><%= it.p.descripcionCorta %></p>
+    <p class="text-xs text-gray-500 pt-1"><%= it.p.duracion %><% if (it.p.duracion && it.p.modalidad) { %> · <% } %><%= it.p.modalidad %></p>
+  </div>
+</a>

@@ -1,0 +1,40 @@
+<% const c = it.site.contact || {}; %>
+<section class="mx-auto max-w-6xl px-4 py-12 grid gap-10 md:grid-cols-2">
+  <div>
+    <h1 class="text-3xl font-black text-gray-900">Hablemos</h1>
+    <p class="mt-2 text-gray-500">Resolvemos tus dudas sobre <%= it.textos.inscripciones.toLowerCase() %>, horarios y costos.</p>
+    <dl class="mt-6 space-y-3 text-sm">
+      <% if (c.direccion) { %><div><dt class="font-semibold text-gray-800">Dirección</dt><dd class="text-gray-600"><%= c.direccion %></dd></div><% } %>
+      <% if (c.telefono) { %><div><dt class="font-semibold text-gray-800">Teléfono</dt><dd class="text-gray-600"><%= c.telefono %></dd></div><% } %>
+      <% if (c.email) { %><div><dt class="font-semibold text-gray-800">Correo</dt><dd class="text-gray-600"><%= c.email %></dd></div><% } %>
+      <% if (c.horario) { %><div><dt class="font-semibold text-gray-800">Horario de atención</dt><dd class="text-gray-600"><%= c.horario %></dd></div><% } %>
+    </dl>
+    <% if (it.site.whatsappNumber) { %>
+    <a href="https://wa.me/<%= it.site.whatsappNumber %>?text=<%= encodeURIComponent(it.site.whatsappMessage || '') %>" target="_blank" rel="noopener"
+       class="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-white bg-[#25D366]">
+      Escríbenos por WhatsApp
+    </a>
+    <% } %>
+  </div>
+  <div>
+    <% if (c.mapa) { %>
+    <iframe src="<%= c.mapa %>" title="Mapa de ubicación" loading="lazy" class="w-full h-72 rounded-xl border border-gray-200" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    <% } %>
+    <form method="post" action="/contacto" data-tmin class="mt-6 rounded-xl border border-gray-200 p-5 space-y-3">
+      <h2 class="font-black text-gray-900">Déjanos tus datos</h2>
+      <% if (it.enviado) { %>
+      <p class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-3">¡Gracias! Un asesor te contactará muy pronto.</p>
+      <% } %>
+      <input name="nombre" required maxlength="120" placeholder="Nombre completo" aria-label="Nombre" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+      <input name="telefono" required maxlength="20" placeholder="Teléfono / WhatsApp" aria-label="Teléfono" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+      <input name="email" type="email" required maxlength="160" placeholder="Correo electrónico" aria-label="Correo" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+      <textarea name="mensaje" maxlength="500" rows="3" placeholder="¿Qué te interesa estudiar?" aria-label="Mensaje" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm"></textarea>
+      <%~ it.antispam %>
+      <label class="flex items-start gap-2 text-xs text-gray-500">
+        <input type="checkbox" name="acepta" required class="mt-0.5" />
+        <span>Autorizo el tratamiento de mis datos según la <a href="/privacidad" class="underline">política de privacidad</a>.</span>
+      </label>
+      <button class="w-full rounded-lg px-4 py-3 font-bold text-white" style="background:var(--c1)">Enviar</button>
+    </form>
+  </div>
+</section>
