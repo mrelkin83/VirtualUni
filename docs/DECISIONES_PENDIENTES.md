@@ -166,7 +166,7 @@ colegio, admisiones/CRM y facturación electrónica DIAN.
   emite la categoría performance; dejar un job de CI con
   `lighthouse --preset=mobile` para la cifra formal (meta ≥ 90).
 - **Registro de las secciones nuevas del admin** (`Sitio web`, `Admisiones`,
-  `Integraciones`)
+  `Integraciones`) y el editor de Anuncio/Páginas en `SitioWebSection.tsx`
   vive en `navegacion.ts`/`AdminDashboard.tsx`, que cargan un rediseño ajeno
   sin commitear: las 7 líneas de registro están en el working tree y viajarán
   con ese trabajo (o en un commit propio cuando el árbol se estabilice).

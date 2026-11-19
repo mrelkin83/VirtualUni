@@ -27,7 +27,10 @@ export interface SitioConfig {
   levelLabels?: Record<string, { label?: string; hidden?: boolean }> | null;
   contact?: {
     direccion?: string; telefono?: string; email?: string; horario?: string; mapa?: string;
+    redes?: { facebook?: string; instagram?: string; youtube?: string; tiktok?: string; x?: string; linkedin?: string };
   } | null;
+  /** Banner superior tipo «Matrículas abiertas 2027». */
+  announcement?: { text: string; link?: string; active?: boolean } | null;
   whatsappNumber?: string | null;
   whatsappMessage?: string | null;
   seoTitle?: string | null;
@@ -54,6 +57,31 @@ export const sitioWebApi = {
   obtener: async () => (await apiClient.get<SitioRespuesta>(BASE)).data,
   guardar: async (data: Partial<SitioConfig>) =>
     (await apiClient.put<SitioConfig>(BASE, data)).data,
+};
+
+// ----- Páginas institucionales (Conócenos, Bienestar, Calidad…)
+
+export interface PaginaSitio {
+  id: string;
+  slug: string;
+  title: string;
+  menuGroup: string;
+  order: number;
+  summary?: string | null;
+  content: string;
+  imageUrl?: string | null;
+  isPublished: boolean;
+  updatedAt: string;
+}
+
+export type GuardarPagina = Omit<PaginaSitio, 'id' | 'updatedAt'>;
+
+export const paginasSitioApi = {
+  listar: async () => (await apiClient.get<PaginaSitio[]>(`${BASE}/paginas`)).data,
+  crear: async (data: GuardarPagina) => (await apiClient.post<PaginaSitio>(`${BASE}/paginas`, data)).data,
+  actualizar: async (id: string, data: GuardarPagina) =>
+    (await apiClient.put<PaginaSitio>(`${BASE}/paginas/${id}`, data)).data,
+  eliminar: async (id: string) => (await apiClient.delete<PaginaSitio[]>(`${BASE}/paginas/${id}`)).data,
 };
 
 // ----- Wompi por institución (las llaves son write-only)

@@ -309,6 +309,42 @@ export class PublicCatalogService {
       }));
   }
 
+  /**
+   * Oferta agrupada por categoría pública para la portada: una institución
+   * mixta (técnicos + bachillerato, o pregrado + ETDH) muestra cada nivel como
+   * bloque propio en vez de una sola parrilla indistinta.
+   */
+  async ofertaPorCategoria(tenantId: string, levelLabels?: unknown) {
+    const [cats, tarjetas] = await Promise.all([
+      this.categorias(tenantId, levelLabels),
+      this.listar(tenantId, {}),
+    ]);
+    return cats.map((c) => ({
+      ...c,
+      programas: tarjetas.filter((t) => t.categoria === c.slug).slice(0, 6),
+    }));
+  }
+
+  /** Páginas institucionales publicadas, agrupadas para el menú. */
+  async paginasMenu(tenantId: string) {
+    const paginas = await this.prisma.sitePage.findMany({
+      where: { tenantId, isPublished: true },
+      orderBy: [{ menuGroup: 'asc' }, { order: 'asc' }, { title: 'asc' }],
+      select: { slug: true, title: true, menuGroup: true },
+    });
+    const grupos = new Map<string, { slug: string; title: string }[]>();
+    for (const p of paginas) {
+      if (!grupos.has(p.menuGroup)) grupos.set(p.menuGroup, []);
+      (grupos.get(p.menuGroup) as { slug: string; title: string }[]).push({ slug: p.slug, title: p.title });
+    }
+    return [...grupos.entries()].map(([grupo, items]) => ({ grupo, items }));
+  }
+
+  /** Página institucional publicada, o null (404 genérico en el controlador). */
+  async pagina(tenantId: string, slug: string) {
+    return this.prisma.sitePage.findFirst({ where: { tenantId, slug, isPublished: true } });
+  }
+
   /** Destacados de la portada: los elegidos por el admin o los primeros publicados. */
   async destacados(tenantId: string, ids: string[]) {
     const tarjetas = await this.listar(tenantId, {});

@@ -1,59 +1,80 @@
-<section class="mx-auto max-w-6xl px-4 py-12">
-  <h1 class="text-3xl md:text-4xl font-black text-gray-900"><%= it.textos.ofertaTitulo %></h1>
-  <p class="text-gray-500 mt-2 max-w-2xl"><%= it.textos.ofertaSubtitulo %></p>
+<section class="banda-tinta text-white">
+  <div class="mx-auto max-w-6xl px-4 pt-12 pb-24 md:pt-16 md:pb-28">
+    <h1 class="font-display font-black text-4xl md:text-5xl tracking-tight"><%= it.textos.ofertaTitulo %></h1>
+    <p class="text-white/85 mt-3 max-w-2xl text-lg"><%= it.textos.ofertaSubtitulo %></p>
+  </div>
+</section>
 
-  <form method="get" action="/programas" data-filtros class="mt-8 grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
-    <input type="search" name="q" value="<%= it.filtros.q || '' %>" placeholder="Buscar por nombre o palabra clave…"
-           aria-label="Buscar" class="rounded-lg border border-gray-300 px-4 py-2.5" />
-    <% if (it.categorias.length > 1) { %>
-    <select name="nivel" aria-label="Nivel" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
-      <option value="">Todos los niveles</option>
+<section class="mx-auto max-w-6xl px-4 -mt-16">
+  <form method="get" action="/programas" data-filtros class="rounded-2xl bg-white shadow-xl border border-gray-100 p-5 md:p-6">
+    <div class="flex rounded-xl overflow-hidden border border-gray-300 focus-within:border-[var(--c1)]">
+      <svg class="self-center ml-4 shrink-0 text-gray-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.3-3.3"/></svg>
+      <input type="search" name="q" value="<%= it.filtros.q || '' %>" placeholder="¿Qué quieres estudiar?"
+             aria-label="Buscar programa" class="flex-1 px-3.5 py-3.5 text-gray-900 outline-none min-w-0" />
+      <noscript><button class="px-5 font-display font-bold text-white" style="background:var(--c1)">Buscar</button></noscript>
+    </div>
+
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <% if (it.categorias.length > 1) { %>
+      <a href="/programas<%= it.filtros.q ? ('?q=' + encodeURIComponent(it.filtros.q)) : '' %>"
+         class="px-4 py-2 rounded-full text-sm font-semibold border transition <%= !it.filtros.categoria ? 'text-white' : 'text-gray-700 border-gray-300 hover:border-[var(--c1)]' %>"
+         <% if (!it.filtros.categoria) { %>style="background:var(--c1);border-color:var(--c1)"<% } %>>Todos</a>
       <% for (const cat of it.categorias) { %>
-      <option value="<%= cat.slug %>" <%= it.filtros.categoria === cat.slug ? 'selected' : '' %>><%= cat.label %> (<%= cat.count %>)</option>
+      <a href="/programas?nivel=<%= cat.slug %><%= it.filtros.q ? ('&q=' + encodeURIComponent(it.filtros.q)) : '' %>"
+         class="px-4 py-2 rounded-full text-sm font-semibold border transition <%= it.filtros.categoria === cat.slug ? 'text-white' : 'text-gray-700 border-gray-300 hover:border-[var(--c1)]' %>"
+         <% if (it.filtros.categoria === cat.slug) { %>style="background:var(--c1);border-color:var(--c1)"<% } %>>
+        <%= cat.label %> <span class="font-mono text-xs opacity-80">(<%= cat.count %>)</span>
+      </a>
       <% } %>
-    </select>
-    <% } %>
-    <% if (it.modalidades.length > 1) { %>
-    <select name="modalidad" aria-label="Modalidad" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
-      <option value="">Todas las modalidades</option>
-      <% for (const m of it.modalidades) { %>
-      <option value="<%= m.slug %>" <%= it.filtros.modalidad === m.slug ? 'selected' : '' %>><%= m.label %></option>
+      <input type="hidden" name="nivel" value="<%= it.filtros.categoria || '' %>" />
       <% } %>
-    </select>
-    <% } %>
-    <% if (it.areas.length > 1) { %>
-    <select name="area" aria-label="Área" class="rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
-      <option value="">Todas las áreas</option>
-      <% for (const a of it.areas) { %>
-      <option value="<%= a %>" <%= it.filtros.area === a ? 'selected' : '' %>><%= a %></option>
-      <% } %>
-    </select>
-    <% } %>
-    <noscript><button class="rounded-lg px-4 py-2.5 font-bold text-white" style="background:var(--c1)">Filtrar</button></noscript>
-  </form>
 
+      <span class="flex-1"></span>
+
+      <% if (it.modalidades.length > 1) { %>
+      <select name="modalidad" aria-label="Modalidad" class="rounded-lg border border-gray-300 px-3 py-2 bg-white text-sm">
+        <option value="">Todas las modalidades</option>
+        <% for (const m of it.modalidades) { %>
+        <option value="<%= m.slug %>" <%= it.filtros.modalidad === m.slug ? 'selected' : '' %>><%= m.label %></option>
+        <% } %>
+      </select>
+      <% } %>
+      <% if (it.areas.length > 1) { %>
+      <select name="area" aria-label="Área" class="rounded-lg border border-gray-300 px-3 py-2 bg-white text-sm">
+        <option value="">Todas las áreas</option>
+        <% for (const a of it.areas) { %>
+        <option value="<%= a %>" <%= it.filtros.area === a ? 'selected' : '' %>><%= a %></option>
+        <% } %>
+      </select>
+      <% } %>
+    </div>
+  </form>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 py-10">
   <% if (it.programas.length === 0) { %>
-  <div class="mt-12 rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-500">
+  <div class="mt-4 rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-500">
     No encontramos programas con esos filtros. <a href="/programas" class="font-bold" style="color:var(--c1)">Ver toda la oferta</a>
   </div>
   <% } else { %>
-  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  <p class="font-mono text-[13px] text-gray-500"><%= it.programas.length %> programa<%= it.programas.length === 1 ? '' : 's' %></p>
+  <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     <% for (const p of it.programas) { %><%~ include('partials/tarjeta', { p }) %><% } %>
   </div>
   <% } %>
 </section>
 
 <% if (!it.hayFiltros && it.directorio.length > 1) { %>
-<section class="bg-gray-50 py-12">
+<section class="py-12" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="text-2xl font-black text-gray-900">Directorio completo</h2>
+    <h2 class="font-display font-black text-2xl text-gray-900">Directorio completo</h2>
     <div class="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       <% for (const g of it.directorio) { %>
       <div>
-        <h3 class="font-bold text-gray-900 border-b-2 pb-1.5" style="border-color:var(--c1)"><%= g.area %></h3>
+        <h3 class="font-display font-bold text-gray-900 border-b-2 pb-1.5" style="border-color:var(--c1)"><%= g.area %></h3>
         <ul class="mt-3 space-y-1.5 text-sm">
           <% for (const p of g.programas) { %>
-          <li><a href="/programas/<%= p.slug %>" class="text-gray-600 hover:text-[var(--c1)]"><%= p.nombre %><% if (p.esNuevo) { %> <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 align-middle">NUEVO</span><% } %></a></li>
+          <li><a href="/programas/<%= p.slug %>" class="text-gray-600 hover:text-[var(--c1)] inline-block py-0.5"><%= p.nombre %><% if (p.esNuevo) { %> <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 align-middle">NUEVO</span><% } %></a></li>
           <% } %>
         </ul>
       </div>

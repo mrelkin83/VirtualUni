@@ -1,97 +1,186 @@
-<% const slide = (it.site.heroSlides && it.site.heroSlides[0]) || {}; %>
-<section class="relative overflow-hidden" style="background:linear-gradient(135deg,var(--c1),var(--c2))">
+<%
+  const slide = (it.site.heroSlides && it.site.heroSlides[0]) || {};
+  const ocultas = new Set(((it.site.sections || {}).hidden) || []);
+  const rollingAbierta = it.convocatorias.some((cv) => cv.rolling);
+%>
+
+<section class="relative overflow-hidden banda-tinta">
   <% if (slide.imageUrl) { %>
     <img src="<%= slide.imageUrl %>" alt="" fetchpriority="high" width="1600" height="640"
          class="absolute inset-0 w-full h-full object-cover" />
-    <div class="absolute inset-0 bg-black" style="opacity:<%= Math.min(Math.max(Number(slide.overlay ?? 0.5), 0), 0.85) %>"></div>
+    <div class="absolute inset-0" style="background:var(--tinta);opacity:<%= Math.min(Math.max(Number(slide.overlay ?? 0.72), 0.45), 0.9) %>"></div>
   <% } %>
-  <div class="relative mx-auto max-w-6xl px-4 py-20 md:py-28 text-white">
-    <h1 class="text-3xl md:text-5xl font-black max-w-2xl leading-tight"><%= slide.title || it.tenant.name %></h1>
-    <% if (slide.subtitle) { %><p class="mt-4 max-w-xl text-white/90 md:text-lg"><%= slide.subtitle %></p><% } %>
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a href="<%= (slide.ctaPrimary && slide.ctaPrimary.href !== 'whatsapp' && slide.ctaPrimary.href) || '/programas' %>"
-         class="px-6 py-3 rounded-lg bg-white font-bold shadow hover:shadow-lg" style="color:var(--c1)">
+  <div class="relative mx-auto max-w-6xl px-4 pt-16 pb-20 md:pt-24 md:pb-28 text-white">
+    <p class="anim-subir font-mono text-[13px] uppercase tracking-[0.2em] text-white/70">
+      <%= rollingAbierta ? 'Inscripción permanente' : (it.textos.inscripciones + ' abiertas') %>
+    </p>
+    <h1 class="anim-subir anim-r1 mt-3 font-display font-black text-4xl md:text-6xl max-w-3xl leading-[1.05] tracking-tight">
+      <%= slide.title || it.tenant.name %>
+    </h1>
+    <% if (slide.subtitle) { %><p class="anim-subir anim-r2 mt-5 max-w-xl text-white/85 text-lg"><%= slide.subtitle %></p><% } %>
+
+    <% if (it.site.showHeroSearch) { %>
+    <form action="/programas" method="get" class="anim-subir anim-r2 mt-10 max-w-2xl flex rounded-xl overflow-hidden shadow-2xl bg-white">
+      <input type="search" name="q" placeholder="¿Qué quieres estudiar?" aria-label="Buscar programa"
+             class="flex-1 px-5 py-4 text-gray-900 text-lg outline-none min-w-0" />
+      <button class="px-7 font-display font-bold text-white text-lg" style="background:var(--c1)">Buscar</button>
+    </form>
+    <% } %>
+
+        <div class="anim-subir anim-r3 mt-6 flex flex-wrap gap-2.5">
+      <% for (const cat of it.nav.categorias) { %>
+      <a href="/programas?nivel=<%= cat.slug %>"
+         class="px-4 py-2 rounded-full border border-white/35 bg-white/10 text-sm font-semibold text-white hover:bg-white hover:text-gray-900 transition">
+        <%= cat.label %> <span class="font-mono text-xs opacity-75">(<%= cat.count %>)</span>
+      </a>
+      <% } %>
+    </div>
+
+    <div class="anim-subir anim-r3 mt-9 flex flex-wrap gap-3">
+      <a href="<%= (slide.ctaPrimary && slide.ctaPrimary.href !== 'whatsapp' && slide.ctaPrimary.href) || '/admisiones' %>"
+         class="px-7 py-3.5 rounded-lg bg-white font-display font-bold shadow-lg hover:shadow-xl transition" style="color:var(--tinta)">
         <%= (slide.ctaPrimary && slide.ctaPrimary.label) || it.textos.inscribete %>
       </a>
       <% if (it.site.whatsappNumber) { %>
       <a href="https://wa.me/<%= it.site.whatsappNumber %>?text=<%= encodeURIComponent(it.site.whatsappMessage || '') %>" target="_blank" rel="noopener"
-         class="px-6 py-3 rounded-lg border-2 border-white/70 font-bold text-white hover:bg-white/10">
+         class="px-7 py-3.5 rounded-lg border-2 border-white/60 font-display font-bold text-white hover:bg-white/10 transition">
         <%= (slide.ctaSecondary && slide.ctaSecondary.label) || 'Habla con un asesor' %>
       </a>
       <% } %>
     </div>
-    <% if (it.site.showHeroSearch) { %>
-    <form action="/programas" method="get" class="mt-10 max-w-lg flex rounded-xl overflow-hidden shadow-lg bg-white">
-      <input type="search" name="q" placeholder="¿Qué quieres estudiar?" aria-label="Buscar programa"
-             class="flex-1 px-4 py-3.5 text-gray-800 outline-none" />
-      <button class="px-5 font-bold text-white" style="background:var(--c1)">Buscar</button>
-    </form>
-    <% } %>
   </div>
 </section>
 
-<% if (it.destacados.length) { %>
-<section class="mx-auto max-w-6xl px-4 py-14">
-  <h2 class="text-2xl md:text-3xl font-black text-gray-900"><%= it.textos.ofertaTitulo %></h2>
-  <p class="text-gray-500 mt-1"><%= it.textos.ofertaSubtitulo %></p>
-  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-    <% for (const p of it.destacados) { %><%~ include('partials/tarjeta', { p }) %><% } %>
+<% if (!ocultas.has('featured') && it.porCategoria.length) { %>
+<section class="mx-auto max-w-6xl px-4 pt-16">
+  <div class="flex items-end justify-between gap-4 flex-wrap">
+    <div>
+      <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)">Oferta <%= it.anio %></p>
+      <h2 class="mt-1 font-display font-black text-3xl md:text-4xl text-gray-900"><%= it.textos.ofertaTitulo %></h2>
+      <p class="text-gray-500 mt-2"><%= it.textos.ofertaSubtitulo %></p>
+    </div>
+    <a href="/programas" class="font-bold enlace-nav pb-1" style="color:var(--c1)">Ver toda la oferta →</a>
   </div>
-  <div class="mt-8 text-center">
-    <a href="/programas" class="inline-block px-6 py-3 rounded-lg font-bold text-white" style="background:var(--c1)">Ver toda la oferta</a>
+
+  <% for (const cat of it.porCategoria) { if (!cat.programas.length) continue; %>
+  <div class="mt-12">
+    <div class="flex items-baseline justify-between gap-4 border-b-2 pb-2" style="border-color:var(--borde-tinte)">
+      <h3 class="font-display font-extrabold text-xl text-gray-900"><%= cat.label %></h3>
+      <a href="/programas?nivel=<%= cat.slug %>" class="text-sm font-bold shrink-0 py-1" style="color:var(--c1)">
+        <%= cat.count > cat.programas.length ? ('Ver los ' + cat.count) : 'Ver todos' %> →
+      </a>
+    </div>
+    <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <% for (const p of cat.programas) { %><%~ include('partials/tarjeta', { p }) %><% } %>
+    </div>
   </div>
+  <% } %>
 </section>
 <% } %>
 
-<% if (it.convocatorias.length) { %>
-<section class="bg-gray-50 py-14">
+<% if (!ocultas.has('calls')) { %>
+<section class="mt-20 py-16" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="text-2xl font-black text-gray-900"><%= it.textos.inscripciones %> abiertas</h2>
-    <div class="mt-6 grid gap-4 md:grid-cols-2">
+    <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)"><%= it.textos.inscripciones %></p>
+    <h2 class="mt-1 font-display font-black text-3xl text-gray-900">Así de simple es ingresar</h2>
+
+    <div class="mt-9 grid gap-6 md:grid-cols-4">
+      <% const pasos = [
+        ['Explora', 'Encuentra tu programa y revisa requisitos, fechas y costos.'],
+        ['Inscríbete en línea', 'Llena el formulario y adjunta tus documentos. Sin filas.'],
+        ['Paga y espera la revisión', 'Paga en línea o reporta tu pago; revisamos tus documentos.'],
+        ['Matricúlate', 'Si eres admitido, formalizas tu matrícula y entras al campus.'],
+      ]; %>
+      <% pasos.forEach(([titulo, texto], i) => { %>
+      <div class="relative rounded-xl bg-white border border-gray-200 p-6 pt-8">
+        <span class="absolute -top-4 left-6 h-9 w-9 grid place-items-center rounded-lg text-white font-mono font-bold text-sm shadow" style="background:var(--c1)"><%= i + 1 %></span>
+        <h3 class="font-display font-bold text-gray-900"><%= titulo %></h3>
+        <p class="mt-1.5 text-sm text-gray-600"><%= texto %></p>
+      </div>
+      <% }); %>
+    </div>
+
+    <% if (it.convocatorias.length) { %>
+    <div class="mt-12 grid gap-3 md:grid-cols-2">
       <% for (const cv of it.convocatorias.slice(0, 6)) { %>
-      <a href="/programas/<%= cv.programaSlug %>" class="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 hover:border-[var(--c1)] hover:shadow transition">
+      <a href="/programas/<%= cv.programaSlug %>" class="group flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 hover:border-[var(--c1)] hover:shadow-md transition">
         <div class="min-w-0">
-          <p class="font-bold text-gray-900 truncate"><%= cv.programa %></p>
-          <p class="text-sm text-gray-500">
-            <% if (cv.rolling) { %>Inscripción permanente<% } else if (cv.closesAt) { %>Cierra el <%= it.fecha(cv.closesAt) %><% } %>
-            <% if (cv.startsAt) { %> · Inicia <%= it.fecha(cv.startsAt) %><% } %>
+          <p class="font-bold text-gray-900 truncate group-hover:text-[var(--c1)]"><%= cv.programa %></p>
+          <p class="font-mono text-[13px] text-gray-500 mt-0.5">
+            <% if (cv.rolling) { %>Inscripción permanente<% } else if (cv.closesAt) { %>Cierra: <%= it.fecha(cv.closesAt) %><% } %>
+            <% if (cv.startsAt) { %> · Inicio: <%= it.fecha(cv.startsAt) %><% } %>
           </p>
         </div>
         <span class="shrink-0 text-sm font-bold" style="color:var(--c1)"><%= it.textos.inscribete %> →</span>
       </a>
       <% } %>
     </div>
+    <% } %>
+
+    <div class="mt-9">
+      <a href="/admisiones" class="inline-block px-7 py-3.5 rounded-lg font-display font-bold text-white shadow-sm hover:opacity-90 transition" style="background:var(--c1)">Conoce el proceso completo</a>
+    </div>
   </div>
 </section>
 <% } %>
 
-<% if (it.site.benefits && it.site.benefits.length) { %>
-<section class="mx-auto max-w-6xl px-4 py-14">
-  <h2 class="text-2xl font-black text-gray-900 text-center">¿Por qué estudiar aquí?</h2>
-  <div class="mt-8 grid gap-6 md:grid-cols-3">
+<% if (!ocultas.has('benefits') && it.site.benefits && it.site.benefits.length) { %>
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <p class="font-mono text-[13px] uppercase tracking-[0.18em] text-center" style="color:var(--c1)">¿Por qué aquí?</p>
+  <h2 class="mt-1 font-display font-black text-3xl text-gray-900 text-center">Razones para elegirnos</h2>
+  <div class="mt-10 grid gap-6 md:grid-cols-3">
     <% for (const b of it.site.benefits) { %>
-    <div class="rounded-xl border border-gray-200 p-6 text-center">
-      <div class="mx-auto h-11 w-11 rounded-full grid place-items-center text-white font-black" style="background:var(--c2)">✓</div>
-      <h3 class="mt-3 font-bold text-gray-900"><%= b.title %></h3>
-      <p class="mt-1 text-sm text-gray-500"><%= b.text %></p>
+    <div class="rounded-xl border border-gray-200 p-7 hover:shadow-md hover:-translate-y-0.5 transition">
+      <div class="h-11 w-11 rounded-lg grid place-items-center text-white font-black" style="background:var(--c2)">✓</div>
+      <h3 class="mt-4 font-display font-bold text-lg text-gray-900"><%= b.title %></h3>
+      <p class="mt-1.5 text-[15px] text-gray-600"><%= b.text %></p>
     </div>
     <% } %>
   </div>
 </section>
 <% } %>
 
-<% if (it.site.stats && it.site.stats.length) { %>
-<section class="py-12 text-white" style="background:var(--c1)">
-  <div class="mx-auto max-w-6xl px-4 grid gap-6 text-center" style="grid-template-columns:repeat(<%= it.site.stats.length %>,1fr)">
+<% if (!ocultas.has('stats') && it.site.stats && it.site.stats.length) { %>
+<section class="py-14 text-white banda-tinta">
+  <div class="mx-auto max-w-6xl px-4 grid gap-8 text-center" style="grid-template-columns:repeat(<%= it.site.stats.length %>,1fr)">
     <% for (const s of it.site.stats) { %>
-    <div><p class="text-3xl md:text-4xl font-black"><%= s.value %></p><p class="text-white/80 text-sm mt-1"><%= s.label %></p></div>
+    <div>
+      <p class="font-mono font-semibold text-3xl md:text-5xl tracking-tight"><%= s.value %></p>
+      <p class="text-white/75 text-sm mt-2"><%= s.label %></p>
+    </div>
     <% } %>
   </div>
 </section>
 <% } %>
 
-<section class="mx-auto max-w-3xl px-4 py-16 text-center">
-  <h2 class="text-2xl md:text-3xl font-black text-gray-900">Da el primer paso hoy</h2>
-  <p class="mt-2 text-gray-500">El proceso de inscripción es 100% en línea y te toma menos de 10 minutos.</p>
-  <a href="/programas" class="mt-6 inline-block px-8 py-3.5 rounded-lg font-bold text-white shadow" style="background:var(--c1)"><%= it.textos.inscribete %></a>
+<% if (it.nav.paginas.length) { %>
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)">Institución</p>
+  <h2 class="mt-1 font-display font-black text-3xl text-gray-900">Conócenos</h2>
+  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <% const planas = it.nav.paginas.flatMap((g) => g.items.map((pg) => ({ ...pg, grupo: g.grupo }))).slice(0, 6); %>
+    <% for (const pg of planas) { %>
+    <a href="/institucional/<%= pg.slug %>" class="group rounded-xl border border-gray-200 p-6 hover:border-[var(--c1)] hover:shadow-md transition">
+      <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500"><%= pg.grupo %></p>
+      <h3 class="mt-1.5 font-display font-bold text-lg text-gray-900 group-hover:text-[var(--c1)]"><%= pg.title %></h3>
+      <p class="mt-3 text-sm font-bold" style="color:var(--c1)">Leer más →</p>
+    </a>
+    <% } %>
+  </div>
 </section>
+<% } %>
+
+<% if (!ocultas.has('cta')) { %>
+<section class="mx-auto max-w-6xl px-4 pb-4">
+  <div class="rounded-2xl banda-tinta text-white px-8 py-12 md:px-14 md:py-14 flex flex-wrap items-center justify-between gap-6">
+    <div>
+      <h2 class="font-display font-black text-3xl md:text-4xl">Da el primer paso hoy</h2>
+      <p class="mt-2 text-white/80 max-w-md">El proceso es 100% en línea y te toma menos de 10 minutos. Tu cupo te está esperando.</p>
+    </div>
+    <div class="flex gap-3 flex-wrap">
+      <a href="/admisiones" class="px-7 py-3.5 rounded-lg bg-white font-display font-bold shadow hover:shadow-lg transition" style="color:var(--tinta)"><%= it.textos.inscribete %></a>
+      <% if (!it.modoSoloAdmisiones) { %><a href="/contacto" class="px-7 py-3.5 rounded-lg border-2 border-white/60 font-display font-bold text-white hover:bg-white/10 transition">Pide información</a><% } %>
+    </div>
+  </div>
+</section>
+<% } %>

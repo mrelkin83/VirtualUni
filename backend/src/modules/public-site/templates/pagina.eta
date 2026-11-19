@@ -1,0 +1,32 @@
+<section class="banda-tinta text-white">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="font-mono text-[13px] uppercase tracking-[0.2em] text-white/70"><%= it.pagina.menuGroup %></p>
+    <h1 class="mt-2 font-display font-black text-4xl md:text-5xl tracking-tight"><%= it.pagina.title %></h1>
+    <% if (it.pagina.summary) { %><p class="mt-4 max-w-2xl text-white/85 text-lg"><%= it.pagina.summary %></p><% } %>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 py-12 grid gap-12 lg:grid-cols-[1fr_320px]">
+  <article class="prosa max-w-3xl">
+    <% if (it.pagina.imageUrl) { %>
+    <img src="<%= it.pagina.imageUrl %>" alt="" width="768" height="400" class="rounded-xl mb-8 w-full object-cover max-h-[400px]" />
+    <% } %>
+    <%~ it.contenidoHtml %>
+  </article>
+
+  <aside class="lg:pt-2">
+    <div class="rounded-xl border border-gray-200 p-6 sticky top-24">
+      <p class="font-display font-bold text-gray-900">¿Te interesa estudiar aquí?</p>
+      <p class="mt-2 text-sm text-gray-600">Revisa la oferta y conoce el proceso de <%= it.textos.inscripciones.toLowerCase() %>.</p>
+      <a href="/programas" class="mt-4 block text-center px-5 py-2.5 rounded-lg font-display font-bold text-white hover:opacity-90 transition" style="background:var(--c1)">Ver la oferta</a>
+      <a href="/admisiones" class="mt-2 block text-center px-5 py-2.5 rounded-lg border-2 font-display font-bold hover:bg-gray-50 transition" style="border-color:var(--c1);color:var(--c1)">Cómo inscribirte</a>
+      <% const c = it.site.contact || {}; %>
+      <% if (c.telefono || c.email) { %>
+      <div class="mt-5 pt-4 border-t border-gray-100 text-sm text-gray-600">
+        <% if (c.telefono) { %><p class="font-mono py-0.5"><%= c.telefono %></p><% } %>
+        <% if (c.email) { %><p class="font-mono py-0.5"><%= c.email %></p><% } %>
+      </div>
+      <% } %>
+    </div>
+  </aside>
+</section>

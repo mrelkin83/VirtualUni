@@ -14,6 +14,10 @@ import { textoDuracion, textoOtorga, rotuloIdentificador } from './textos-instit
 const prismaMock = () => ({
   tenant: { findFirst: jest.fn() },
   tenantSite: { findUnique: jest.fn() },
+  // La navegación del contexto (menú por categorías + páginas) consulta esto
+  // en cada resolución de tenant.
+  program: { findMany: jest.fn().mockResolvedValue([]) },
+  sitePage: { findMany: jest.fn().mockResolvedValue([]) },
 });
 
 const TENANT = {

@@ -176,3 +176,33 @@ lo mínimo (titular, tipo, fecha, estado) con respuesta genérica si no existe.
 
 **Flags de plan** (§13.7): `Tenant.enableEmbed` / `enablePublicApi`; qué plan
 incluye cada nivel queda anotado como decisión comercial pendiente.
+
+## Rediseño v2 del sitio público (19 nov 2026)
+
+Rediseño completo guiado por San Mateo, Poliagro, Libertadores, Unireformada,
+Unisangil y Unitec, con foco en instituciones MIXTAS:
+
+- **Identidad**: Archivo (titulares) + IBM Plex Sans (texto) + IBM Plex Mono
+  (datos: fechas, códigos, precios, cupos) — la misma familia del campus. La
+  «tinta» (color primario oscurecido con color-mix y trama de puntos) es la
+  superficie dominante; CSP amplía style/font a Google Fonts.
+- **Layout**: banner de anuncio configurable («Matrículas abiertas 2027»),
+  barra utilitaria oscura (teléfono, correo, redes sociales, consulta de
+  solicitud, campus), menú con desplegables — Programas agrupado POR
+  CATEGORÍA con conteos, y un desplegable por cada grupo de páginas
+  institucionales — CTA Inscríbete, mega-footer de 4 columnas.
+- **Portada**: hero con buscador «¿Qué quieres estudiar?» y píldoras por
+  nivel; la oferta se pinta POR CATEGORÍA (un instituto con técnicos +
+  bachillerato muestra cada bloque por separado); pasos de admisión,
+  convocatorias con fechas, beneficios, cifras, tarjetas «Conócenos» y CTA.
+- **Páginas nuevas**: `/admisiones` (proceso en 6 pasos, TODAS las
+  convocatorias abiertas, medios de pago, enlace a estado) e
+  `/institucional/:slug` (páginas libres).
+- **Páginas institucionales (`SitePage`)**: el admin crea secciones desde
+  Sitio web → Páginas institucionales; cada una cuelga del menú bajo su
+  `menuGroup` (Institucional, Bienestar, Calidad…) y se escribe en markdown
+  mínimo (`markdown-seguro.ts`: escapa TODO el HTML antes de convertir).
+- **Mixtas de verdad**: etdhdemo ahora ofrece 3 técnicos + Bachillerato por
+  Ciclos; con `levelLabels` la categoría escolar se renombra «Bachillerato».
+- **Caché de assets**: `site.css` viaja con `?v=<arranque>` para que un
+  despliegue invalide la copia cacheada (max-age 3600).

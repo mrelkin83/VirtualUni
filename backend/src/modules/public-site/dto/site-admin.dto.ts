@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsInt,
   IsNumber,
   IsObject,
   IsOptional,
@@ -54,12 +55,29 @@ class CifraDto {
   @IsString() @MaxLength(40) label: string;
 }
 
+class RedesDto {
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) facebook?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) instagram?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) youtube?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) tiktok?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) x?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) linkedin?: string;
+}
+
 class ContactoDto {
   @IsOptional() @IsString() @MaxLength(160) direccion?: string;
   @IsOptional() @IsString() @MaxLength(40) telefono?: string;
   @IsOptional() @IsEmail() @MaxLength(160) email?: string;
   @IsOptional() @IsString() @MaxLength(120) horario?: string;
   @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(500) mapa?: string;
+  @IsOptional() @ValidateNested() @Type(() => RedesDto) redes?: RedesDto;
+}
+
+class AnuncioDto {
+  @IsString() @MaxLength(140) text!: string;
+  /** Ruta propia («/admisiones») o URL completa. */
+  @IsOptional() @IsString() @MaxLength(300) @Matches(/^(\/|https?:\/\/)/) link?: string;
+  @IsOptional() @IsBoolean() active?: boolean;
 }
 
 class AnaliticaDto {
@@ -104,4 +122,17 @@ export class ActualizarSitioDto {
   @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) privacyPolicyUrl?: string;
   @IsOptional() @IsString() @MaxLength(10) privacyVersion?: string;
   @IsOptional() @IsString() @MaxLength(120) dataControllerName?: string;
+  @IsOptional() @ValidateNested() @Type(() => AnuncioDto) announcement?: AnuncioDto;
+}
+
+/** Página institucional libre (Conócenos, Bienestar, Calidad…). */
+export class GuardarPaginaDto {
+  @IsString() @Matches(/^[a-z0-9]+(-[a-z0-9]+)*$/) @MaxLength(80) slug!: string;
+  @IsString() @MaxLength(120) title!: string;
+  @IsOptional() @IsString() @MaxLength(40) menuGroup?: string;
+  @IsOptional() @IsInt() @Min(0) @Max(99) order?: number;
+  @IsOptional() @IsString() @MaxLength(200) summary?: string;
+  @IsString() @MaxLength(30000) content!: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(500) imageUrl?: string;
+  @IsOptional() @IsBoolean() isPublished?: boolean;
 }

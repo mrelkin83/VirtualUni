@@ -7,6 +7,8 @@ import { join } from 'path';
 import { SiteMode } from '@prisma/client';
 import { ContextoSitio, PublicTenantService } from './public-tenant.service';
 import { PublicCatalogService } from './public-catalog.service';
+import { markdownSeguro } from './markdown-seguro';
+import { V_ASSETS } from './site-renderer.service';
 
 /**
  * Sitio público renderizado en servidor. Capa DELGADA (regla API-first, §2):
@@ -83,9 +85,9 @@ export class SiteRenderController {
       [
         "default-src 'self'",
         `script-src ${scripts.join(' ')}`,
-        "style-src 'self' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: https:",
-        "font-src 'self'",
+        "font-src 'self' https://fonts.gstatic.com",
         `connect-src ${connect.join(' ')}`,
         `frame-src ${frames.join(' ')} https://www.google.com https://maps.google.com https://www.openstreetmap.org`,
         "frame-ancestors 'self'",
@@ -118,6 +120,7 @@ export class SiteRenderController {
       tenant: ctx.tenant,
       site: ctx.site,
       textos: ctx.textos,
+      nav: ctx.nav,
       esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
       brand: {
@@ -126,6 +129,7 @@ export class SiteRenderController {
       },
       analytics: ctx.esPreview ? null : (ctx.site.analytics as Record<string, string> | null),
       anio: new Date().getFullYear(),
+      vAssets: V_ASSETS,
       fecha: (d: Date | string) => this.fecha(d),
       meta: { ...meta, noindex: meta.noindex || ctx.esPreview },
       ...datos,
@@ -145,10 +149,10 @@ export class SiteRenderController {
       return;
     }
     const comun = {
-      tenant: ctx.tenant, site: ctx.site, textos: ctx.textos, esPreview: ctx.esPreview,
+      tenant: ctx.tenant, site: ctx.site, textos: ctx.textos, nav: ctx.nav, esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
       brand: { c1: ctx.tenant.primaryColor, c2: ctx.tenant.secondaryColor },
-      analytics: null, anio: new Date().getFullYear(), fecha: (d: Date | string) => this.fecha(d),
+      analytics: null, anio: new Date().getFullYear(), vAssets: V_ASSETS, fecha: (d: Date | string) => this.fecha(d),
       meta: { title: 'No encontrado', description: '', canonical: '', noindex: true },
     };
     const body = this.eta.render('404', comun);
@@ -163,9 +167,10 @@ export class SiteRenderController {
     if (!ctx) return;
     if (ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY) return res.redirect(302, '/programas');
 
-    const [destacados, convocatorias] = await Promise.all([
+    const [destacados, convocatorias, porCategoria] = await Promise.all([
       this.catalogo.destacados(ctx.tenant.id, ctx.site.featuredProgramIds),
       this.catalogo.convocatoriasAbiertas(ctx.tenant.id),
+      this.catalogo.ofertaPorCategoria(ctx.tenant.id, ctx.site.levelLabels),
     ]);
 
     const jsonld = JSON.stringify({
@@ -176,7 +181,7 @@ export class SiteRenderController {
       ...(ctx.tenant.logo ? { logo: ctx.tenant.logo } : {}),
     });
 
-    this.render(res, ctx, 'home', { destacados, convocatorias }, {
+    this.render(res, ctx, 'home', { destacados, convocatorias, porCategoria }, {
       title: ctx.site.seoTitle || `${ctx.tenant.name} — ${ctx.textos.inscripciones} abiertas`,
       description: ctx.site.seoDescription || ctx.textos.ofertaSubtitulo,
       canonical: this.base(req) + '/',
@@ -242,6 +247,46 @@ export class SiteRenderController {
     });
   }
 
+  /**
+   * Admisiones como página propia (las referencias la llevan en el menú
+   * principal): el proceso en pasos, TODAS las convocatorias abiertas con
+   * fechas y cómo pagar. Visible también en ADMISSIONS_ONLY.
+   */
+  @Get('admisiones')
+  async admisiones(@Req() req: Request, @Res() res: Response) {
+    const ctx = await this.ctx(req, res);
+    if (!ctx) return;
+
+    const [convocatorias, porCategoria] = await Promise.all([
+      this.catalogo.convocatoriasAbiertas(ctx.tenant.id),
+      this.catalogo.ofertaPorCategoria(ctx.tenant.id, ctx.site.levelLabels),
+    ]);
+
+    this.render(res, ctx, 'admisiones', { convocatorias, porCategoria }, {
+      title: `${ctx.textos.inscripciones} — ${ctx.tenant.name}`,
+      description: `Proceso de ${ctx.textos.inscripciones.toLowerCase()}, convocatorias abiertas, requisitos y pagos en ${ctx.tenant.name}.`,
+      canonical: this.base(req) + '/admisiones',
+    });
+  }
+
+  /** Páginas institucionales libres (Conócenos, Bienestar, Calidad…). */
+  @Get('institucional/:slug')
+  async institucional(@Req() req: Request, @Res() res: Response, @Param('slug') slug: string) {
+    const ctx = await this.ctx(req, res);
+    if (!ctx) return;
+    if (ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY) return res.redirect(302, '/programas');
+
+    const pagina = await this.catalogo.pagina(ctx.tenant.id, slug);
+    if (!pagina) return this.e404(res, ctx);
+
+    this.render(res, ctx, 'pagina', { pagina, contenidoHtml: markdownSeguro(pagina.content) }, {
+      title: `${pagina.title} — ${ctx.tenant.name}`,
+      description: pagina.summary || `${pagina.title} — ${ctx.tenant.name}.`,
+      canonical: `${this.base(req)}/institucional/${pagina.slug}`,
+      image: pagina.imageUrl,
+    });
+  }
+
   @Get('privacidad')
   async privacidad(@Req() req: Request, @Res() res: Response) {
     const ctx = await this.ctx(req, res);
@@ -281,8 +326,15 @@ export class SiteRenderController {
     const base = this.base(req);
     const soloAdmisiones = ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY;
     const urls = [
-      ...(soloAdmisiones ? [] : [`${base}/`, `${base}/contacto`]),
+      ...(soloAdmisiones
+        ? []
+        : [
+            `${base}/`,
+            `${base}/contacto`,
+            ...ctx.nav.paginas.flatMap((g) => g.items.map((p) => `${base}/institucional/${p.slug}`)),
+          ]),
       `${base}/programas`,
+      `${base}/admisiones`,
       `${base}/privacidad`,
       ...(await this.catalogo.listar(ctx.tenant.id, {})).map((p) => `${base}/programas/${p.slug}`),
     ];

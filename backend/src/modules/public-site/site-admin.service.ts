@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { PublicTenantService } from './public-tenant.service';
-import { ActualizarSitioDto } from './dto/site-admin.dto';
+import { ActualizarSitioDto, GuardarPaginaDto } from './dto/site-admin.dto';
 import { ETIQUETA_CATEGORIA, TEXTOS_POR_TIPO } from './textos-institucion';
 
 const SITIO_POR_DEFECTO: Omit<Prisma.TenantSiteUncheckedCreateInput, 'tenantId'> = {
@@ -88,5 +88,42 @@ export class SiteAdminService {
     // para que el admin vea su cambio de inmediato.
     this.tenants.invalidar();
     return site;
+  }
+
+  // -------------------------------------------- páginas institucionales
+
+  listarPaginas(tenantId: string) {
+    return this.prisma.sitePage.findMany({
+      where: { tenantId },
+      orderBy: [{ menuGroup: 'asc' }, { order: 'asc' }, { title: 'asc' }],
+    });
+  }
+
+  async crearPagina(tenantId: string, dto: GuardarPaginaDto) {
+    const existente = await this.prisma.sitePage.findFirst({ where: { tenantId, slug: dto.slug } });
+    if (existente) throw new BadRequestException('Ya existe una página con esa URL');
+    const pagina = await this.prisma.sitePage.create({ data: { tenantId, ...dto } });
+    this.tenants.invalidar();
+    return pagina;
+  }
+
+  async actualizarPagina(tenantId: string, id: string, dto: GuardarPaginaDto) {
+    const propia = await this.prisma.sitePage.findFirst({ where: { id, tenantId } });
+    if (!propia) throw new BadRequestException('Página no encontrada');
+    const choque = await this.prisma.sitePage.findFirst({
+      where: { tenantId, slug: dto.slug, id: { not: id } },
+    });
+    if (choque) throw new BadRequestException('Ya existe otra página con esa URL');
+    const pagina = await this.prisma.sitePage.update({ where: { id: propia.id }, data: dto });
+    this.tenants.invalidar();
+    return pagina;
+  }
+
+  async eliminarPagina(tenantId: string, id: string) {
+    const propia = await this.prisma.sitePage.findFirst({ where: { id, tenantId } });
+    if (!propia) throw new BadRequestException('Página no encontrada');
+    await this.prisma.sitePage.delete({ where: { id: propia.id } });
+    this.tenants.invalidar();
+    return this.listarPaginas(tenantId);
   }
 }

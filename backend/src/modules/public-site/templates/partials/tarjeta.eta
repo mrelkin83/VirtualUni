@@ -1,19 +1,24 @@
-<a href="/programas/<%= it.p.slug %>" class="group flex flex-col rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-lg hover:border-[var(--c1)] transition">
-  <div class="h-36 bg-gray-100 relative overflow-hidden">
+<a href="/programas/<%= it.p.slug %>" class="group flex flex-col rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-lg hover:border-[var(--c1)] hover:-translate-y-0.5 transition">
+  <div class="h-40 bg-gray-100 relative overflow-hidden">
     <% if (it.p.imageUrl) { %>
-      <img src="<%= it.p.imageUrl %>" alt="" loading="lazy" width="400" height="144" class="w-full h-full object-cover group-hover:scale-105 transition" />
+      <img src="<%= it.p.imageUrl %>" alt="" loading="lazy" width="400" height="160" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
     <% } else { %>
-      <div class="w-full h-full grid place-items-center text-4xl font-black text-white" style="background:linear-gradient(135deg,var(--c1),var(--c2))"><%= it.p.nombre.charAt(0) %></div>
+      <div class="w-full h-full grid place-items-center banda-tinta">
+        <span class="font-display font-black text-5xl text-white/90"><%= it.p.nombre.charAt(0) %></span>
+      </div>
     <% } %>
-    <div class="absolute top-2 left-2 flex gap-1.5">
+    <div class="absolute top-2.5 left-2.5 flex gap-1.5">
       <% if (it.p.esNuevo) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-400 text-amber-950">NUEVO</span><% } %>
       <% if (it.p.inscripcionesAbiertas) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-700 text-white">Inscripciones abiertas</span><% } %>
     </div>
   </div>
-  <div class="p-4 flex flex-col gap-1.5 flex-1">
-    <span class="text-[11px] font-semibold uppercase tracking-wide" style="color:var(--c1)"><%= it.p.nivelEtiqueta %></span>
-    <p class="font-bold text-gray-900 leading-snug group-hover:text-[var(--c1)]"><%= it.p.nombre %></p>
+  <div class="p-5 flex flex-col gap-1.5 flex-1">
+    <span class="font-mono text-[11px] font-semibold uppercase tracking-wider" style="color:var(--c1)"><%= it.p.nivelEtiqueta %></span>
+    <p class="font-display font-bold text-gray-900 leading-snug group-hover:text-[var(--c1)]"><%= it.p.nombre %></p>
     <p class="text-sm text-gray-500 line-clamp-2 flex-1"><%= it.p.descripcionCorta %></p>
-    <p class="text-xs text-gray-500 pt-1"><%= it.p.duracion %><% if (it.p.duracion && it.p.modalidad) { %> · <% } %><%= it.p.modalidad %></p>
+    <div class="pt-2.5 mt-1 border-t border-gray-100 flex items-center justify-between gap-2">
+      <p class="font-mono text-xs text-gray-500"><%= it.p.duracion %><% if (it.p.duracion && it.p.modalidad) { %> · <% } %><%= it.p.modalidad %></p>
+      <% if (it.p.tuitionDisplay) { %><p class="font-mono text-xs font-semibold text-gray-700 shrink-0"><%= it.p.tuitionDisplay %></p><% } %>
+    </div>
   </div>
 </a>

@@ -3,5 +3,114 @@
 @tailwind utilities;
 
 /* El acento del tenant llega por variables (--c1, --c2) inyectadas en el
-   layout; aquí solo vive lo que Tailwind no genera. */
+   layout. De ellas se derivan la «tinta» (la superficie oscura dominante del
+   diseño) y el tinte claro; si el navegador no soporta color-mix, caen al
+   color primario tal cual. */
+:root {
+  --tinta: var(--c1);
+  --tinta-2: var(--c1);
+  --tinte: #f4f5f7;
+  --borde-tinte: #e5e7eb;
+}
+@supports (color: color-mix(in srgb, red, blue)) {
+  :root {
+    --tinta: color-mix(in srgb, var(--c1) 72%, #0b0d16);
+    --tinta-2: color-mix(in srgb, var(--c1) 48%, #0b0d16);
+    --tinte: color-mix(in srgb, var(--c1) 6%, white);
+    --borde-tinte: color-mix(in srgb, var(--c1) 16%, white);
+  }
+}
+
 details > summary::-webkit-details-marker { display: none; }
+
+/* ------------------------------------------------ bandas y texturas */
+
+/* Banda de tinta: superficie oscura con una trama de puntos apenas visible,
+   para que el color institucional tenga textura y no sea un bloque plano. */
+.banda-tinta {
+  background-color: var(--tinta);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.banda-tinta-lisa { background-color: var(--tinta); }
+
+/* ------------------------------------------------ navegación desplegable */
+
+.nav-drop { position: relative; }
+.nav-drop > summary { cursor: pointer; list-style: none; }
+.nav-drop > summary::after {
+  content: '';
+  display: inline-block;
+  margin-left: 0.4rem;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.15s;
+}
+.nav-drop[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
+.nav-drop > .panel {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 15rem;
+  z-index: 60;
+}
+.nav-drop > .panel::before {
+  content: '';
+  position: absolute;
+  top: -0.65rem;
+  left: 0;
+  right: 0;
+  height: 0.65rem; /* puente invisible para no perder el hover */
+}
+
+/* ------------------------------------------------ prosa de páginas libres */
+
+.prosa { color: #374151; line-height: 1.75; }
+.prosa h2 { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 1.5rem; color: #111827; margin: 2rem 0 0.75rem; }
+.prosa h3 { font-family: Archivo, system-ui, sans-serif; font-weight: 700; font-size: 1.17rem; color: #111827; margin: 1.5rem 0 0.5rem; }
+.prosa h4 { font-weight: 700; color: #111827; margin: 1.25rem 0 0.4rem; }
+.prosa p { margin: 0.9rem 0; }
+.prosa ul { list-style: none; margin: 0.9rem 0; padding: 0; }
+.prosa li { position: relative; padding-left: 1.4rem; margin: 0.45rem 0; }
+.prosa li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.58em;
+  width: 0.55rem;
+  height: 0.18rem;
+  background: var(--c1);
+}
+.prosa a, .enlace { color: var(--c1); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.prosa strong { color: #111827; }
+
+/* ------------------------------------------------ entradas animadas */
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-subir { opacity: 0; transform: translateY(14px); animation: subir 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+  .anim-r1 { animation-delay: 0.06s; }
+  .anim-r2 { animation-delay: 0.14s; }
+  .anim-r3 { animation-delay: 0.22s; }
+  @keyframes subir { to { opacity: 1; transform: none; } }
+}
+
+/* Subrayado que se desliza al pasar por los enlaces del menú. Los summary de
+   los desplegables quedan fuera: su ::after es el chevron de .nav-drop. */
+.enlace-nav { position: relative; }
+.enlace-nav:not(summary)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 100%;
+  background: var(--c1);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.18s ease;
+}
+.enlace-nav:not(summary):hover::after, .enlace-nav:not(summary):focus-visible::after { transform: scaleX(1); }

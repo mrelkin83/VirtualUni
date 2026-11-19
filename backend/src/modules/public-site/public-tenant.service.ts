@@ -2,12 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { Tenant, TenantSite, SiteMode } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { TEXTOS_POR_TIPO, TextosUI } from './textos-institucion';
+import { CATEGORIA_POR_NIVEL, CategoriaPublica, ETIQUETA_CATEGORIA, TEXTOS_POR_TIPO, TextosUI } from './textos-institucion';
+
+export interface NavSitio {
+  /** Categorías públicas con programas (mixtas: técnico + bachillerato + pregrado…). */
+  categorias: { slug: string; label: string; count: number }[];
+  /** Páginas institucionales publicadas, agrupadas por grupo de menú. */
+  paginas: { grupo: string; items: { slug: string; title: string }[] }[];
+  /** Banner superior «Matrículas abiertas…», si está activo. */
+  anuncio: { text: string; link?: string } | null;
+}
 
 export interface ContextoSitio {
   tenant: Pick<Tenant, 'id' | 'name' | 'slug' | 'subdomain' | 'customDomain' | 'logo' | 'primaryColor' | 'secondaryColor'>;
   site: TenantSite;
   textos: TextosUI;
+  nav: NavSitio;
   /** true cuando se entra con ?preview= válido aunque el sitio no esté publicado */
   esPreview: boolean;
 }
@@ -87,7 +97,51 @@ export class PublicTenantService {
       tenant,
       site,
       textos: TEXTOS_POR_TIPO[site.institutionType],
+      nav: await this.navegacion(tenant.id, site),
       esPreview,
+    };
+  }
+
+  /**
+   * Datos del menú y el banner, resueltos aquí para que viajen en el MISMO
+   * contexto cacheado que ya consulta toda ruta pública: categorías de la
+   * oferta (una mixta navega técnico/bachillerato/pregrado por separado) y
+   * páginas institucionales agrupadas.
+   */
+  private async navegacion(tenantId: string, site: TenantSite): Promise<NavSitio> {
+    const [programas, paginas] = await Promise.all([
+      this.prisma.program.findMany({
+        where: { tenantId, isPublished: true, status: 'ACTIVO' },
+        select: { educationLevel: true },
+      }),
+      this.prisma.sitePage.findMany({
+        where: { tenantId, isPublished: true },
+        orderBy: [{ menuGroup: 'asc' }, { order: 'asc' }, { title: 'asc' }],
+        select: { slug: true, title: true, menuGroup: true },
+      }),
+    ]);
+
+    const conteo = new Map<CategoriaPublica, number>();
+    for (const p of programas) {
+      const c = CATEGORIA_POR_NIVEL[p.educationLevel];
+      conteo.set(c, (conteo.get(c) || 0) + 1);
+    }
+    const overrides = (site.levelLabels || {}) as Record<string, { label?: string; hidden?: boolean }>;
+    const categorias = [...conteo.entries()]
+      .filter(([slug]) => !overrides[slug]?.hidden)
+      .map(([slug, count]) => ({ slug, label: overrides[slug]?.label || ETIQUETA_CATEGORIA[slug], count }));
+
+    const grupos = new Map<string, { slug: string; title: string }[]>();
+    for (const p of paginas) {
+      if (!grupos.has(p.menuGroup)) grupos.set(p.menuGroup, []);
+      (grupos.get(p.menuGroup) as { slug: string; title: string }[]).push({ slug: p.slug, title: p.title });
+    }
+
+    const a = (site.announcement || null) as { text?: string; link?: string; active?: boolean } | null;
+    return {
+      categorias,
+      paginas: [...grupos.entries()].map(([grupo, items]) => ({ grupo, items })),
+      anuncio: a && a.active && a.text ? { text: a.text, link: a.link } : null,
     };
   }
 

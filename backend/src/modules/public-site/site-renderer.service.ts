@@ -6,6 +6,13 @@ import { SiteMode } from '@prisma/client';
 import { ContextoSitio } from './public-tenant.service';
 
 /**
+ * Versión de los assets estáticos: cambia en cada arranque del proceso, así
+ * un despliegue invalida el site.css cacheado (max-age 3600) en los
+ * navegadores sin tocar las cabeceras.
+ */
+export const V_ASSETS = Date.now().toString(36);
+
+/**
  * Render compartido del sitio público para los controladores HTML de otros
  * módulos (admisiones). Mismo layout, mismas cabeceras y el mismo 404
  * genérico que site-render.controller; la lógica de datos sigue viviendo en
@@ -54,9 +61,9 @@ export class SiteRendererService {
       [
         "default-src 'self'",
         `script-src ${scripts.join(' ')}`,
-        "style-src 'self' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: https:",
-        "font-src 'self'",
+        "font-src 'self' https://fonts.gstatic.com",
         `connect-src ${connect.join(' ')}`,
         "frame-ancestors 'self'",
         "form-action 'self'",
@@ -79,6 +86,7 @@ export class SiteRendererService {
       tenant: ctx.tenant,
       site: ctx.site,
       textos: ctx.textos,
+      nav: ctx.nav,
       esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
       brand: {
@@ -87,6 +95,7 @@ export class SiteRendererService {
       },
       analytics: ctx.esPreview ? null : (ctx.site.analytics as Record<string, string> | null),
       anio: new Date().getFullYear(),
+      vAssets: V_ASSETS,
       fecha: (d: Date | string) => this.fecha(d),
       meta: { ...meta, noindex: meta.noindex || ctx.esPreview },
       ...datos,
@@ -117,6 +126,7 @@ export class SiteRendererService {
       tenant: ctx.tenant,
       site: ctx.site,
       textos: ctx.textos,
+      nav: ctx.nav,
       esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
       brand: {
@@ -125,6 +135,7 @@ export class SiteRendererService {
       },
       analytics: null,
       anio: new Date().getFullYear(),
+      vAssets: V_ASSETS,
       fecha: (d: Date | string) => this.fecha(d),
       meta: { ...meta, noindex: true },
       ...datos,
@@ -140,10 +151,10 @@ export class SiteRendererService {
       return;
     }
     const comun = {
-      tenant: ctx.tenant, site: ctx.site, textos: ctx.textos, esPreview: ctx.esPreview,
+      tenant: ctx.tenant, site: ctx.site, textos: ctx.textos, nav: ctx.nav, esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
       brand: { c1: ctx.tenant.primaryColor, c2: ctx.tenant.secondaryColor },
-      analytics: null, anio: new Date().getFullYear(), fecha: (d: Date | string) => this.fecha(d),
+      analytics: null, anio: new Date().getFullYear(), vAssets: V_ASSETS, fecha: (d: Date | string) => this.fecha(d),
       meta: { title: 'No encontrado', description: '', canonical: '', noindex: true },
     };
     const body = this.eta.render('404', comun);

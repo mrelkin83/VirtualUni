@@ -271,8 +271,43 @@ function sitio(
   };
   return prisma.tenantSite.upsert({
     where: { tenantId },
-    update: { published: true, institutionType },
+    // En re-ejecuciones también se refrescan anuncio y contacto del demo
+    // (si vienen), para que el sitio muestre el banner y las redes.
+    update: {
+      published: true,
+      institutionType,
+      ...(extras.announcement !== undefined ? { announcement: extras.announcement } : {}),
+      ...(extras.contact !== undefined ? { contact: extras.contact } : {}),
+      ...(extras.levelLabels !== undefined ? { levelLabels: extras.levelLabels } : {}),
+    },
     create: base,
+  });
+}
+
+/** Contacto demo con redes: alimenta la barra utilitaria y el pie. */
+function contactoDemo(nombre: string) {
+  return {
+    direccion: 'Calle 45 # 13-20, Bogotá',
+    telefono: '(601) 330 0000',
+    email: `informacion@${nombre}.edu.co`,
+    horario: 'Lunes a viernes, 7:00 a. m. – 6:00 p. m.',
+    redes: {
+      facebook: 'https://www.facebook.com/virtualuni.demo',
+      instagram: 'https://www.instagram.com/virtualuni.demo',
+      youtube: 'https://www.youtube.com/@virtualuni-demo',
+    },
+  };
+}
+
+/** Página institucional del demo: upsert por (tenant, slug). */
+async function paginaInstitucional(
+  tenantId: string,
+  data: { slug: string; title: string; menuGroup: string; order: number; summary: string; content: string },
+) {
+  await prisma.sitePage.upsert({
+    where: { tenantId_slug: { tenantId, slug: data.slug } },
+    update: { isPublished: true },
+    create: { tenantId, ...data, isPublished: true },
   });
 }
 
@@ -408,6 +443,31 @@ async function seedUniprueba() {
     seoTitle: 'Universidad de Prueba — Programas de pregrado, posgrado y educación continua',
     seoDescription: 'Oferta académica de la Universidad de Prueba: tecnólogo en software, especialización en gerencia de proyectos y diplomados.',
     dataControllerName: 'Universidad de Prueba',
+    announcement: { text: 'Inscripciones abiertas 2027-1 — cupos limitados', link: '/admisiones', active: true },
+    contact: contactoDemo('uniprueba'),
+  });
+
+  await paginaInstitucional(t, {
+    slug: 'quienes-somos',
+    title: 'Quiénes somos',
+    menuGroup: 'Institucional',
+    order: 1,
+    summary: 'Historia, misión y visión de la Universidad de Prueba.',
+    content:
+      '## Nuestra historia\n\nDesde 2010 formamos profesionales con programas virtuales e híbridos centrados en la ' +
+      'empleabilidad.\n\n## Misión\n\nFormar personas íntegras y competentes que transformen su entorno.\n\n' +
+      '## Visión\n\nSer en 2030 la institución de referencia en educación virtual de calidad en la región.',
+  });
+  await paginaInstitucional(t, {
+    slug: 'bienestar',
+    title: 'Bienestar universitario',
+    menuGroup: 'Vida universitaria',
+    order: 1,
+    summary: 'Acompañamiento psicosocial, deporte, cultura y bolsa de empleo.',
+    content:
+      '## Te acompañamos\n\n- Orientación psicosocial y académica\n- Clubes deportivos y culturales\n' +
+      '- Bolsa de empleo y ferias laborales\n- Monitorías y tutorías entre pares\n\n' +
+      'Escríbenos desde la página de [contacto](/contacto) para conocer la programación del semestre.',
   });
 
   log('uniprueba listo (3 programas publicados, 3 convocatorias)');
@@ -575,17 +635,93 @@ async function seedEtdh() {
     ],
   });
 
-  await sitio(t, InstitutionType.ETDH, {
-    title: 'Fórmate para trabajar',
-    subtitle: 'Técnicos laborales por competencias con registro oficial. Inscripciones abiertas todo el año.',
-  }, {
-    featuredProgramIds: [contable.programa.id, sistemas.programa.id, infancia.programa.id],
-    seoTitle: 'Centro de Formación Laboral Demo — Técnicos laborales en Bogotá',
-    seoDescription: 'Técnico laboral en auxiliar contable, sistemas y primera infancia. Certificación por competencias con registro ante la Secretaría de Educación.',
-    dataControllerName: 'Centro de Formación Laboral Demo',
+  // Sección bachillerato: el caso real del instituto MIXTO (técnicos +
+  // bachillerato por ciclos para adultos bajo el mismo techo). En la portada
+  // y el menú aparece como categoría propia, derivada del nivel del programa.
+  const bachillerato = await programaPublicado(t, {
+    code: 'BACH-CICLOS',
+    name: 'Bachillerato Académico por Ciclos',
+    slug: 'bachillerato-por-ciclos',
+    educationLevel: EducationLevel.BACHILLERATO_POR_CICLOS,
+    modality: Modality.PRESENCIAL,
+    periodStructure: PeriodStructure.MODULAR,
+    academicUnit: AcademicUnit.HORAS,
+    durationPeriods: 6,
+    totalHours: 1200,
+    degreeTitle: 'Bachiller académico',
+    officialCode: 'Resolución SE Bogotá No. 2210 de 2026',
+    area: 'Educación formal de adultos',
+    schedule: 'Nocturna y fines de semana',
+    shortDescription: 'Termina tu bachillerato en ciclos semestrales, de noche o los sábados, y sigue de una con un técnico laboral.',
+    publicDescription:
+      'Educación formal de adultos por ciclos lectivos especiales integrados (Decreto 3011): dos grados por ciclo, ' +
+      'horarios nocturnos y de fin de semana, y articulación directa con nuestros técnicos laborales al graduarte.',
+    tuitionDisplay: '$280.000 por ciclo',
+    faq: [
+      { q: '¿Desde qué edad puedo ingresar?', a: 'Desde los 15 años para ciclo 3 en adelante, según tu último grado aprobado.' },
+      { q: '¿El título es válido?', a: 'Sí: otorgamos el título de bachiller académico con resolución oficial.' },
+    ],
   });
 
-  log('etdhdemo listo (3 técnicos publicados, 1 rolling, pensum del contable)');
+  await convocatoria(t, {
+    programId: bachillerato.programa.id,
+    academicPeriodId: per.id,
+    studyPlanId: bachillerato.plan.id,
+    name: 'Bachillerato por ciclos — inscripción permanente',
+    slug: 'bachillerato-permanente',
+    opensAt: new Date('2026-11-01'),
+    rolling: true,
+    startsAt: new Date('2027-02-01'),
+    applicationFee: 0,
+    minAge: 15,
+    documentos: [
+      { name: 'Documento de identidad' },
+      { name: 'Certificado del último grado aprobado' },
+    ],
+  });
+
+  await sitio(t, InstitutionType.ETDH, {
+    title: 'Fórmate para trabajar',
+    subtitle: 'Técnicos laborales por competencias y bachillerato por ciclos, con registro oficial.',
+  }, {
+    featuredProgramIds: [contable.programa.id, sistemas.programa.id, infancia.programa.id],
+    seoTitle: 'Centro de Formación Laboral Demo — Técnicos y bachillerato',
+    seoDescription: 'Técnico laboral en auxiliar contable, sistemas y primera infancia, y bachillerato académico por ciclos. Registro oficial ante la Secretaría de Educación.',
+    dataControllerName: 'Centro de Formación Laboral Demo',
+    announcement: { text: 'Matrículas abiertas 2027 — técnicos y bachillerato por ciclos', link: '/admisiones', active: true },
+    contact: contactoDemo('formacionlaboraldemo'),
+    // En un instituto la categoría escolar se llama «Bachillerato», no
+    // «Colegio»: el renombre público vive en levelLabels.
+    levelLabels: { colegio: { label: 'Bachillerato' } },
+  });
+
+  await paginaInstitucional(t, {
+    slug: 'conocenos',
+    title: 'Conócenos',
+    menuGroup: 'Institucional',
+    order: 1,
+    summary: 'Quiénes somos, qué nos mueve y por qué formamos para el trabajo.',
+    content:
+      '## Quiénes somos\n\nSomos una institución de educación para el trabajo y el desarrollo humano con más de 15 años ' +
+      'formando auxiliares y técnicos que las empresas de la región realmente contratan.\n\n' +
+      '## Lo que nos diferencia\n\n- Formación por competencias con práctica desde el primer módulo\n' +
+      '- Horarios diurnos, nocturnos y de fin de semana\n- Sección de bachillerato por ciclos para terminar el colegio y seguir con un técnico\n\n' +
+      '## Registro oficial\n\nTodos nuestros programas cuentan con registro ante la Secretaría de Educación.',
+  });
+  await paginaInstitucional(t, {
+    slug: 'seccion-bachillerato',
+    title: 'Sección bachillerato',
+    menuGroup: 'Institucional',
+    order: 2,
+    summary: 'Bachillerato académico por ciclos para jóvenes y adultos, de noche o los sábados.',
+    content:
+      '## Termina tu bachillerato\n\nCon los **ciclos lectivos especiales integrados** (Decreto 3011) apruebas dos grados por ' +
+      'ciclo semestral, en jornada nocturna o de fin de semana.\n\n## Articulación con los técnicos\n\nAl graduarte puedes ' +
+      'continuar con cualquiera de nuestros técnicos laborales: tu ruta completa, en una sola institución.\n\n' +
+      '[Ver el programa](/programas/bachillerato-por-ciclos)',
+  });
+
+  log('etdhdemo listo (3 técnicos + bachillerato por ciclos, 2 rolling, anuncio y páginas)');
 }
 
 // ---------------------------------------------------------------- 3. COLEGIO
@@ -683,6 +819,31 @@ async function seedColegio() {
       { value: 'A+', label: 'nivel ICFES' },
       { value: '100%', label: 'jornada única' },
     ],
+    announcement: { text: 'Admisiones abiertas — año lectivo 2027', link: '/admisiones', active: true },
+    contact: contactoDemo('colegiodemo'),
+  });
+
+  await paginaInstitucional(t, {
+    slug: 'nuestro-colegio',
+    title: 'Nuestro colegio',
+    menuGroup: 'Institucional',
+    order: 1,
+    summary: 'Proyecto educativo, valores y comunidad del Colegio Demo Bilingüe.',
+    content:
+      '## Proyecto educativo\n\nFormamos niños y jóvenes bilingües, autónomos y felices, en jornada única y con ' +
+      'grupos pequeños.\n\n## Nuestros pilares\n\n- Inglés intensivo desde preescolar\n- Formación socioemocional\n' +
+      '- Deporte y artes todos los días\n- Acompañamiento cercano a las familias',
+  });
+  await paginaInstitucional(t, {
+    slug: 'modelo-pedagogico',
+    title: 'Modelo pedagógico',
+    menuGroup: 'Institucional',
+    order: 2,
+    summary: 'Aprendizaje activo por proyectos con evaluación formativa.',
+    content:
+      '## Aprender haciendo\n\nTrabajamos por **proyectos interdisciplinarios** donde cada estudiante investiga, ' +
+      'crea y presenta.\n\n## Evaluación formativa\n\nRetroalimentación continua en lugar de exámenes de memoria: ' +
+      'el error es parte del aprendizaje.',
   });
 
   log('colegiodemo listo (4 niveles, convocatoria 2027 con cupos por grado)');

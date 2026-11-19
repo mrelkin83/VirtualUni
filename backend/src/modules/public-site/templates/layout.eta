@@ -13,7 +13,10 @@
   <% if (it.meta.image) { %><meta property="og:image" content="<%= it.meta.image %>" /><% } %>
   <% if (it.meta.noindex) { %><meta name="robots" content="noindex,nofollow" /><% } %>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8E%93%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="/public-assets/site.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/public-assets/site.css?v=<%= it.vAssets %>" />
   <style>:root{--c1:<%= it.brand.c1 %>;--c2:<%= it.brand.c2 %>}</style>
   <% if (it.meta.jsonld) { %><script type="application/ld+json"><%~ it.meta.jsonld %></script><% } %>
   <% if (it.analytics && it.analytics.ga4) { %>
@@ -27,73 +30,164 @@
   <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/es_LA/fbevents.js');fbq('init','<%= it.analytics.metaPixel %>');fbq('track','PageView');</script>
   <% } %>
 </head>
-<body class="min-h-screen bg-white text-gray-800 flex flex-col">
+<body class="min-h-screen bg-white text-gray-800 font-sans flex flex-col">
   <% if (it.esPreview) { %>
   <div class="bg-amber-400 text-amber-950 text-center text-sm font-semibold py-1.5">
     Vista previa — el sitio aún no está publicado
   </div>
   <% } %>
 
-  <header class="border-b border-gray-100 bg-white sticky top-0 z-40">
-    <div class="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4">
-      <a href="<%= it.modoSoloAdmisiones && it.site.externalWebsiteUrl ? it.site.externalWebsiteUrl : '/' %>" class="flex items-center gap-3 min-w-0">
+  <%
+    const c = it.site.contact || {};
+    const redes = (c.redes || {});
+    const hayRedes = Object.values(redes).some(Boolean);
+    const inicioHref = it.modoSoloAdmisiones && it.site.externalWebsiteUrl ? it.site.externalWebsiteUrl : '/';
+  %>
+
+  <% if (it.nav.anuncio) { %>
+  <div class="text-center text-sm font-semibold text-white py-2 px-4 banda-tinta-lisa">
+    <% if (it.nav.anuncio.link) { %>
+      <a href="<%= it.nav.anuncio.link %>" class="hover:underline underline-offset-4 inline-block py-0.5"><%= it.nav.anuncio.text %> →</a>
+    <% } else { %><span class="inline-block py-0.5"><%= it.nav.anuncio.text %></span><% } %>
+  </div>
+  <% } %>
+
+    <div class="bg-gray-950 text-gray-300 text-[13px]">
+    <div class="mx-auto max-w-6xl px-4 h-9 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <% if (c.telefono) { %><span class="hidden sm:inline-flex items-center gap-1.5 truncate"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.6 1 1 0 0 1-.25 1Z"/></svg><%= c.telefono %></span><% } %>
+        <% if (c.email) { %><span class="hidden md:inline-flex items-center gap-1.5 truncate"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm8 7L4 6v12h16V6l-8 5Z"/></svg><%= c.email %></span><% } %>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <% if (redes.facebook) { %><a href="<%= redes.facebook %>" target="_blank" rel="noopener" aria-label="Facebook" class="py-2 hover:text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.6 1.6-1.6h1.7V4.2c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.5H7.5V14h2.7v8h3.3Z"/></svg></a><% } %>
+        <% if (redes.instagram) { %><a href="<%= redes.instagram %>" target="_blank" rel="noopener" aria-label="Instagram" class="py-2 hover:text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9-.1-1.3-.1-1.6-.1-4.8s0-3.6.1-4.8C2.4 4 4 2.4 7.2 2.3c1.2-.1 1.6-.1 4.8-.1Zm0 1.8c-3.2 0-3.5 0-4.7.1-2.4.1-3.2 1-3.3 3.3-.1 1.2-.1 1.5-.1 4.6s0 3.5.1 4.7c.1 2.3 1 3.2 3.3 3.3 1.2.1 1.5.1 4.7.1s3.5 0 4.7-.1c2.3-.1 3.2-1 3.3-3.3.1-1.2.1-1.5.1-4.7s0-3.5-.1-4.6c-.1-2.4-1-3.2-3.3-3.3-1.2-.1-1.5-.1-4.7-.1Zm0 3.1a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Zm5.2-3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"/></svg></a><% } %>
+        <% if (redes.youtube) { %><a href="<%= redes.youtube %>" target="_blank" rel="noopener" aria-label="YouTube" class="py-2 hover:text-white"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26.2 26.2 0 0 0 2 12a26.2 26.2 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26.2 26.2 0 0 0 22 12a26.2 26.2 0 0 0-.4-4.8ZM10 15.2V8.8l5.2 3.2-5.2 3.2Z"/></svg></a><% } %>
+        <% if (redes.tiktok) { %><a href="<%= redes.tiktok %>" target="_blank" rel="noopener" aria-label="TikTok" class="py-2 hover:text-white"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.7 2h-3v13.3a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.4a6 6 0 0 0-.9-.1 6 6 0 1 0 6 6V8.7A7.6 7.6 0 0 0 21 10V7a4.6 4.6 0 0 1-4.3-5Z"/></svg></a><% } %>
+        <% if (redes.x) { %><a href="<%= redes.x %>" target="_blank" rel="noopener" aria-label="X (Twitter)" class="py-2 hover:text-white"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3l-6.6 7.6L22 21h-6.1l-4.8-6.3L5.6 21h-3l7.1-8.1L2 3h6.3l4.3 5.7L17.8 3Zm-1.1 16h1.7L7.4 4.7H5.6L16.7 19Z"/></svg></a><% } %>
+        <% if (redes.linkedin) { %><a href="<%= redes.linkedin %>" target="_blank" rel="noopener" aria-label="LinkedIn" class="py-2 hover:text-white"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.5c0-1.3 0-3-1.9-3s-2.2 1.4-2.2 2.9V21h-4V9Z"/></svg></a><% } %>
+        <% if (hayRedes) { %><span class="hidden sm:block w-px h-4 bg-gray-700" aria-hidden="true"></span><% } %>
+        <a href="/aspirante" class="py-2 hover:text-white font-medium">Consulta tu solicitud</a>
+        <span class="w-px h-4 bg-gray-700" aria-hidden="true"></span>
+        <a href="/login" class="py-2 hover:text-white font-medium">Campus virtual</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="border-b border-gray-200 bg-white sticky top-0 z-40 shadow-sm">
+    <div class="mx-auto max-w-6xl px-4 h-[72px] flex items-center justify-between gap-5">
+      <a href="<%= inicioHref %>" class="flex items-center gap-3 min-w-0">
         <% if (it.tenant.logo) { %>
-          <img src="<%= it.tenant.logo %>" alt="" class="h-9 w-9 rounded object-contain" width="36" height="36" />
+          <img src="<%= it.tenant.logo %>" alt="" class="h-11 w-11 rounded-lg object-contain" width="44" height="44" />
         <% } else { %>
-          <span class="h-9 w-9 rounded grid place-items-center text-white font-bold" style="background:var(--c1)"><%= it.tenant.name.charAt(0) %></span>
+          <span class="h-11 w-11 rounded-lg grid place-items-center text-white font-display font-extrabold text-lg" style="background:var(--c1)"><%= it.tenant.name.charAt(0) %></span>
         <% } %>
-        <span class="font-bold text-gray-900 truncate"><%= it.tenant.name %></span>
+        <span class="min-w-0">
+          <span class="block font-display font-extrabold text-gray-900 leading-tight truncate text-[17px]"><%= it.tenant.name %></span>
+          <span class="hidden sm:block font-mono text-[11px] text-gray-500 tracking-wide uppercase"><%= it.textos.inscripciones %> en línea</span>
+        </span>
       </a>
-      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-        <% if (!it.modoSoloAdmisiones) { %><a href="/" class="hover:text-[var(--c1)]">Inicio</a><% } %>
-        <a href="/programas" class="hover:text-[var(--c1)]"><%= it.textos.ofertaTitulo %></a>
-        <% if (!it.modoSoloAdmisiones) { %><a href="/contacto" class="hover:text-[var(--c1)]">Contacto</a><% } %>
-        <a href="/aspirante" class="hover:text-[var(--c1)]">Consulta tu solicitud</a>
+
+      <nav class="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-gray-700" aria-label="Principal">
+        <% if (!it.modoSoloAdmisiones) { %><a href="/" class="enlace-nav py-2">Inicio</a><% } %>
+        <details class="nav-drop" data-drop>
+          <summary class="enlace-nav py-2 flex items-center"><%= it.textos.ofertaTitulo %></summary>
+          <div class="panel rounded-xl border border-gray-200 bg-white shadow-xl p-2">
+            <% for (const cat of it.nav.categorias) { %>
+            <a href="/programas?nivel=<%= cat.slug %>" class="flex items-center justify-between gap-6 rounded-lg px-3 py-2.5 hover:bg-gray-50">
+              <span class="font-semibold text-gray-800"><%= cat.label %></span>
+              <span class="font-mono text-xs text-gray-500"><%= cat.count %></span>
+            </a>
+            <% } %>
+            <a href="/programas" class="block rounded-lg px-3 py-2.5 mt-1 border-t border-gray-100 font-bold" style="color:var(--c1)">Ver toda la oferta →</a>
+          </div>
+        </details>
+        <a href="/admisiones" class="enlace-nav py-2"><%= it.textos.inscripciones %></a>
+        <% if (!it.modoSoloAdmisiones) { for (const grupo of it.nav.paginas.slice(0, 3)) { %>
+        <details class="nav-drop" data-drop>
+          <summary class="enlace-nav py-2 flex items-center"><%= grupo.grupo %></summary>
+          <div class="panel rounded-xl border border-gray-200 bg-white shadow-xl p-2">
+            <% for (const pg of grupo.items) { %>
+            <a href="/institucional/<%= pg.slug %>" class="block rounded-lg px-3 py-2.5 font-semibold text-gray-800 hover:bg-gray-50"><%= pg.title %></a>
+            <% } %>
+          </div>
+        </details>
+        <% } } %>
+        <% if (!it.modoSoloAdmisiones) { %><a href="/contacto" class="enlace-nav py-2">Contacto</a><% } %>
       </nav>
-      <div class="flex items-center gap-2">
+
+      <div class="flex items-center gap-2 shrink-0">
         <% if (it.modoSoloAdmisiones && it.site.externalWebsiteUrl) { %>
-          <a href="<%= it.site.externalWebsiteUrl %>" class="text-sm font-medium text-gray-600 hover:text-[var(--c1)] hidden sm:block">Volver al sitio</a>
+          <a href="<%= it.site.externalWebsiteUrl %>" class="text-sm font-semibold text-gray-600 hover:text-[var(--c1)] hidden sm:block">Volver al sitio</a>
         <% } %>
-        <a href="/login" class="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:border-[var(--c1)] hover:text-[var(--c1)]">Campus virtual</a>
-        <button data-menu class="md:hidden p-2 -mr-2" aria-label="Abrir menú">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        <a href="/admisiones" class="px-5 py-2.5 rounded-lg font-display font-bold text-white text-[15px] shadow-sm hover:opacity-90 transition" style="background:var(--c1)"><%= it.textos.inscribete %></a>
+        <button data-menu class="lg:hidden p-2 -mr-2 text-gray-700" aria-label="Abrir menú" aria-expanded="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         </button>
       </div>
     </div>
-    <nav data-menu-panel class="md:hidden hidden border-t border-gray-100 px-4 py-3 space-y-2 text-sm font-medium bg-white">
-      <% if (!it.modoSoloAdmisiones) { %><a href="/" class="block py-1.5">Inicio</a><% } %>
-      <a href="/programas" class="block py-1.5"><%= it.textos.ofertaTitulo %></a>
-      <% if (!it.modoSoloAdmisiones) { %><a href="/contacto" class="block py-1.5">Contacto</a><% } %>
-      <a href="/aspirante" class="block py-1.5">Consulta tu solicitud</a>
+
+    <nav data-menu-panel class="lg:hidden hidden border-t border-gray-100 px-4 py-4 bg-white max-h-[75vh] overflow-y-auto" aria-label="Menú móvil">
+      <% if (!it.modoSoloAdmisiones) { %><a href="/" class="block py-2.5 font-semibold text-gray-800">Inicio</a><% } %>
+      <p class="pt-3 pb-1 font-mono text-[11px] uppercase tracking-wider text-gray-500"><%= it.textos.ofertaTitulo %></p>
+      <% for (const cat of it.nav.categorias) { %>
+      <a href="/programas?nivel=<%= cat.slug %>" class="flex justify-between py-2.5 font-semibold text-gray-800"><span><%= cat.label %></span><span class="font-mono text-xs text-gray-500"><%= cat.count %></span></a>
+      <% } %>
+      <a href="/programas" class="block py-2.5 font-bold" style="color:var(--c1)">Ver toda la oferta →</a>
+      <a href="/admisiones" class="block py-2.5 font-semibold text-gray-800 border-t border-gray-100 mt-2 pt-3"><%= it.textos.inscripciones %></a>
+      <% if (!it.modoSoloAdmisiones) { %>
+        <% for (const grupo of it.nav.paginas) { %>
+        <p class="pt-3 pb-1 font-mono text-[11px] uppercase tracking-wider text-gray-500"><%= grupo.grupo %></p>
+        <% for (const pg of grupo.items) { %><a href="/institucional/<%= pg.slug %>" class="block py-2.5 font-semibold text-gray-800"><%= pg.title %></a><% } %>
+        <% } %>
+        <a href="/contacto" class="block py-2.5 font-semibold text-gray-800 border-t border-gray-100 mt-2 pt-3">Contacto</a>
+      <% } %>
+      <a href="/aspirante" class="block py-2.5 font-semibold text-gray-800">Consulta tu solicitud</a>
     </nav>
   </header>
 
   <main class="flex-1"><%~ it.body %></main>
 
-  <footer class="bg-gray-900 text-gray-300 mt-16">
-    <div class="mx-auto max-w-6xl px-4 py-10 grid gap-8 md:grid-cols-3 text-sm">
+  <footer class="bg-gray-950 text-gray-300 mt-20">
+    <div class="mx-auto max-w-6xl px-4 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 text-sm">
       <div>
-        <p class="font-bold text-white mb-2"><%= it.tenant.name %></p>
-        <% const c = it.site.contact || {}; %>
-        <% if (c.direccion) { %><p><%= c.direccion %></p><% } %>
-        <% if (c.telefono) { %><p>Tel: <%= c.telefono %></p><% } %>
-        <% if (c.email) { %><p><%= c.email %></p><% } %>
-        <% if (c.horario) { %><p class="text-gray-400 mt-1"><%= c.horario %></p><% } %>
+        <div class="flex items-center gap-2.5 mb-4">
+          <% if (it.tenant.logo) { %><img src="<%= it.tenant.logo %>" alt="" class="h-9 w-9 rounded object-contain bg-white/10" width="36" height="36" /><% } %>
+          <p class="font-display font-extrabold text-white text-base"><%= it.tenant.name %></p>
+        </div>
+        <% if (c.direccion) { %><p class="py-1"><%= c.direccion %></p><% } %>
+        <% if (c.telefono) { %><p class="py-1 font-mono text-[13px]"><%= c.telefono %></p><% } %>
+        <% if (c.email) { %><p class="py-1 font-mono text-[13px]"><%= c.email %></p><% } %>
+        <% if (c.horario) { %><p class="py-1 text-gray-400"><%= c.horario %></p><% } %>
       </div>
       <div>
-        <p class="font-bold text-white mb-2"><%= it.textos.inscripciones %></p>
-        <p><a href="/programas" class="hover:text-white inline-block py-1.5"><%= it.textos.ofertaTitulo %></a></p>
-        <p><a href="/aspirante" class="hover:text-white inline-block py-1.5">Estado de tu solicitud</a></p>
+        <p class="font-display font-bold text-white mb-3"><%= it.textos.ofertaTitulo %></p>
+        <% for (const cat of it.nav.categorias) { %>
+        <p><a href="/programas?nivel=<%= cat.slug %>" class="hover:text-white inline-block py-1.5"><%= cat.label %></a></p>
+        <% } %>
+        <p><a href="/programas" class="hover:text-white inline-block py-1.5 font-semibold">Toda la oferta</a></p>
+      </div>
+      <div>
+        <p class="font-display font-bold text-white mb-3">Institución</p>
+        <% for (const grupo of it.nav.paginas) { for (const pg of grupo.items) { %>
+        <p><a href="/institucional/<%= pg.slug %>" class="hover:text-white inline-block py-1.5"><%= pg.title %></a></p>
+        <% } } %>
         <% if (!it.modoSoloAdmisiones) { %><p><a href="/contacto" class="hover:text-white inline-block py-1.5">Contacto</a></p><% } %>
+        <p><a href="/validar" class="hover:text-white inline-block py-1.5">Validar un certificado</a></p>
       </div>
       <div>
-        <p class="font-bold text-white mb-2">Legal</p>
-        <p><a href="/privacidad" class="hover:text-white inline-block py-1.5">Tratamiento de datos personales</a></p>
-        <% if (it.site.dataControllerName) { %><p class="text-gray-400 mt-1">Responsable: <%= it.site.dataControllerName %></p><% } %>
+        <p class="font-display font-bold text-white mb-3"><%= it.textos.inscripciones %></p>
+        <p><a href="/admisiones" class="hover:text-white inline-block py-1.5">Cómo inscribirte</a></p>
+        <p><a href="/aspirante" class="hover:text-white inline-block py-1.5">Estado de tu solicitud</a></p>
+        <p><a href="/login" class="hover:text-white inline-block py-1.5">Campus virtual</a></p>
+        <p><a href="/privacidad" class="hover:text-white inline-block py-1.5">Tratamiento de datos</a></p>
+        <% if (it.site.dataControllerName) { %><p class="text-gray-400 mt-2 text-[13px]">Responsable: <%= it.site.dataControllerName %></p><% } %>
       </div>
     </div>
-    <div class="border-t border-gray-800 py-4 text-center text-xs text-gray-400">
-      © <%= it.anio %> <%= it.tenant.name %>
+    <div class="border-t border-gray-800">
+      <div class="mx-auto max-w-6xl px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
+        <p>© <%= it.anio %> <%= it.tenant.name %></p>
+        <p class="font-mono">Inscripciones 100% en línea</p>
+      </div>
     </div>
   </footer>
 

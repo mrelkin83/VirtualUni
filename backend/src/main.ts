@@ -124,6 +124,8 @@ async function bootstrap() {
       'aspirante',
       'aspirante/(.*)',
       'contacto',
+      'admisiones',
+      'institucional/:slug',
       'privacidad',
       'sitemap.xml',
       'robots.txt',

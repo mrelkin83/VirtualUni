@@ -2258,9 +2258,36 @@ model TenantSite {
   dataControllerName String?         @map("data_controller_name") // responsable del tratamiento
   /// Dominios autorizados a incrustar los widgets /embed/* (frame-ancestors).
   embedAllowedOrigins String[]       @default([]) @map("embed_allowed_origins")
+  /// Banner superior tipo «Matrículas abiertas 2027»: {text, link, active}.
+  announcement       Json?
   updatedAt          DateTime        @updatedAt @map("updated_at")
 
   @@map("tenant_sites")
+}
+
+// Página institucional libre del sitio público (Conócenos, Misión, Bienestar,
+// Calidad…). La institución las crea desde el panel y cuelgan del menú bajo
+// el grupo que diga menuGroup; se sirven en /institucional/:slug.
+model SitePage {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  slug        String
+  title       String
+  /// Grupo del menú donde aparece («Institucional», «Bienestar»…).
+  menuGroup   String   @default("Institucional") @map("menu_group")
+  order       Int      @default(0)
+  /// Bajada corta para listados, meta description y tarjetas.
+  summary     String?
+  /// Markdown sencillo (títulos, listas, negrita, enlaces); se escapa al renderizar.
+  content     String   @db.Text
+  imageUrl    String?  @map("image_url")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, isPublished])
+  @@map("site_pages")
 }
 
 // ============================================================================

@@ -8,9 +8,26 @@
   var panel = document.querySelector('[data-menu-panel]');
   if (btn && panel) {
     btn.addEventListener('click', function () {
-      panel.classList.toggle('hidden');
+      var abierto = panel.classList.toggle('hidden') === false;
+      btn.setAttribute('aria-expanded', abierto ? 'true' : 'false');
     });
   }
+
+  // Desplegables del menú (details.nav-drop): solo uno abierto a la vez y se
+  // cierran al hacer clic fuera o con Escape. Sin JS siguen funcionando como
+  // <details> normales.
+  var drops = Array.prototype.slice.call(document.querySelectorAll('details[data-drop]'));
+  drops.forEach(function (d) {
+    d.addEventListener('toggle', function () {
+      if (d.open) drops.forEach(function (otro) { if (otro !== d) otro.open = false; });
+    });
+  });
+  document.addEventListener('click', function (e) {
+    drops.forEach(function (d) { if (d.open && !d.contains(e.target)) d.open = false; });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') drops.forEach(function (d) { d.open = false; });
+  });
 
   // Filtros de la oferta: al cambiar un select se reenvía el formulario, y los
   // parámetros vacíos se quitan para que la URL quede limpia y compartible.
