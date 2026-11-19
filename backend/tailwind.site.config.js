@@ -8,12 +8,14 @@ module.exports = {
   content: ['./src/modules/public-site/templates/**/*.eta'],
   theme: {
     extend: {
-      // Tipografía del sistema «Horizonte Académico» (DESIGN.md del módulo):
-      // Plus Jakarta Sans para titulares, Inter para cuerpo. Plex Mono se
-      // conserva del campus para todo dato duro (fechas, códigos, precios).
+      // Tipografía del sistema «cartel» (DESIGN.md del módulo): Anton para la
+      // cartelería en mayúsculas, Hanken Grotesk para interfaz y cuerpo, y
+      // Plex Mono —heredada del campus— para todo dato duro (fechas, códigos,
+      // precios, cupos).
       fontFamily: {
-        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        cartel: ['Anton', '"Arial Narrow"', 'system-ui', 'sans-serif'],
+        display: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
     },

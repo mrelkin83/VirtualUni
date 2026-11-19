@@ -1,7 +1,8 @@
-<section class="banda-tinta text-white">
-  <div class="mx-auto max-w-6xl px-4 pt-12 pb-24 md:pt-16 md:pb-28">
-    <h1 class="font-display font-black text-4xl md:text-5xl tracking-tight"><%= it.textos.ofertaTitulo %></h1>
-    <p class="text-white/85 mt-3 max-w-2xl text-lg"><%= it.textos.ofertaSubtitulo %></p>
+<section class="hero-cartel banda-tinta text-white">
+  <span class="vigilada-borde hidden md:block"><%= it.textos.vigilada %></span>
+  <div class="relative z-10 mx-auto max-w-6xl px-4 pt-12 pb-24 md:pt-16 md:pb-28">
+    <h1 class="titulo-cartel text-5xl md:text-6xl"><%= it.textos.ofertaTitulo %></h1>
+    <p class="text-white/85 mt-4 max-w-2xl text-lg"><%= it.textos.ofertaSubtitulo %></p>
   </div>
 </section>
 
@@ -67,7 +68,7 @@
 <% if (!it.hayFiltros && it.directorio.length > 1) { %>
 <section class="py-12" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="font-display font-black text-2xl text-gray-900">Directorio completo</h2>
+    <h2 class="titulo-cartel text-3xl text-gray-900">Directorio completo</h2>
     <div class="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       <% for (const g of it.directorio) { %>
       <div>

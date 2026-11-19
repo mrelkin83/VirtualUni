@@ -4,31 +4,39 @@
   const rollingAbierta = it.convocatorias.some((cv) => cv.rolling);
 %>
 
-<section class="relative overflow-hidden banda-tinta">
-  <% if (slide.imageUrl) { %>
-    <img src="<%= slide.imageUrl %>" alt="" fetchpriority="high" width="1600" height="640"
-         class="absolute inset-0 w-full h-full object-cover" />
-    <div class="absolute inset-0" style="background:var(--tinta);opacity:<%= Math.min(Math.max(Number(slide.overlay ?? 0.72), 0.45), 0.9) %>"></div>
-  <% } %>
-  <div class="relative mx-auto max-w-6xl px-4 pt-16 pb-24 md:pt-24 md:pb-36 text-white">
-    <p class="anim-subir font-mono text-[13px] uppercase tracking-[0.2em] text-white/70">
-      <%= rollingAbierta ? 'Inscripción permanente' : (it.textos.inscripciones + ' abiertas') %>
-    </p>
-    <h1 class="anim-subir anim-r1 mt-3 font-display font-black text-4xl md:text-6xl max-w-3xl leading-[1.05] tracking-tight">
-      <%= slide.title || it.tenant.name %>
-    </h1>
-    <% if (slide.subtitle) { %><p class="anim-subir anim-r2 mt-5 max-w-xl text-white/85 text-lg"><%= slide.subtitle %></p><% } %>
-
-    <div class="anim-subir anim-r3 mt-9 flex flex-wrap gap-3">
-      <a href="<%= (slide.ctaPrimary && slide.ctaPrimary.href !== 'whatsapp' && slide.ctaPrimary.href) || '/admisiones' %>"
-         class="px-7 py-3.5 rounded-lg bg-white font-display font-bold shadow-lg hover:shadow-xl transition" style="color:var(--tinta)">
-        <%= (slide.ctaPrimary && slide.ctaPrimary.label) || it.textos.inscribete %>
-      </a>
-      <% if (it.site.whatsappNumber) { %>
-      <a href="https://wa.me/<%= it.site.whatsappNumber %>?text=<%= encodeURIComponent(it.site.whatsappMessage || '') %>" target="_blank" rel="noopener"
-         class="px-7 py-3.5 rounded-lg border-2 border-white/60 font-display font-bold text-white hover:bg-white/10 transition">
-        <%= (slide.ctaSecondary && slide.ctaSecondary.label) || 'Habla con un asesor' %>
-      </a>
+<section class="hero-cartel banda-tinta text-white">
+  <span class="vigilada-borde hidden md:block"><%= it.textos.vigilada %></span>
+  <div class="relative z-10 mx-auto max-w-6xl px-4 pt-14 pb-24 md:pt-20 md:pb-40 grid items-center gap-10 lg:grid-cols-[1fr_360px]">
+    <div>
+      <span class="sello anim-subir text-base md:text-lg">
+        <%= rollingAbierta ? '¡Inscripción permanente!' : ('¡' + it.textos.inscripciones + ' abiertas!') %>
+      </span>
+      <h1 class="titulo-cartel anim-subir anim-r1 mt-7 text-5xl md:text-7xl max-w-3xl text-white">
+        <%= slide.title || it.tenant.name %>
+      </h1>
+      <% if (slide.subtitle) { %>
+      <p class="anim-subir anim-r2 mt-5 max-w-xl text-white/85 text-lg md:text-xl"><%= slide.subtitle %></p>
+      <% } %>
+      <div class="anim-subir anim-r3 mt-10 flex flex-wrap items-center gap-5">
+        <a href="<%= (slide.ctaPrimary && slide.ctaPrimary.href !== 'whatsapp' && slide.ctaPrimary.href) || '/admisiones' %>"
+           class="pleca text-lg md:text-xl font-display shadow-lg hover:brightness-110 transition">
+          <span><%= (slide.ctaPrimary && slide.ctaPrimary.label) || ('¡' + it.textos.inscribete + ' hoy!') %> →</span>
+        </a>
+        <% if (it.site.whatsappNumber) { %>
+        <a href="https://wa.me/<%= it.site.whatsappNumber %>?text=<%= encodeURIComponent(it.site.whatsappMessage || '') %>" target="_blank" rel="noopener"
+           class="px-6 py-3 rounded-full border-2 border-white/60 font-display font-bold text-white hover:bg-white/10 transition">
+          <%= (slide.ctaSecondary && slide.ctaSecondary.label) || 'Habla con un asesor' %>
+        </a>
+        <% } %>
+      </div>
+    </div>
+    <div class="relative hidden lg:block" aria-hidden="true">
+      <% if (slide.imageUrl) { %>
+      <div class="marco-blob shadow-2xl rotate-2">
+        <img src="<%= slide.imageUrl %>" alt="" fetchpriority="high" width="420" height="420" class="w-full aspect-square object-cover" />
+      </div>
+      <% } else { %>
+      <p class="inicial-fantasma text-right"><%= it.tenant.name.charAt(0) %></p>
       <% } %>
     </div>
   </div>
@@ -61,8 +69,8 @@
 <section class="mx-auto max-w-6xl px-4 pt-16">
   <div class="flex items-end justify-between gap-4 flex-wrap">
     <div>
-      <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)">Oferta <%= it.anio %></p>
-      <h2 class="mt-1 font-display font-black text-3xl md:text-4xl text-gray-900"><%= it.textos.ofertaTitulo %></h2>
+      <p class="kicker" style="color:var(--c1)">Oferta <%= it.anio %></p>
+      <h2 class="mt-2 titulo-cartel text-4xl md:text-5xl text-gray-900"><%= it.textos.ofertaTitulo %></h2>
       <p class="text-gray-500 mt-2"><%= it.textos.ofertaSubtitulo %></p>
     </div>
     <a href="/programas" class="font-bold enlace-nav pb-1" style="color:var(--c1)">Ver toda la oferta →</a>
@@ -71,7 +79,7 @@
   <% for (const cat of it.porCategoria) { if (!cat.programas.length) continue; %>
   <div class="mt-12">
     <div class="flex items-baseline justify-between gap-4 border-b-2 pb-2" style="border-color:var(--borde-tinte)">
-      <h3 class="font-display font-extrabold text-xl text-gray-900"><%= cat.label %></h3>
+      <h3 class="font-cartel uppercase text-2xl text-gray-900"><%= cat.label %></h3>
       <a href="/programas?nivel=<%= cat.slug %>" class="text-sm font-bold shrink-0 py-1" style="color:var(--c1)">
         <%= cat.count > cat.programas.length ? ('Ver los ' + cat.count) : 'Ver todos' %> →
       </a>
@@ -87,8 +95,8 @@
 <% if (!ocultas.has('calls')) { %>
 <section class="mt-20 py-16" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)"><%= it.textos.inscripciones %></p>
-    <h2 class="mt-1 font-display font-black text-3xl text-gray-900">Así de simple es ingresar</h2>
+    <p class="kicker" style="color:var(--c1)"><%= it.textos.inscripciones %></p>
+    <h2 class="mt-2 titulo-cartel text-4xl md:text-5xl text-gray-900">Así de simple es ingresar</h2>
 
     <div class="mt-9 grid gap-6 md:grid-cols-4">
       <% const pasos = [
@@ -98,10 +106,11 @@
         ['Matricúlate', 'Si eres admitido, formalizas tu matrícula y entras al campus.'],
       ]; %>
       <% pasos.forEach(([titulo, texto], i) => { %>
-      <div class="carta relative rounded-xl p-6 pt-8">
-        <span class="absolute -top-4 left-6 h-9 w-9 grid place-items-center rounded-lg text-white font-mono font-bold text-sm shadow" style="background:var(--c1)"><%= i + 1 %></span>
-        <h3 class="font-display font-bold text-gray-900"><%= titulo %></h3>
-        <p class="mt-1.5 text-sm text-gray-600"><%= texto %></p>
+      <div class="carta relative rounded-xl p-6 overflow-hidden">
+        <span class="numero-cartel absolute right-3 top-0 select-none" aria-hidden="true" style="opacity:.16"><%= i + 1 %></span>
+        <span class="numero-cartel block text-2xl" style="font-size:1.6rem"><%= i + 1 %>.</span>
+        <h3 class="mt-2 font-display font-extrabold text-gray-900"><%= titulo %></h3>
+        <p class="mt-1.5 text-sm text-gray-600 relative"><%= texto %></p>
       </div>
       <% }); %>
     </div>
@@ -132,8 +141,8 @@
 
 <% if (!ocultas.has('benefits') && it.site.benefits && it.site.benefits.length) { %>
 <section class="mx-auto max-w-6xl px-4 py-16">
-  <p class="font-mono text-[13px] uppercase tracking-[0.18em] text-center" style="color:var(--c1)">¿Por qué aquí?</p>
-  <h2 class="mt-1 font-display font-black text-3xl text-gray-900 text-center">Razones para elegirnos</h2>
+  <p class="kicker justify-center" style="color:var(--c1)">¿Por qué aquí?</p>
+  <h2 class="mt-2 titulo-cartel text-4xl text-gray-900 text-center">Razones para elegirnos</h2>
   <div class="mt-10 grid gap-6 md:grid-cols-3">
     <% for (const b of it.site.benefits) { %>
     <div class="carta carta-link rounded-xl p-7">
@@ -151,8 +160,8 @@
   <div class="mx-auto max-w-6xl px-4 grid gap-8 text-center" style="grid-template-columns:repeat(<%= it.site.stats.length %>,1fr)">
     <% for (const s of it.site.stats) { %>
     <div>
-      <p class="font-mono font-semibold text-3xl md:text-5xl tracking-tight"><%= s.value %></p>
-      <p class="text-white/75 text-sm mt-2"><%= s.label %></p>
+      <p class="font-cartel text-4xl md:text-6xl" style="color:var(--c2)"><%= s.value %></p>
+      <p class="text-white/80 text-sm mt-2 font-semibold"><%= s.label %></p>
     </div>
     <% } %>
   </div>
@@ -161,8 +170,8 @@
 
 <% if (it.nav.paginas.length) { %>
 <section class="mx-auto max-w-6xl px-4 py-16">
-  <p class="font-mono text-[13px] uppercase tracking-[0.18em]" style="color:var(--c1)">Institución</p>
-  <h2 class="mt-1 font-display font-black text-3xl text-gray-900">Conócenos</h2>
+  <p class="kicker" style="color:var(--c1)">Institución</p>
+  <h2 class="mt-2 titulo-cartel text-4xl md:text-5xl text-gray-900">Conócenos</h2>
   <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     <% const planas = it.nav.paginas.flatMap((g) => g.items.map((pg) => ({ ...pg, grupo: g.grupo }))).slice(0, 6); %>
     <% for (const pg of planas) { %>
@@ -180,7 +189,7 @@
 <section class="mx-auto max-w-6xl px-4 pb-4">
   <div class="rounded-2xl banda-tinta text-white px-8 py-12 md:px-14 md:py-14 flex flex-wrap items-center justify-between gap-6">
     <div>
-      <h2 class="font-display font-black text-3xl md:text-4xl">Da el primer paso hoy</h2>
+      <h2 class="titulo-cartel text-4xl md:text-5xl">Da el primer paso hoy</h2>
       <p class="mt-2 text-white/80 max-w-md">El proceso es 100% en línea y te toma menos de 10 minutos. Tu cupo te está esperando.</p>
     </div>
     <div class="flex gap-3 flex-wrap">

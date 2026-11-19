@@ -1,7 +1,8 @@
-<section class="banda-tinta text-white">
-  <div class="mx-auto max-w-6xl px-4 py-14 md:py-20">
-    <p class="font-mono text-[13px] uppercase tracking-[0.2em] text-white/70">Proceso <%= it.anio %></p>
-    <h1 class="mt-2 font-display font-black text-4xl md:text-5xl tracking-tight"><%= it.textos.inscripciones %></h1>
+<section class="hero-cartel banda-tinta text-white">
+  <span class="vigilada-borde hidden md:block"><%= it.textos.vigilada %></span>
+  <div class="relative z-10 mx-auto max-w-6xl px-4 py-14 md:py-20">
+    <span class="sello text-sm">Proceso <%= it.anio %> · 100% en línea</span>
+    <h1 class="mt-6 titulo-cartel text-5xl md:text-6xl"><%= it.textos.inscripciones %></h1>
     <p class="mt-4 max-w-2xl text-white/85 text-lg">
       Todo el proceso es en línea: te inscribes, adjuntas tus documentos, pagas y consultas el estado
       de tu solicitud sin ir a ninguna oficina.
@@ -14,7 +15,7 @@
 </section>
 
 <section class="mx-auto max-w-6xl px-4 py-14">
-  <h2 class="font-display font-black text-3xl text-gray-900">El proceso, paso a paso</h2>
+  <h2 class="titulo-cartel text-4xl md:text-5xl text-gray-900">El proceso, paso a paso</h2>
   <div class="mt-9 grid gap-x-8 gap-y-10 md:grid-cols-2">
     <% const pasos = [
       ['Elige tu programa', 'Revisa la oferta por nivel, compara duración, modalidad y costos, y mira los requisitos y documentos que pide cada convocatoria.'],
@@ -26,7 +27,7 @@
     ]; %>
     <% pasos.forEach(([titulo, texto], i) => { %>
     <div class="flex gap-5">
-      <span class="shrink-0 h-11 w-11 grid place-items-center rounded-lg text-white font-mono font-bold shadow" style="background:var(--c1)"><%= i + 1 %></span>
+      <span class="numero-cartel shrink-0 w-14 text-right" aria-hidden="true"><%= i + 1 %></span>
       <div>
         <h3 class="font-display font-bold text-lg text-gray-900"><%= titulo %></h3>
         <p class="mt-1 text-gray-600"><%= texto %></p>
@@ -39,7 +40,7 @@
 <% if (it.convocatorias.length) { %>
 <section class="py-14" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="font-display font-black text-3xl text-gray-900">Convocatorias abiertas</h2>
+    <h2 class="titulo-cartel text-4xl text-gray-900">Convocatorias abiertas</h2>
     <p class="text-gray-600 mt-2">Estas son las fechas vigentes. Haz clic para ver requisitos e inscribirte.</p>
     <div class="mt-8 grid gap-3">
       <% for (const cv of it.convocatorias) { %>
@@ -63,7 +64,7 @@
 <% } else { %>
 <section class="py-14" style="background:var(--tinte)">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="font-display font-black text-3xl text-gray-900">Convocatorias</h2>
+    <h2 class="titulo-cartel text-4xl text-gray-900">Convocatorias</h2>
     <p class="text-gray-600 mt-2">
       En este momento no hay convocatorias abiertas. Déjanos tus datos en
       <a href="/contacto" class="enlace">contacto</a> y te avisamos cuando abran.
@@ -74,7 +75,7 @@
 
 <section class="mx-auto max-w-6xl px-4 py-14 grid gap-10 md:grid-cols-2">
   <div>
-    <h2 class="font-display font-black text-2xl text-gray-900">Pagos</h2>
+    <h2 class="titulo-cartel text-3xl text-gray-900">Pagos</h2>
     <p class="mt-3 text-gray-600">
       Cuando tu convocatoria tiene costo de inscripción, puedes pagar en línea con tarjeta, PSE o
       los medios disponibles, o hacer el pago directo y subir tu comprobante desde el formulario.
@@ -87,7 +88,7 @@
     <% } %>
   </div>
   <div>
-    <h2 class="font-display font-black text-2xl text-gray-900">¿Ya te inscribiste?</h2>
+    <h2 class="titulo-cartel text-3xl text-gray-900">¿Ya te inscribiste?</h2>
     <p class="mt-3 text-gray-600">
       Consulta el estado de tu solicitud con tu documento y el correo con el que te registraste.
       Te enviamos un enlace de acceso de un solo uso: sin usuarios ni claves.

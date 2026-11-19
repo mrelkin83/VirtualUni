@@ -37,12 +37,31 @@ Reglas del sistema Stitch que sí aplican multi-tenant:
 - Verde `#25D366` reservado exclusivamente a WhatsApp.
 - Ámbar reservado a badges "NUEVO" y sellos.
 
-## Tipografía
+## Tipografía (sistema «cartel»)
 
-- Titulares: **Plus Jakarta Sans** 700/800, tracking negativo.
-- Cuerpo: **Inter** 400–700.
+- Cartelería: **Anton** en mayúsculas (`.font-cartel` / `.titulo-cartel`) —
+  el lenguaje promocional condensado de Salamanca/Unitec. Héroes, títulos de
+  sección, nombres de nivel, números de paso y cifras.
+- Interfaz y cuerpo: **Hanken Grotesk** 400–800 (`font-display` y `font-sans`).
 - Datos (fechas, códigos, precios, conteos): **IBM Plex Mono** — se conserva
   del campus para que todo dato duro sea visualmente "dato".
+
+## Piezas del cartel (site.src.css)
+
+- `.sello`: sticker blanco girado («¡Inscripciones abiertas!»).
+- `.pleca`: cinta inclinada sobre `--c2`; su texto usa `--c2-ink`, la tinta
+  negra/blanca que el controlador calcula por luminancia WCAG del color del
+  tenant (ámbar → oscuro, rojo/teal → blanco).
+- `.kicker`: antetítulo mono con pleca corta del secundario.
+- `.hero-cartel` + `.marco-blob` + `.inicial-fantasma`: héroe póster con
+  resplandor orgánico, foto en marco blob o inicial fantasma.
+- `.vigilada-borde`: rótulo legal vertical en el borde del héroe
+  (Libertadores); el texto sale de `textos.vigilada` según el tipo de
+  institución (IES → «Vigilada Mineducación», ETDH/colegios → SED).
+- `.ficha-dato`: ficha Unitec «Duración: / Modalidad: / Inversión:».
+- Header: barra de contacto sobre el color institucional, botones de
+  audiencia delineados (Estudiantes/Aspirantes) y barra de menú sólida a
+  todo lo ancho con enlaces en mayúsculas.
 
 ## Elevación
 

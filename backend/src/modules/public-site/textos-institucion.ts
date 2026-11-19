@@ -22,6 +22,8 @@ export interface TextosUI {
   ofertaSubtitulo: string;
   /** Quién llena el formulario por defecto */
   quienLlena: 'aspirante' | 'acudiente';
+  /** Rótulo legal de vigilancia: IES → Mineducación; ETDH y colegios → SED. */
+  vigilada: string;
 }
 
 export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
@@ -32,6 +34,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestros niveles',
     ofertaSubtitulo: 'De preescolar a once, una sola comunidad.',
     quienLlena: 'acudiente',
+    vigilada: 'Vigilado · Secretaría de Educación',
   },
   ETDH: {
     inscripciones: 'Inscripciones',
@@ -40,6 +43,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Programas de formación laboral con registro oficial.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilado · Secretaría de Educación',
   },
   TECNICA_PROFESIONAL: {
     inscripciones: 'Inscripciones',
@@ -48,6 +52,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Programas técnicos profesionales para el mundo real.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilada Mineducación',
   },
   TECNOLOGICA: {
     inscripciones: 'Inscripciones',
@@ -56,6 +61,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Programas tecnológicos y de educación continua.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilada Mineducación',
   },
   UNIVERSITARIA: {
     inscripciones: 'Inscripciones',
@@ -64,6 +70,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Pregrado, posgrado y educación continua.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilada Mineducación',
   },
   UNIVERSIDAD: {
     inscripciones: 'Inscripciones',
@@ -72,6 +79,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Pregrado, posgrado y educación continua.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilada Mineducación',
   },
   MIXTA: {
     inscripciones: 'Inscripciones',
@@ -80,6 +88,7 @@ export const TEXTOS_POR_TIPO: Record<InstitutionType, TextosUI> = {
     ofertaTitulo: 'Nuestra oferta',
     ofertaSubtitulo: 'Formación para cada etapa de tu vida.',
     quienLlena: 'aspirante',
+    vigilada: 'Vigilada Mineducación',
   },
 };
 

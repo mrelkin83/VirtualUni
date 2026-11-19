@@ -120,6 +120,130 @@ details > summary::-webkit-details-marker { display: none; }
   @keyframes subir { to { opacity: 1; transform: none; } }
 }
 
+/* ------------------------------------------------ sistema «cartel»
+   El lenguaje promocional de las universidades colombianas de referencia
+   (Salamanca, Unitec, Libertadores): mayúsculas condensadas, stickers
+   girados, cintas inclinadas y bloques de color. Ver DESIGN.md. */
+
+.font-cartel { font-family: Anton, 'Arial Narrow', system-ui, sans-serif; font-weight: 400; }
+
+.titulo-cartel {
+  font-family: Anton, 'Arial Narrow', system-ui, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.96;
+  letter-spacing: 0.005em;
+}
+
+/* Kicker con pleca corta del color secundario. */
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.kicker::before { content: ''; width: 2.2rem; height: 4px; background: var(--c2); flex: none; }
+
+/* Sello: sticker blanco girado («¡NUEVO PROGRAMA!» de Salamanca). */
+.sello {
+  display: inline-block;
+  transform: rotate(-2deg);
+  background: #fff;
+  color: var(--tinta);
+  font-family: Anton, 'Arial Narrow', system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 1rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 8px 22px rgba(1, 6, 20, 0.28);
+}
+
+/* Pleca: cinta inclinada sobre el color secundario («Haz clic aquí» de
+   Unitec). El texto usa la tinta calculada por luminancia (--c2-ink). */
+.pleca {
+  display: inline-block;
+  transform: skewX(-8deg);
+  background: var(--c2);
+  color: var(--c2-ink, #101624);
+  font-weight: 800;
+  padding: 0.35rem 1rem;
+}
+.pleca > span { display: inline-block; transform: skewX(8deg); }
+
+/* Marco orgánico para la foto del héroe (los blobs de Unitec). */
+.marco-blob { border-radius: 58% 42% 55% 45% / 52% 48% 38% 62%; overflow: hidden; }
+
+/* Rótulo legal vertical en el borde del héroe (Libertadores). */
+.vigilada-borde {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  z-index: 5;
+}
+
+/* Decoración orgánica del héroe: resplandor del secundario + anillo. */
+.hero-cartel { position: relative; overflow: hidden; }
+.hero-cartel::before {
+  content: '';
+  position: absolute;
+  right: -14%;
+  top: -34%;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--c2), transparent 72%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.hero-cartel::after {
+  content: '';
+  position: absolute;
+  left: -7%;
+  bottom: -42%;
+  width: 38%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3rem solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+/* Inicial fantasma cuando el héroe no tiene foto. */
+.inicial-fantasma {
+  font-family: Anton, 'Arial Narrow', system-ui, sans-serif;
+  font-size: clamp(14rem, 30vw, 26rem);
+  line-height: 0.8;
+  color: rgba(255, 255, 255, 0.07);
+  user-select: none;
+}
+
+/* Número gigante de los pasos de admisión. */
+.numero-cartel {
+  font-family: Anton, 'Arial Narrow', system-ui, sans-serif;
+  font-size: 4.2rem;
+  line-height: 1;
+  color: var(--c2);
+}
+
+/* Ficha de datos estilo Unitec: «Duración:» en color + valor. */
+.ficha-dato { font-size: 13.5px; }
+.ficha-dato dt { display: inline; font-weight: 700; color: var(--c1); }
+.ficha-dato dd { display: inline; margin: 0; color: #374151; }
+
+/* Barra de menú sobre el color institucional: subrayado en el secundario. */
+.barra-menu .enlace-nav:not(summary)::after { background: var(--c2); }
+
 /* Subrayado que se desliza al pasar por los enlaces del menú. Los summary de
    los desplegables quedan fuera: su ::after es el chevron de .nav-drop. */
 .enlace-nav { position: relative; }

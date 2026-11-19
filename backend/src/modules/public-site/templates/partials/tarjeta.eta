@@ -4,21 +4,24 @@
       <img src="<%= it.p.imageUrl %>" alt="" loading="lazy" width="400" height="160" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
     <% } else { %>
       <div class="w-full h-full grid place-items-center banda-tinta">
-        <span class="font-display font-black text-5xl text-white/90"><%= it.p.nombre.charAt(0) %></span>
+        <span class="font-cartel text-6xl text-white/90"><%= it.p.nombre.charAt(0) %></span>
       </div>
     <% } %>
-    <div class="absolute top-2.5 left-2.5 flex gap-1.5">
+    <div class="absolute top-2.5 right-2.5 flex gap-1.5">
       <% if (it.p.esNuevo) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-400 text-amber-950">NUEVO</span><% } %>
       <% if (it.p.inscripcionesAbiertas) { %><span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-700 text-white">Inscripciones abiertas</span><% } %>
     </div>
+    <span class="pleca absolute left-2 bottom-2.5 text-[11px] font-bold uppercase tracking-wide"><span><%= it.p.nivelEtiqueta %></span></span>
   </div>
-  <div class="p-5 flex flex-col gap-1.5 flex-1">
-    <span class="font-mono text-[11px] font-semibold uppercase tracking-wider" style="color:var(--c1)"><%= it.p.nivelEtiqueta %></span>
-    <p class="font-display font-bold text-gray-900 leading-snug group-hover:text-[var(--c1)]"><%= it.p.nombre %></p>
+  <div class="h-1.5" style="background:var(--c2)" aria-hidden="true"></div>
+  <div class="p-5 flex flex-col gap-2 flex-1">
+    <p class="font-display font-extrabold text-lg text-gray-900 leading-snug group-hover:text-[var(--c1)]"><%= it.p.nombre %></p>
     <p class="text-sm text-gray-500 line-clamp-2 flex-1"><%= it.p.descripcionCorta %></p>
-    <div class="pt-2.5 mt-1 border-t border-gray-100 flex items-center justify-between gap-2">
-      <p class="font-mono text-xs text-gray-500"><%= it.p.duracion %><% if (it.p.duracion && it.p.modalidad) { %> · <% } %><%= it.p.modalidad %></p>
-      <% if (it.p.tuitionDisplay) { %><p class="font-mono text-xs font-semibold text-gray-700 shrink-0"><%= it.p.tuitionDisplay %></p><% } %>
-    </div>
+    <dl class="ficha-dato space-y-1 pt-2.5 mt-1 border-t border-gray-100">
+      <% if (it.p.duracion) { %><div><dt>Duración:</dt> <dd><%= it.p.duracion %></dd></div><% } %>
+      <% if (it.p.modalidad) { %><div><dt>Modalidad:</dt> <dd><%= it.p.modalidad %></dd></div><% } %>
+      <% if (it.p.tuitionDisplay) { %><div><dt>Inversión:</dt> <dd class="font-mono"><%= it.p.tuitionDisplay %></dd></div><% } %>
+    </dl>
+    <span class="mt-2 inline-block self-start px-4 py-1.5 rounded-full text-[13px] font-bold text-white group-hover:opacity-90" style="background:var(--c1)">Ver más →</span>
   </div>
 </a>
