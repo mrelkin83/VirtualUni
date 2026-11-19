@@ -318,6 +318,48 @@ export function SitioWebSection() {
         </div>
       </section>
 
+      {/* ------------------------------------------------ categorías públicas */}
+      <section className="bg-white rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-gray-900">Categorías de la oferta</h3>
+        <p className="text-xs text-gray-500">
+          Renombra u oculta las categorías del filtro de nivel. Solo aparecen las que tienen programas publicados.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {Object.entries(data!.categorias).map(([slugCat, etiquetaBase]) => {
+            const actual = form.levelLabels?.[slugCat] ?? {};
+            return (
+              <div key={slugCat} className="flex items-center gap-2">
+                <input
+                  placeholder={etiquetaBase}
+                  value={actual.label ?? ''}
+                  maxLength={40}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      levelLabels: { ...form.levelLabels, [slugCat]: { ...actual, label: e.target.value || undefined } },
+                    })
+                  }
+                  className={campo}
+                />
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={!!actual.hidden}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        levelLabels: { ...form.levelLabels, [slugCat]: { ...actual, hidden: e.target.checked || undefined } },
+                      })
+                    }
+                  />
+                  ocultar
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* ------------------------------------------------ contacto */}
       <section className="bg-white rounded-lg shadow p-5 space-y-4">
         <h3 className="font-bold text-gray-900">Contacto y WhatsApp</h3>

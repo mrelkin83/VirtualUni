@@ -1275,16 +1275,45 @@ export class AdmissionsService {
     await this.evento(tenantId, applicationId, tipoEvento ?? `status_${status.toLowerCase()}`, actorUserId, data);
   }
 
-  private evento(
+  /** Tipos internos de la línea de tiempo → eventos de dominio del outbox (§9/§13.4). */
+  private static EVENTO_DOMINIO: Record<string, string> = {
+    created: 'application.created',
+    submitted: 'application.submitted',
+    doc_rejected: 'application.documents_rejected',
+    payment_confirmed: 'payment.confirmed',
+    admitted: 'application.admitted',
+    rejected: 'application.rejected',
+    enrolled: 'application.enrolled',
+    lead: 'lead.created',
+  };
+
+  private async evento(
     tenantId: string,
     applicationId: string,
     type: string,
     actorUserId: string | null,
     data?: Record<string, unknown>,
   ) {
-    return this.prisma.applicationEvent.create({
+    const fila = await this.prisma.applicationEvent.create({
       data: { tenantId, applicationId, type, actorUserId, data: (data as Prisma.InputJsonValue) ?? undefined },
     });
+    // Outbox: el hito queda disponible para WhatsApp/webhooks sin acoplar el
+    // flujo; si fallara el insert, la inscripción no se cae por eso.
+    const dominio = AdmissionsService.EVENTO_DOMINIO[type];
+    if (dominio) {
+      try {
+        await this.prisma.outboxEvent.create({
+          data: {
+            tenantId,
+            type: dominio,
+            payload: { applicationId, ...(data ?? {}) } as Prisma.InputJsonValue,
+          },
+        });
+      } catch {
+        /* nunca tumbar el flujo por telemetría */
+      }
+    }
+    return fila;
   }
 
   /** La cookie vu_utm que siembra el sitio en la llegada (§3). */

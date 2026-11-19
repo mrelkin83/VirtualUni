@@ -13,6 +13,7 @@ import { PagosWompiService, WompiWebhookPayload } from './pagos-wompi.service';
 const prismaMock = () => ({
   application: { count: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
   applicationEvent: { create: jest.fn() },
+  outboxEvent: { create: jest.fn() },
   applicationDocument: { count: jest.fn() },
   applicant: { update: jest.fn() },
   user: { findFirst: jest.fn() },
@@ -151,6 +152,7 @@ describe('Wompi por institución (Fase 5)', () => {
     application: { findFirst: jest.fn(), update: jest.fn() },
     applicationDocument: { count: jest.fn() },
     applicationEvent: { create: jest.fn() },
+    outboxEvent: { create: jest.fn() },
   });
   let prisma: ReturnType<typeof prismaW>;
   let servicio: PagosWompiService;

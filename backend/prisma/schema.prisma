@@ -2253,6 +2253,22 @@ model TenantSite {
   @@map("tenant_sites")
 }
 
+// Outbox de eventos de dominio (§9): cada hito de una solicitud queda aquí
+// para que un motor externo (WhatsApp, webhooks salientes de la Fase 7) lo
+// consuma sin acoplarse al flujo. deliveredAt lo marca el consumidor.
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  type        String // application.submitted, payment.confirmed, application.admitted…
+  payload     Json
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deliveredAt DateTime? @map("delivered_at")
+
+  @@index([tenantId, createdAt])
+  @@index([deliveredAt])
+  @@map("outbox_events")
+}
+
 // Llaves de Wompi DE LA INSTITUCIÓN para cobrar su propia inscripción (§7).
 // Las llaves sensibles van cifradas con AES-256-GCM (clave maestra en
 // PAYMENTS_MASTER_KEY) y NUNCA vuelven al frontend: solo "configurada sí/no".

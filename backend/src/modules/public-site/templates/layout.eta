@@ -12,6 +12,7 @@
   <meta property="og:url" content="<%= it.meta.canonical %>" />
   <% if (it.meta.image) { %><meta property="og:image" content="<%= it.meta.image %>" /><% } %>
   <% if (it.meta.noindex) { %><meta name="robots" content="noindex,nofollow" /><% } %>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8E%93%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/public-assets/site.css" />
   <style>:root{--c1:<%= it.brand.c1 %>;--c2:<%= it.brand.c2 %>}</style>
   <% if (it.meta.jsonld) { %><script type="application/ld+json"><%~ it.meta.jsonld %></script><% } %>
@@ -81,17 +82,17 @@
       </div>
       <div>
         <p class="font-bold text-white mb-2"><%= it.textos.inscripciones %></p>
-        <p><a href="/programas" class="hover:text-white"><%= it.textos.ofertaTitulo %></a></p>
-        <p><a href="/aspirante" class="hover:text-white">Estado de tu solicitud</a></p>
-        <% if (!it.modoSoloAdmisiones) { %><p><a href="/contacto" class="hover:text-white">Contacto</a></p><% } %>
+        <p><a href="/programas" class="hover:text-white inline-block py-1.5"><%= it.textos.ofertaTitulo %></a></p>
+        <p><a href="/aspirante" class="hover:text-white inline-block py-1.5">Estado de tu solicitud</a></p>
+        <% if (!it.modoSoloAdmisiones) { %><p><a href="/contacto" class="hover:text-white inline-block py-1.5">Contacto</a></p><% } %>
       </div>
       <div>
         <p class="font-bold text-white mb-2">Legal</p>
-        <p><a href="/privacidad" class="hover:text-white">Tratamiento de datos personales</a></p>
+        <p><a href="/privacidad" class="hover:text-white inline-block py-1.5">Tratamiento de datos personales</a></p>
         <% if (it.site.dataControllerName) { %><p class="text-gray-400 mt-1">Responsable: <%= it.site.dataControllerName %></p><% } %>
       </div>
     </div>
-    <div class="border-t border-gray-800 py-4 text-center text-xs text-gray-500">
+    <div class="border-t border-gray-800 py-4 text-center text-xs text-gray-400">
       © <%= it.anio %> <%= it.tenant.name %>
     </div>
   </footer>

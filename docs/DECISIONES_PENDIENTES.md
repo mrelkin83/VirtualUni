@@ -142,3 +142,37 @@ frecuentes, conviene un `blockId` en `CertificateRequest`.
 **Fuera de alcance anotado (no implementado a propósito):** cobro diferenciado
 o descuentos por créditos homologados (billing), escalas de desempeño de
 colegio, admisiones/CRM y facturación electrónica DIAN.
+
+## Sitio web público e inscripciones (nov 2026)
+
+- **Datos obligatorios de publicidad por tipo**: los rótulos SNIES / registro
+  ETDH / licencia ya se muestran cuando el programa trae `officialCode`, pero
+  QUÉ es legalmente obligatorio mostrar en cada caso debe confirmarlo cada
+  institución con su secretaría de educación / MEN. No se afirma como regla
+  legal en la UI.
+- **Material a nivel de "programa"**: la ficha pública muestra el pensum y la
+  articulación; un material colgado del programa (no de asignatura/grupo)
+  exigiría migración aparte.
+- **Cambio de contraseña obligatorio al primer ingreso**: `User` no tiene
+  campo `mustChangePassword`; al admitir se envía clave temporal por correo
+  con la instrucción de cambiarla. Añadir el campo + enforcement en auth es
+  una migración pequeña pendiente de decidir.
+- **Vista previa en desarrollo**: el iframe/enlace de vista previa apunta a la
+  raíz del host; con Vite en dev la raíz no pasa por nginx, así que la vista
+  previa completa solo se ve con el stack de producción (o entrando directo a
+  `http://<slug>.localhost:4000/?preview=…`).
+- **Rendimiento móvil exacto**: Lighthouse del entorno midió
+  accesibilidad/best-practices/SEO = 100 en portada, oferta y ficha, pero no
+  emite la categoría performance; dejar un job de CI con
+  `lighthouse --preset=mobile` para la cifra formal (meta ≥ 90).
+- **Registro de las secciones nuevas del admin** (`Sitio web`, `Admisiones`)
+  vive en `navegacion.ts`/`AdminDashboard.tsx`, que cargan un rediseño ajeno
+  sin commitear: las 7 líneas de registro están en el working tree y viajarán
+  con ese trabajo (o en un commit propio cuando el árbol se estabilice).
+- **Fuera de alcance confirmado (§11)**: dominio propio con HTTPS automático,
+  blog, chat en vivo, agenda de entrevistas, becas/descuentos, pagos de
+  matrícula/pensiones, facturación DIAN, bot de WhatsApp (el outbox ya emite
+  los eventos), SSO, plugin WordPress, botón de pago de pensiones.
+- **Planes por nivel de integración (§13.7)**: `enableEmbed`/`enablePublicApi`
+  quedan como banderas; qué plan incluye qué es decisión comercial.
+  Sugerencia: enlace+widget en básicos, API+webhooks en el superior.

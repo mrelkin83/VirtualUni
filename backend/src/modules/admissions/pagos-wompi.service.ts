@@ -249,6 +249,17 @@ export class PagosWompiService {
         data: { via: 'wompi', transactionId: tx.id },
       },
     });
+    try {
+      await this.prisma.outboxEvent.create({
+        data: {
+          tenantId: tenant.id,
+          type: 'payment.confirmed',
+          payload: { applicationId: app.id, via: 'wompi', transactionId: tx.id },
+        },
+      });
+    } catch {
+      /* el outbox jamás tumba un pago */
+    }
     // Tras pagar: a revisión si los docs están completos; PAGADA si no.
     const pendientes = await this.prisma.applicationDocument.count({
       where: { applicationId: app.id, requiredDocId: { not: null }, status: { not: 'APROBADO' } },
