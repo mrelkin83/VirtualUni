@@ -416,7 +416,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   <button
                     onClick={() => abrirModalEditarExamen(examen)}
                     className="p-2 hover:bg-pn-accent-soft rounded-lg transition"
