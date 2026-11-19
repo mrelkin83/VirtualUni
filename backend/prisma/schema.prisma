@@ -1827,13 +1827,29 @@ model Program {
   maxRecognitionPct   Int   @default(50) @map("max_recognition_pct")
   minRecognitionGrade Float @default(3.0) @map("min_recognition_grade")
 
+  // ---- Publicación en el sitio web público (sitio web e inscripciones) ----
+  slug                String? // único por tenant; exigido al publicar
+  isPublished         Boolean   @default(false) @map("is_published")
+  shortDescription    String?   @map("short_description") // ≤ 200, tarjeta de la oferta
+  publicDescription   String?   @db.Text @map("public_description")
+  graduateProfile     String?   @db.Text @map("graduate_profile")
+  occupationalProfile String?   @db.Text @map("occupational_profile")
+  imageUrl            String?   @map("image_url")
+  isNewUntil          DateTime? @map("is_new_until") // la etiqueta "NUEVO" se apaga sola
+  area                String? // área o facultad, para el directorio público
+  schedule            String? // jornada visible ("Nocturna", "Fines de semana")
+  tuitionDisplay      String?   @map("tuition_display") // texto libre: "Desde $X por periodo"
+  faq                 Json? // [{q, a}]
+
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
   studyPlans         StudyPlan[]
   programEnrollments ProgramEnrollment[]
+  admissionCalls     AdmissionCall[]
 
   @@unique([tenantId, code])
+  @@unique([tenantId, slug])
   @@index([tenantId])
   @@map("programs")
 }
@@ -1855,6 +1871,7 @@ model StudyPlan {
   subjects           StudyPlanSubject[]
   programEnrollments ProgramEnrollment[]
   blocks             StudyPlanBlock[]
+  admissionCalls     AdmissionCall[]
 
   @@unique([programId, version])
   @@index([tenantId])
@@ -1975,6 +1992,7 @@ model AcademicPeriod {
 
   courses Course[]
   subjectRecords StudentSubjectRecord[]
+  admissionCalls AdmissionCall[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -2156,4 +2174,234 @@ model StudyPlanBlock {
   @@index([tenantId])
   @@index([studyPlanId])
   @@map("study_plan_blocks")
+}
+
+// ============================================================================
+// Sitio web público por institución e inscripciones en línea
+// ============================================================================
+
+// Tipo de institución: SOLO pone valores por defecto (textos, filtros, campos
+// del formulario). La lógica real se decide por el EducationLevel de cada
+// programa, porque una institución MIXTA ofrece de todo.
+enum InstitutionType {
+  COLEGIO
+  ETDH
+  TECNICA_PROFESIONAL
+  TECNOLOGICA
+  UNIVERSITARIA
+  UNIVERSIDAD
+  MIXTA
+}
+
+enum SiteMode {
+  FULL // sitio completo con portada
+  ADMISSIONS_ONLY // solo /programas, /inscripcion, /aspirante y /validar (ya tienen web propia)
+  OFF
+}
+
+enum AdmissionCallStatus {
+  BORRADOR
+  ABIERTA
+  CERRADA
+}
+
+enum ApplicationStatus {
+  INTERESADO // solo contacto (lead); todavía sin convocatoria o sin formulario
+  BORRADOR
+  ENVIADA
+  PAGO_PENDIENTE
+  PAGO_EN_VERIFICACION
+  PAGADA
+  EN_REVISION
+  DOCUMENTOS_INCOMPLETOS
+  ADMITIDA
+  NO_ADMITIDA
+  MATRICULADA
+  DESISTIO
+}
+
+// Configuración del sitio público del tenant. Los campos Json se validan con
+// DTOs anidados al guardar y se escapan al renderizar: nunca HTML libre.
+model TenantSite {
+  id                 String          @id @default(uuid())
+  tenantId           String          @unique @map("tenant_id")
+  institutionType    InstitutionType @default(MIXTA) @map("institution_type")
+  published          Boolean         @default(false)
+  siteMode           SiteMode        @default(FULL) @map("site_mode")
+  externalWebsiteUrl String?         @map("external_website_url") // su web propia (modo ADMISSIONS_ONLY)
+  heroSlides         Json            @map("hero_slides") // [{title, subtitle, imageUrl, overlay, ctaPrimary, ctaSecondary}] máx. 3
+  showHeroSearch     Boolean         @default(true) @map("show_hero_search")
+  sections           Json // orden y visibilidad: featured, calls, benefits, stats, cta
+  benefits           Json? // [{icon, title, text}]
+  stats              Json? // [{value, label}] las escribe la institución
+  featuredProgramIds String[]        @map("featured_program_ids")
+  levelLabels        Json?           @map("level_labels") // renombrar/ocultar categorías públicas
+  contact            Json? // dirección, teléfonos, email, horario, mapa, redes
+  whatsappNumber     String?         @map("whatsapp_number")
+  whatsappMessage    String?         @map("whatsapp_message")
+  seoTitle           String?         @map("seo_title")
+  seoDescription     String?         @map("seo_description")
+  analytics          Json? // {ga4, gtm, metaPixel, adsConversion}; sin id configurado no se carga nada
+  privacyPolicy      String?         @db.Text @map("privacy_policy")
+  privacyPolicyUrl   String?         @map("privacy_policy_url")
+  privacyVersion     String          @default("1") @map("privacy_version")
+  dataControllerName String?         @map("data_controller_name") // responsable del tratamiento
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  @@map("tenant_sites")
+}
+
+// Convocatoria de inscripción a un programa en un periodo, con su pensum.
+model AdmissionCall {
+  id               String              @id @default(uuid())
+  tenantId         String              @map("tenant_id")
+  programId        String              @map("program_id")
+  academicPeriodId String              @map("academic_period_id")
+  studyPlanId      String              @map("study_plan_id")
+  name             String // "Inscripciones 2027-1 – Jornada nocturna"
+  slug             String
+  opensAt          DateTime            @map("opens_at")
+  closesAt         DateTime?           @map("closes_at") // null solo si rolling
+  capacity         Int?
+  schedule         String? // jornada
+  modality         Modality?
+  applicationFee   Int                 @default(0) @map("application_fee") // COP, entero
+  paymentMethods   String[]            @map("payment_methods") // ["MANUAL","WOMPI"]
+  status           AdmissionCallStatus @default(BORRADOR)
+  rolling          Boolean             @default(false) // inscripción permanente (ETDH, cursos)
+  startsAt         DateTime?           @map("starts_at") // inicio de clases/cohorte, visible en la tarjeta
+  targetLevels     Json?               @map("target_levels") // colegio: [{level, label, capacity}] cupos por grado
+  minAge           Int?                @map("min_age")
+  maxAge           Int?                @map("max_age")
+  minEducation     String?             @map("min_education") // "9° aprobado", "Bachiller", "Profesional"
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  program           Program                     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  academicPeriod    AcademicPeriod              @relation(fields: [academicPeriodId], references: [id], onDelete: Restrict)
+  studyPlan         StudyPlan                   @relation(fields: [studyPlanId], references: [id], onDelete: Restrict)
+  requiredDocuments AdmissionRequiredDocument[]
+  applications      Application[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([programId])
+  @@map("admission_calls")
+}
+
+model AdmissionRequiredDocument {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  callId      String   @map("call_id")
+  name        String // "Documento de identidad", "Diploma de bachiller"
+  required    Boolean  @default(true)
+  acceptTypes String[] @map("accept_types") // ["application/pdf","image/jpeg","image/png"]
+  maxSizeMb   Int      @default(5) @map("max_size_mb")
+
+  call      AdmissionCall         @relation(fields: [callId], references: [id], onDelete: Cascade)
+  documents ApplicationDocument[]
+
+  @@index([callId])
+  @@map("admission_required_documents")
+}
+
+// Aspirante: NO es Student. studentId se llena al admitir/matricular, o si el
+// documento ya correspondía a un estudiante del tenant (patrón del repo:
+// ids de usuario como texto plano validados en el servicio, sin FK).
+model Applicant {
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  documentType      String    @map("document_type")
+  documentNumber    String    @map("document_number")
+  firstName         String    @map("first_name")
+  lastName          String    @map("last_name")
+  email             String
+  phone             String
+  birthDate         DateTime? @map("birth_date") @db.Date
+  city              String?
+  previousEducation String?   @map("previous_education")
+  guardian          Json? // obligatorio si es menor: {nombre, documento, parentesco, telefono, email}
+  consentAt         DateTime  @map("consent_at")
+  consentIp         String    @map("consent_ip")
+  consentVersion    String    @map("consent_version")
+  guardianConsent   Boolean   @default(false) @map("guardian_consent")
+  utm               Json? // utm_*, gclid, fbclid, landing, referrer
+  studentId         String?   @map("student_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  applications Application[]
+
+  @@unique([tenantId, documentType, documentNumber])
+  @@index([tenantId])
+  @@index([tenantId, email])
+  @@map("applicants")
+}
+
+// Solicitud de inscripción a una convocatoria. callId es null únicamente en
+// los leads (INTERESADO) que llegan por /contacto o POST /leads sin programa.
+model Application {
+  id                   String            @id @default(uuid())
+  tenantId             String            @map("tenant_id")
+  applicantId          String            @map("applicant_id")
+  callId               String?           @map("call_id")
+  targetLevel          Int?              @map("target_level") // colegio: grado al que aspira
+  submittedByGuardian  Boolean           @default(false) @map("submitted_by_guardian")
+  code                 String // legible: "INS-2027-000123"
+  status               ApplicationStatus @default(BORRADOR)
+  paymentMethod        String?           @map("payment_method")
+  paymentRef           String?           @map("payment_ref")
+  paidAt               DateTime?         @map("paid_at")
+  reviewerId           String?           @map("reviewer_id")
+  decisionNotes        String?           @db.Text @map("decision_notes")
+  accessTokenHash      String?           @map("access_token_hash") // enlace mágico: nunca el token plano
+  accessTokenExpiresAt DateTime?         @map("access_token_expires_at")
+  submittedAt          DateTime?         @map("submitted_at")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  applicant Applicant             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  call      AdmissionCall?        @relation(fields: [callId], references: [id], onDelete: Restrict)
+  documents ApplicationDocument[]
+  events    ApplicationEvent[]
+
+  @@unique([tenantId, code])
+  @@unique([applicantId, callId])
+  @@index([tenantId, status])
+  @@map("applications")
+}
+
+model ApplicationDocument {
+  id            String  @id @default(uuid())
+  tenantId      String  @map("tenant_id")
+  applicationId String  @map("application_id")
+  requiredDocId String? @map("required_doc_id")
+  fileKey       String  @map("file_key") // almacenamiento privado; nunca URL pública
+  originalName  String  @map("original_name")
+  mimeType      String  @map("mime_type")
+  sizeKb        Int     @map("size_kb")
+  status        String  @default("PENDIENTE") // PENDIENTE | APROBADO | RECHAZADO
+  reviewNote    String? @map("review_note")
+
+  application Application                @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  requiredDoc AdmissionRequiredDocument? @relation(fields: [requiredDocId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@map("application_documents")
+}
+
+// Línea de tiempo / auditoría de la solicitud.
+model ApplicationEvent {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  applicationId String   @map("application_id")
+  type          String // submitted, payment_confirmed, doc_rejected, admitted…
+  actorUserId   String?  @map("actor_user_id") // null = aspirante o sistema
+  data          Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("application_events")
 }
