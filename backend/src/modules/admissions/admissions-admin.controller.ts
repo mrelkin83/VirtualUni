@@ -19,7 +19,15 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/current-tenant.decorator';
 import { CurrentUser, CurrentUserData } from '@/common/decorators/current-user.decorator';
 import { AdmissionsService } from './admissions.service';
-import { PedirCorreccionDto, RevisarDocumentoDto } from './dto/admissions.dto';
+import {
+  ActualizarConvocatoriaDto,
+  ConfirmarPagoDto,
+  CrearConvocatoriaDto,
+  DecisionDto,
+  NoAdmitirDto,
+  PedirCorreccionDto,
+  RevisarDocumentoDto,
+} from './dto/admissions.dto';
 
 /**
  * Bandeja de aspirantes para la administración del tenant (§5): listado con
@@ -88,6 +96,110 @@ export class AdmissionsAdminController {
   ) {
     const base = `${((req.headers['x-forwarded-proto'] as string) || req.protocol).split(',')[0]}://${req.headers.host}`;
     return this.servicio.pedirCorreccion(tenantId, id, dto, user.userId, base);
+  }
+
+  // ------------------------------------------------- pago manual (Fase 4)
+
+  @Post('applications/:id/confirmar-pago')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Confirmar el pago manual de la inscripción' })
+  confirmarPago(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: ConfirmarPagoDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.servicio.confirmarPago(tenantId, id, dto.ref, user.userId);
+  }
+
+  @Post('applications/:id/rechazar-pago')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Rechazar el comprobante (correo con nota al aspirante)' })
+  rechazarPago(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: NoAdmitirDto,
+    @CurrentUser() user: CurrentUserData,
+    @Req() req: Request,
+  ) {
+    const base = `${((req.headers['x-forwarded-proto'] as string) || req.protocol).split(',')[0]}://${req.headers.host}`;
+    return this.servicio.rechazarPago(tenantId, id, dto.nota, user.userId, base);
+  }
+
+  // ---------------------------------------------------- decisión (Fase 4)
+
+  @Post('applications/:id/admitir')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Admitir: crea usuario + estudiante + inscripción al programa' })
+  admitir(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: DecisionDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.servicio.admitir(tenantId, id, dto.nota, user.userId);
+  }
+
+  @Post('applications/:id/no-admitir')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'No admitir (correo con la nota)' })
+  noAdmitir(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: NoAdmitirDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.servicio.noAdmitir(tenantId, id, dto.nota, user.userId);
+  }
+
+  @Post('applications/:id/desistir')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Marcar que el aspirante desistió' })
+  desistir(@CurrentTenant() tenantId: string, @Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+    return this.servicio.marcarDesistio(tenantId, id, user.userId);
+  }
+
+  @Post('applications/:id/matricular')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Pasar de ADMITIDA a MATRICULADA (momentos distintos)' })
+  matricular(@CurrentTenant() tenantId: string, @Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+    return this.servicio.matricular(tenantId, id, user.userId);
+  }
+
+  // ------------------------------------------------------ embudo (Fase 4)
+
+  @Get('funnel')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Embudo: interesados → enviadas → pagadas → admitidas → matriculadas, por fuente' })
+  embudo(@CurrentTenant() tenantId: string, @Query('callId') callId?: string) {
+    return this.servicio.embudo(tenantId, callId);
+  }
+
+  // ------------------------------------- CRUD de convocatorias (Fase 4)
+
+  @Get('calls/detallado')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Convocatorias con documentos, cupo usado y ventana' })
+  convocatoriasDetallado(@CurrentTenant() tenantId: string) {
+    return this.servicio.convocatoriasDetallado(tenantId);
+  }
+
+  @Post('calls')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Crear una convocatoria' })
+  crearConvocatoria(@CurrentTenant() tenantId: string, @Body() dto: CrearConvocatoriaDto) {
+    return this.servicio.crearConvocatoria(tenantId, dto);
+  }
+
+  @Patch('calls/:id')
+  @Roles('TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Actualizar/abrir/cerrar una convocatoria' })
+  actualizarConvocatoria(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: ActualizarConvocatoriaDto,
+  ) {
+    return this.servicio.actualizarConvocatoria(tenantId, id, dto);
   }
 
   @Get('documents/:docId/archivo')

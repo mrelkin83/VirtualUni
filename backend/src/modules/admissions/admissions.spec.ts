@@ -11,6 +11,13 @@ import { PublicCatalogService } from '../public-site/public-catalog.service';
 const prismaMock = () => ({
   application: { count: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
   applicationEvent: { create: jest.fn() },
+  applicationDocument: { count: jest.fn() },
+  applicant: { update: jest.fn() },
+  user: { findFirst: jest.fn() },
+  student: { findFirst: jest.fn() },
+  tenant: { findUnique: jest.fn() },
+  programEnrollment: { upsert: jest.fn() },
+  $transaction: jest.fn(),
 });
 
 const mkServicio = (prisma: ReturnType<typeof prismaMock>) =>
@@ -91,6 +98,47 @@ describe('enlace mágico', () => {
 
   it('malformado → false', async () => {
     expect(await servicio.canjearEnlace('t1', 'sin-punto', res)).toBe(false);
+  });
+});
+
+describe('admisión (Fase 4)', () => {
+  let prisma: ReturnType<typeof prismaMock>;
+  let servicio: AdmissionsService;
+
+  const APP = {
+    id: 'app1', tenantId: 't1', status: 'EN_REVISION', paidAt: new Date(), targetLevel: null,
+    applicantId: 'asp1',
+    applicant: { email: 'nueva@test.com', firstName: 'Nueva', lastName: 'Alumna', documentType: 'CC', documentNumber: '123456', birthDate: null, phone: '300' },
+    call: { applicationFee: 50000, studyPlanId: 'plan1', program: { id: 'prog1', name: 'Técnico' } },
+  };
+
+  beforeEach(() => {
+    prisma = prismaMock();
+    servicio = mkServicio(prisma);
+  });
+
+  it('respeta maxStudents: el cupo del plan lleno bloquea con mensaje claro, nunca en silencio', async () => {
+    prisma.application.findFirst.mockResolvedValue(APP);
+    prisma.user.findFirst.mockResolvedValue(null);
+    prisma.tenant.findUnique.mockResolvedValue({ name: 'Demo', maxStudents: 20, currentStudents: 20 });
+    await expect(servicio.admitir('t1', 'app1', undefined, 'admin1')).rejects.toThrow(/20 estudiantes/);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('con fee sin pagar no se admite', async () => {
+    prisma.application.findFirst.mockResolvedValue({ ...APP, paidAt: null });
+    await expect(servicio.admitir('t1', 'app1', undefined, 'admin1')).rejects.toThrow(/pago/i);
+  });
+
+  it('el correo de un usuario con otro rol no se convierte en estudiante', async () => {
+    prisma.application.findFirst.mockResolvedValue(APP);
+    prisma.user.findFirst.mockResolvedValue({ id: 'u1', role: 'TEACHER' });
+    await expect(servicio.admitir('t1', 'app1', undefined, 'admin1')).rejects.toThrow(ConflictException);
+  });
+
+  it('confirmar un pago ya confirmado → rechazo (idempotencia)', async () => {
+    prisma.application.findFirst.mockResolvedValue({ id: 'a1', tenantId: 't1', status: 'PAGADA', paidAt: new Date() });
+    await expect(servicio.confirmarPago('t1', 'a1', undefined, 'admin1')).rejects.toThrow(/ya estaba confirmado/);
   });
 });
 

@@ -33,6 +33,7 @@ export interface SitioConfig {
   seoTitle?: string | null;
   seoDescription?: string | null;
   analytics?: { ga4?: string; gtm?: string; metaPixel?: string; adsConversion?: string } | null;
+  paymentInstructions?: string | null;
   privacyPolicy?: string | null;
   privacyPolicyUrl?: string | null;
   privacyVersion: string;

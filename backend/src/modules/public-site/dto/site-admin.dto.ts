@@ -99,6 +99,7 @@ export class ActualizarSitioDto {
   @IsOptional() @IsString() @MaxLength(70) seoTitle?: string;
   @IsOptional() @IsString() @MaxLength(170) seoDescription?: string;
   @IsOptional() @ValidateNested() @Type(() => AnaliticaDto) analytics?: AnaliticaDto;
+  @IsOptional() @IsString() @MaxLength(5000) paymentInstructions?: string;
   @IsOptional() @IsString() @MaxLength(30000) privacyPolicy?: string;
   @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(300) privacyPolicyUrl?: string;
   @IsOptional() @IsString() @MaxLength(10) privacyVersion?: string;

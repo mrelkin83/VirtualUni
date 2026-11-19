@@ -1,5 +1,37 @@
 import * as XLSX from 'xlsx';
 
+/**
+ * Exporta la bandeja de admisiones (filas ya filtradas en pantalla) a Excel.
+ * Columnas pensadas para que registro académico trabaje sin reprocesar.
+ */
+export const generateAdmisionesExcel = (
+  filas: {
+    code: string; status: string; createdAt: string; submittedAt?: string | null; targetLevel?: number | null;
+    applicant: { firstName: string; lastName: string; documentType: string; documentNumber: string; email: string; phone: string; utm?: Record<string, string> | null };
+    call?: { name: string; program: { name: string } } | null;
+  }[],
+) => {
+  const datos = filas.map((s) => ({
+    'Código': s.code,
+    'Estado': s.status,
+    'Nombres': s.applicant.firstName,
+    'Apellidos': s.applicant.lastName,
+    'Documento': `${s.applicant.documentType} ${s.applicant.documentNumber}`,
+    'Correo': s.applicant.email,
+    'Teléfono': s.applicant.phone,
+    'Programa': s.call?.program.name ?? '',
+    'Convocatoria': s.call?.name ?? '',
+    'Grado': s.targetLevel ?? '',
+    'Fuente': s.applicant.utm?.utm_source ?? (s.applicant.utm?.gclid ? 'google-ads' : ''),
+    'Campaña': s.applicant.utm?.utm_campaign ?? '',
+    'Creada': new Date(s.createdAt).toLocaleString('es-CO'),
+    'Enviada': s.submittedAt ? new Date(s.submittedAt).toLocaleString('es-CO') : '',
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datos), 'Aspirantes');
+  XLSX.writeFile(wb, `admisiones_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
 interface AnalyticsData {
   dashboard?: any;
   students?: any;

@@ -94,3 +94,59 @@ export class RevisarDocumentoDto {
 export class PedirCorreccionDto {
   @IsString() @IsNotEmpty() @MaxLength(1000) nota: string;
 }
+
+export class ConfirmarPagoDto {
+  @IsOptional() @IsString() @MaxLength(80) ref?: string;
+}
+
+export class DecisionDto {
+  @IsOptional() @IsString() @MaxLength(1000) nota?: string;
+}
+
+export class NoAdmitirDto {
+  @IsString() @IsNotEmpty() @MaxLength(1000) nota: string;
+}
+
+// ---------------------------------------------- CRUD de convocatorias (§5)
+
+class DocRequeridoDto {
+  @IsString() @IsNotEmpty() @MaxLength(120) name: string;
+  @IsOptional() @IsBoolean() required?: boolean;
+}
+
+class GradoCupoDto {
+  @IsInt() @Min(0) @Max(13) level: number;
+  @IsString() @MaxLength(30) label: string;
+  @IsOptional() @IsInt() @Min(1) @Max(2000) capacity?: number;
+}
+
+export class CrearConvocatoriaDto {
+  @IsString() @IsNotEmpty() programId: string;
+  @IsString() @IsNotEmpty() academicPeriodId: string;
+  @IsString() @IsNotEmpty() studyPlanId: string;
+  @IsString() @IsNotEmpty() @MaxLength(160) name: string;
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) @MaxLength(120) slug: string;
+  @IsDateString() opensAt: string;
+  @IsOptional() @IsDateString() closesAt?: string | null;
+  @IsOptional() @IsBoolean() rolling?: boolean;
+  @IsOptional() @IsDateString() startsAt?: string | null;
+  @IsOptional() @IsInt() @Min(1) @Max(100000) capacity?: number | null;
+  @IsOptional() @IsString() @MaxLength(120) schedule?: string | null;
+  @IsOptional() @IsIn(['PRESENCIAL', 'VIRTUAL', 'HIBRIDA', 'DISTANCIA']) modality?: string | null;
+  @IsOptional() @IsInt() @Min(0) @Max(100_000_000) applicationFee?: number;
+  @IsOptional() @IsInt() @Min(3) @Max(99) minAge?: number | null;
+  @IsOptional() @IsInt() @Min(3) @Max(120) maxAge?: number | null;
+  @IsOptional() @IsString() @MaxLength(60) minEducation?: string | null;
+  @IsOptional() @ValidateNested({ each: true }) @Type(() => GradoCupoDto) targetLevels?: GradoCupoDto[] | null;
+  @IsOptional() @ValidateNested({ each: true }) @Type(() => DocRequeridoDto) documentos?: DocRequeridoDto[];
+}
+
+export class ActualizarConvocatoriaDto extends CrearConvocatoriaDto {
+  @IsOptional() @IsString() declare programId: string;
+  @IsOptional() @IsString() declare academicPeriodId: string;
+  @IsOptional() @IsString() declare studyPlanId: string;
+  @IsOptional() @IsString() @MaxLength(160) declare name: string;
+  @IsOptional() @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) declare slug: string;
+  @IsOptional() @IsDateString() declare opensAt: string;
+  @IsOptional() @IsIn(['BORRADOR', 'ABIERTA', 'CERRADA']) status?: string;
+}

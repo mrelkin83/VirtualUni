@@ -107,6 +107,20 @@ export class AspiranteController {
     );
   }
 
+  /** Comprobante del pago manual (§7): pasa la solicitud a PAGO_EN_VERIFICACION. */
+  @Post('borrador/:code/comprobante')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @UseInterceptors(FileInterceptor('file'))
+  async subirComprobante(
+    @Req() req: Request,
+    @Param('code') code: string,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Adjunta el comprobante');
+    const ctx = await this.ctx(req);
+    return this.servicio.subirComprobante(ctx.tenant.id, this.sesion(req, ctx.tenant.id), code, file);
+  }
+
   @Get('mis-solicitudes')
   async misSolicitudes(@Req() req: Request) {
     const ctx = await this.ctx(req);

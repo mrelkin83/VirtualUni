@@ -2242,6 +2242,8 @@ model TenantSite {
   seoTitle           String?         @map("seo_title")
   seoDescription     String?         @map("seo_description")
   analytics          Json? // {ga4, gtm, metaPixel, adsConversion}; sin id configurado no se carga nada
+  /// Pago MANUAL de inscripción (§7): cuenta, Nequi, QR… lo escribe la institución.
+  paymentInstructions String?        @db.Text @map("payment_instructions")
   privacyPolicy      String?         @db.Text @map("privacy_policy")
   privacyPolicyUrl   String?         @map("privacy_policy_url")
   privacyVersion     String          @default("1") @map("privacy_version")

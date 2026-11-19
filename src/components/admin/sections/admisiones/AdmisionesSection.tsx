@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Eye, FileText, Inbox, MailWarning, X, XCircle } from 'lucide-react';
+import {
+  Banknote, BarChart3, CalendarRange, CheckCheck, CheckCircle2, Download, Eye,
+  FileText, Inbox, MailWarning, Plus, UserCheck, UserX, X, XCircle,
+} from 'lucide-react';
 import {
   admisionesApi,
-  SolicitudDetalle,
+  ConvocatoriaDetallada,
   SolicitudFila,
 } from '../../../../api/endpoints/admisiones';
+import { programasApi, periodosApi } from '../../../../api/endpoints/academico';
+import { comoArreglo } from '../../../../utils/respuestaApi';
+import { generateAdmisionesExcel } from '../../../../utils/excelExport';
 import { apiClient } from '../../../../api/client';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from '../academico/errores';
@@ -31,11 +37,34 @@ const Badge = ({ status }: { status: string }) => {
 };
 
 /**
- * Bandeja de aspirantes (§5, Fase 3): filtros, tablero por estado, detalle
- * con documentos (aprobar/rechazar con nota), línea de tiempo y petición de
- * corrección. Admitir/No admitir y el embudo llegan con la Fase 4.
+ * Admisiones (§5): bandeja de aspirantes con decisión completa (pago manual,
+ * admitir/no admitir/matricular), CRUD de convocatorias y embudo por fuente.
  */
 export function AdmisionesSection() {
+  const [tab, setTab] = useState<'bandeja' | 'convocatorias' | 'embudo'>('bandeja');
+  const boton = (id: typeof tab, etiqueta: string, Icono: typeof Inbox) => (
+    <button
+      onClick={() => setTab(id)}
+      className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${tab === id ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+    >
+      <Icono size={15} /> {etiqueta}
+    </button>
+  );
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 flex-wrap">
+        {boton('bandeja', 'Bandeja de aspirantes', Inbox)}
+        {boton('convocatorias', 'Convocatorias', CalendarRange)}
+        {boton('embudo', 'Embudo', BarChart3)}
+      </div>
+      {tab === 'bandeja' && <BandejaTab />}
+      {tab === 'convocatorias' && <ConvocatoriasTab />}
+      {tab === 'embudo' && <EmbudoTab />}
+    </div>
+  );
+}
+
+function BandejaTab() {
   const [filtros, setFiltros] = useState<{ callId?: string; status?: string; q?: string; desde?: string; hasta?: string }>({});
   const [detalleId, setDetalleId] = useState<string | null>(null);
 
@@ -98,6 +127,14 @@ export function AdmisionesSection() {
         </select>
         <input type="date" value={filtros.desde ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, desde: e.target.value || undefined }))} className={campo} />
         <input type="date" value={filtros.hasta ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, hasta: e.target.value || undefined }))} className={campo} />
+        <button
+          onClick={() => filas.length && generateAdmisionesExcel(filas)}
+          disabled={!filas.length}
+          className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-semibold flex items-center gap-2 bg-white hover:border-emerald-500 disabled:opacity-50"
+          title="Exportar lo filtrado a Excel"
+        >
+          <Download size={15} /> Excel
+        </button>
       </div>
 
       {isLoading && <p className="text-sm text-gray-500">Cargando solicitudes…</p>}
@@ -194,6 +231,21 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
   const corregir = useMutation({
     mutationFn: () => admisionesApi.pedirCorreccion(id, nota),
     onSuccess: () => { setNota(''); invalidar(); },
+    onError: (e) => alert(mensajeDeError(e)),
+  });
+
+  const decision = useMutation({
+    mutationFn: ({ accion, nota: n }: { accion: 'confirmarPago' | 'rechazarPago' | 'admitir' | 'noAdmitir' | 'desistir' | 'matricular'; nota?: string }) => {
+      switch (accion) {
+        case 'confirmarPago': return admisionesApi.confirmarPago(id);
+        case 'rechazarPago': return admisionesApi.rechazarPago(id, n as string);
+        case 'admitir': return admisionesApi.admitir(id);
+        case 'noAdmitir': return admisionesApi.noAdmitir(id, n as string);
+        case 'desistir': return admisionesApi.desistir(id);
+        case 'matricular': return admisionesApi.matricular(id);
+      }
+    },
+    onSuccess: invalidar,
     onError: (e) => alert(mensajeDeError(e)),
   });
 
@@ -302,6 +354,60 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
               </ul>
             </div>
 
+            {/* Pago manual */}
+            {(s.status === 'PAGO_PENDIENTE' || s.status === 'PAGO_EN_VERIFICACION') && (
+              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-amber-900 font-semibold flex items-center gap-2">
+                  <Banknote size={16} />
+                  {s.status === 'PAGO_EN_VERIFICACION' ? 'Comprobante recibido: verifícalo arriba y decide.' : 'Esperando el pago del aspirante.'}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => decision.mutate({ accion: 'confirmarPago' })}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold"
+                  >Confirmar pago</button>
+                  {s.status === 'PAGO_EN_VERIFICACION' && (
+                    <button
+                      onClick={() => {
+                        const n = prompt('¿Por qué se rechaza el comprobante? (va al correo del aspirante)');
+                        if (n) decision.mutate({ accion: 'rechazarPago', nota: n });
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold"
+                    >Rechazar comprobante</button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Decisión final */}
+            {!['ADMITIDA', 'NO_ADMITIDA', 'MATRICULADA', 'DESISTIO', 'INTERESADO'].includes(s.status) && (
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => decision.mutate({ accion: 'admitir' })}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold flex items-center gap-2"
+                ><UserCheck size={15} /> Admitir</button>
+                <button
+                  onClick={() => {
+                    const n = prompt('Motivo de la no admisión (va al correo del aspirante):');
+                    if (n) decision.mutate({ accion: 'noAdmitir', nota: n });
+                  }}
+                  className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-sm font-bold flex items-center gap-2"
+                ><UserX size={15} /> No admitir</button>
+                <button
+                  onClick={() => confirm('¿Marcar que el aspirante desistió?') && decision.mutate({ accion: 'desistir' })}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold"
+                >Desistió</button>
+              </div>
+            )}
+            {s.status === 'ADMITIDA' && (
+              <div className="mt-4">
+                <button
+                  onClick={() => decision.mutate({ accion: 'matricular' })}
+                  className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold flex items-center gap-2"
+                ><CheckCheck size={15} /> Marcar matriculada</button>
+              </div>
+            )}
+
             {/* Pedir corrección general */}
             <div className="mt-4 flex gap-2">
               <input
@@ -321,6 +427,289 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ====================================================== Convocatorias */
+
+function ConvocatoriasTab() {
+  const queryClient = useQueryClient();
+  const [modal, setModal] = useState<ConvocatoriaDetallada | 'nueva' | null>(null);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['admisiones-calls-detallado'],
+    queryFn: admisionesApi.callsDetallado,
+  });
+
+  const cambiarEstado = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => admisionesApi.actualizarCall(id, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admisiones-calls-detallado'] }),
+    onError: (e) => alert(mensajeDeError(e)),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setModal('nueva')}
+          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2"
+        ><Plus size={15} /> Nueva convocatoria</button>
+      </div>
+      {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
+      {error != null && <p className="text-sm text-red-600">{mensajeDeError(error)}</p>}
+      <div className="grid gap-3">
+        {(data ?? []).map((c) => (
+          <div key={c.id} className="bg-white rounded-lg shadow p-4 flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-bold text-gray-900">{c.name}</h4>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.abierta ? 'bg-emerald-100 text-emerald-800' : c.status === 'BORRADOR' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'}`}>
+                  {c.abierta ? 'Abierta' : c.status === 'BORRADOR' ? 'Borrador' : 'Cerrada'}
+                </span>
+                {c.rolling && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Permanente</span>}
+              </div>
+              <p className="text-sm text-gray-500 mt-0.5">
+                {c.program.name} · {c.academicPeriod.code} · pensum {c.studyPlan.version}
+                {c.applicationFee > 0 && <> · Inscripción ${c.applicationFee.toLocaleString('es-CO')}</>}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Cupo: {c.cupoUsado}{c.capacity ? `/${c.capacity}` : ''} · {c._count.applications} solicitud(es)
+                {c.targetLevels?.length ? ` · ${c.targetLevels.length} grado(s) con cupo propio` : ''}
+                · Docs: {c.requiredDocuments.map((d) => d.name).join(', ') || '—'}
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              {c.status !== 'ABIERTA' ? (
+                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'ABIERTA' })} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">Abrir</button>
+              ) : (
+                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'CERRADA' })} className="px-3 py-1.5 rounded-lg bg-gray-700 text-white text-xs font-bold">Cerrar</button>
+              )}
+              <button onClick={() => setModal(c)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-700">Editar</button>
+            </div>
+          </div>
+        ))}
+        {!isLoading && (data ?? []).length === 0 && (
+          <p className="text-center text-gray-500 py-10">Aún no hay convocatorias. Crea la primera para recibir inscripciones.</p>
+        )}
+      </div>
+      {modal && <ConvocatoriaModal convocatoria={modal === 'nueva' ? null : modal} onClose={() => setModal(null)} />}
+    </div>
+  );
+}
+
+function ConvocatoriaModal({ convocatoria, onClose }: { convocatoria: ConvocatoriaDetallada | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const dialogRef = useModalA11y(true, onClose);
+  const c = convocatoria;
+
+  const [programId, setProgramId] = useState(c?.program.id ?? '');
+  const [studyPlanId, setStudyPlanId] = useState(c?.studyPlan.id ?? '');
+  const [academicPeriodId, setAcademicPeriodId] = useState(c?.academicPeriod.id ?? '');
+  const [name, setName] = useState(c?.name ?? '');
+  const [slug, setSlug] = useState(c?.slug ?? '');
+  const [opensAt, setOpensAt] = useState(c?.opensAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10));
+  const [closesAt, setClosesAt] = useState(c?.closesAt?.slice(0, 10) ?? '');
+  const [rolling, setRolling] = useState(c?.rolling ?? false);
+  const [startsAt, setStartsAt] = useState(c?.startsAt?.slice(0, 10) ?? '');
+  const [capacity, setCapacity] = useState(c?.capacity ? String(c.capacity) : '');
+  const [applicationFee, setApplicationFee] = useState(c ? String(c.applicationFee) : '0');
+  const [minAge, setMinAge] = useState(c?.minAge ? String(c.minAge) : '');
+  const [minEducation, setMinEducation] = useState(c?.minEducation ?? '');
+  const [documentos, setDocumentos] = useState<{ name: string; required: boolean }[]>(
+    c?.requiredDocuments.map((d) => ({ name: d.name, required: d.required })) ?? [{ name: 'Documento de identidad', required: true }],
+  );
+
+  const { data: programasRes } = useQuery({ queryKey: ['programas', '', ''], queryFn: () => programasApi.getAll({ limit: 100 }) });
+  const programas = comoArreglo<{ id: string; name: string }>(programasRes);
+  const { data: pensums } = useQuery({
+    queryKey: ['pensums-de', programId],
+    queryFn: () => programasApi.pensums(programId),
+    enabled: !!programId,
+  });
+  const { data: periodosRes } = useQuery({ queryKey: ['periodos'], queryFn: () => periodosApi.getAll({ limit: 100 }) });
+  const periodos = comoArreglo<{ id: string; code: string }>(periodosRes);
+
+  const guardar = useMutation({
+    mutationFn: () => {
+      const cuerpo = {
+        programId, studyPlanId, academicPeriodId, name,
+        slug: slug || name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120),
+        opensAt: new Date(opensAt).toISOString(),
+        closesAt: rolling ? null : closesAt ? new Date(closesAt).toISOString() : null,
+        rolling,
+        startsAt: startsAt ? new Date(startsAt).toISOString() : null,
+        capacity: capacity ? Number(capacity) : null,
+        applicationFee: Number(applicationFee) || 0,
+        minAge: minAge ? Number(minAge) : null,
+        minEducation: minEducation || null,
+        documentos,
+      };
+      return c ? admisionesApi.actualizarCall(c.id, cuerpo) : admisionesApi.crearCall(cuerpo);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admisiones-calls-detallado'] });
+      onClose();
+    },
+    onError: (e) => alert(mensajeDeError(e)),
+  });
+
+  const campo = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        ref={dialogRef} role="dialog" aria-modal="true" aria-label="Convocatoria" tabIndex={-1}
+        className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-bold text-gray-900">{c ? 'Editar convocatoria' : 'Nueva convocatoria'}</h3>
+          <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <select value={programId} onChange={(e) => { setProgramId(e.target.value); setStudyPlanId(''); }} className={campo}>
+            <option value="">Programa *</option>
+            {programas.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <select value={studyPlanId} onChange={(e) => setStudyPlanId(e.target.value)} className={campo} disabled={!programId}>
+            <option value="">Pensum *</option>
+            {(pensums ?? []).map((p: { id: string; version: string }) => <option key={p.id} value={p.id}>{p.version}</option>)}
+          </select>
+          <select value={academicPeriodId} onChange={(e) => setAcademicPeriodId(e.target.value)} className={campo}>
+            <option value="">Periodo *</option>
+            {periodos.map((p) => <option key={p.id} value={p.id}>{p.code}</option>)}
+          </select>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre * (Inscripciones 2027-1 — Nocturna)" maxLength={160} className={campo} />
+          <div className="sm:col-span-2">
+            <input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-'))}
+              placeholder="Slug de la URL (vacío = se genera del nombre)"
+              maxLength={120}
+              className={campo}
+            />
+            <p className="text-xs text-gray-400 mt-0.5">/inscripcion/{slug || '…'}</p>
+          </div>
+          <div><label className="text-xs text-gray-500">Abre *</label><input type="date" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} className={campo} /></div>
+          <div>
+            <label className="text-xs text-gray-500">Cierra {rolling ? '(permanente)' : '*'}</label>
+            <input type="date" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} disabled={rolling} className={`${campo} disabled:opacity-50`} />
+          </div>
+          <div><label className="text-xs text-gray-500">Inicio de clases</label><input type="date" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={campo} /></div>
+          <input value={capacity} onChange={(e) => setCapacity(e.target.value.replace(/\D/g, ''))} placeholder="Cupo total (vacío = sin tope)" className={campo} />
+          <input value={applicationFee} onChange={(e) => setApplicationFee(e.target.value.replace(/\D/g, ''))} placeholder="Valor inscripción COP (0 = gratis)" className={campo} />
+          <input value={minAge} onChange={(e) => setMinAge(e.target.value.replace(/\D/g, ''))} placeholder="Edad mínima" className={campo} />
+          <select value={minEducation} onChange={(e) => setMinEducation(e.target.value)} className={campo}>
+            <option value="">Escolaridad mínima (ninguna)</option>
+            <option>Primaria</option><option>9° aprobado</option><option>Bachiller</option>
+            <option>Técnico</option><option>Tecnólogo</option><option>Profesional</option>
+          </select>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={rolling} onChange={(e) => setRolling(e.target.checked)} />
+            Inscripción permanente (rolling)
+          </label>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-gray-700">Documentos requeridos</p>
+          {documentos.map((d, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input value={d.name} maxLength={120} onChange={(e) => setDocumentos(documentos.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={campo} />
+              <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0">
+                <input type="checkbox" checked={d.required} onChange={(e) => setDocumentos(documentos.map((x, j) => j === i ? { ...x, required: e.target.checked } : x))} />
+                obligatorio
+              </label>
+              <button onClick={() => setDocumentos(documentos.filter((_, j) => j !== i))} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><X size={14} /></button>
+            </div>
+          ))}
+          <button onClick={() => setDocumentos([...documentos, { name: '', required: true }])} className="text-sm text-emerald-700 font-semibold flex items-center gap-1"><Plus size={14} /> Agregar documento</button>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={() => guardar.mutate()}
+            disabled={guardar.isPending || !programId || !studyPlanId || !academicPeriodId || !name.trim() || (!rolling && !closesAt)}
+            className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold disabled:opacity-50"
+          >{guardar.isPending ? 'Guardando…' : 'Guardar convocatoria'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================ Embudo */
+
+function EmbudoTab() {
+  const [callId, setCallId] = useState('');
+  const { data: convocatorias } = useQuery({ queryKey: ['admisiones-calls'], queryFn: admisionesApi.convocatorias });
+  const { data, isLoading } = useQuery({
+    queryKey: ['admisiones-embudo', callId],
+    queryFn: () => admisionesApi.embudo(callId || undefined),
+  });
+
+  const pasos = data
+    ? [
+        ['Interesados', data.totales.interesados],
+        ['Enviadas', data.totales.enviadas],
+        ['Pagadas', data.totales.pagadas],
+        ['Admitidas', data.totales.admitidas],
+        ['Matriculadas', data.totales.matriculadas],
+      ] as [string, number][]
+    : [];
+  const max = Math.max(1, ...pasos.map(([, n]) => n));
+
+  return (
+    <div className="space-y-4">
+      <select value={callId} onChange={(e) => setCallId(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+        <option value="">Todas las convocatorias</option>
+        {(convocatorias ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>
+
+      {isLoading && <p className="text-sm text-gray-500">Calculando…</p>}
+      {data && (
+        <>
+          <div className="bg-white rounded-lg shadow p-5 space-y-2">
+            {pasos.map(([nombre, n]) => (
+              <div key={nombre} className="flex items-center gap-3">
+                <span className="w-28 text-sm text-gray-600">{nombre}</span>
+                <div className="flex-1 bg-gray-100 rounded h-7 overflow-hidden">
+                  <div className="h-full rounded bg-emerald-500/80 text-white text-xs font-bold flex items-center px-2" style={{ width: `${Math.max(4, (n / max) * 100)}%` }}>{n}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+                <tr>
+                  <th className="px-4 py-2.5">Fuente</th>
+                  <th className="px-4 py-2.5 text-right">Solicitudes</th>
+                  <th className="px-4 py-2.5 text-right">Enviadas</th>
+                  <th className="px-4 py-2.5 text-right">Admitidas</th>
+                  <th className="px-4 py-2.5 text-right">Matriculadas</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {data.fuentes.map((f) => (
+                  <tr key={f.fuente}>
+                    <td className="px-4 py-2.5 font-semibold text-gray-800">{f.fuente}</td>
+                    <td className="px-4 py-2.5 text-right">{f.total}</td>
+                    <td className="px-4 py-2.5 text-right">{f.enviadas}</td>
+                    <td className="px-4 py-2.5 text-right text-emerald-700 font-bold">{f.admitidas}</td>
+                    <td className="px-4 py-2.5 text-right text-emerald-800 font-black">{f.matriculadas}</td>
+                  </tr>
+                ))}
+                {data.fuentes.length === 0 && (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Sin datos todavía.</td></tr>
+                )}
+              </tbody>
+            </table>
+            <p className="px-4 py-2 text-xs text-gray-400">La fuente sale del utm_source (o gclid/fbclid) con el que llegó el aspirante: campañas que matriculan, no solo que hacen clic.</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

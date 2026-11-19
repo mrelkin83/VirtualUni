@@ -349,22 +349,41 @@
       '<p class="text-xs text-gray-500">' + s.aspirante + ' · <span class="font-mono">' + s.code + '</span></p></div>' +
       '<span class="text-xs font-bold px-2.5 py-1 rounded-full ' + est[1] + '">' + est[0] + '</span>' +
       '</div>' +
-      (s.status === 'PAGO_PENDIENTE' && s.applicationFee > 0
-        ? '<p class="mt-3 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">Inscripción: $' + Number(s.applicationFee).toLocaleString('es-CO') + '. La institución te indicará cómo pagar.</p>'
+      (s.status === 'PAGO_PENDIENTE' || s.status === 'PAGO_EN_VERIFICACION'
+        ? '<div class="mt-3 text-sm bg-amber-50 border border-amber-200 text-amber-900 rounded-lg px-3 py-2.5">' +
+          '<p class="font-bold">Pago de inscripción: $' + Number(s.applicationFee).toLocaleString('es-CO') + '</p>' +
+          (s.paymentInstructions
+            ? '<p class="mt-1 whitespace-pre-line">' + escapar(s.paymentInstructions) + '</p>'
+            : '<p class="mt-1">La institución te indicará cómo pagar.</p>') +
+          (s.status === 'PAGO_EN_VERIFICACION'
+            ? '<p class="mt-2 font-semibold">✔ Comprobante recibido: estamos verificando tu pago.</p>'
+            : '<label class="mt-2 inline-block font-semibold underline cursor-pointer">Subir comprobante (PDF o foto)' +
+              '<input type="file" data-comprobante data-code="' + s.code + '" accept="application/pdf,image/jpeg,image/png" class="hidden" /></label>') +
+          '</div>'
         : '') +
       '<ul class="mt-3 text-sm divide-y divide-gray-100">' + docs + '</ul>';
     el.addEventListener('change', function (e) {
       var input = e.target;
-      if (!input.hasAttribute || !input.hasAttribute('data-corregir') || !input.files[0]) return;
+      if (!input.hasAttribute || !input.files || !input.files[0]) return;
+      var esCorreccion = input.hasAttribute('data-corregir');
+      var esComprobante = input.hasAttribute('data-comprobante');
+      if (!esCorreccion && !esComprobante) return;
       var fd = new FormData();
       fd.append('file', input.files[0]);
-      fetch('/aspirante/api/borrador/' + input.getAttribute('data-code') + '/documentos/' + input.getAttribute('data-doc'), {
-        method: 'POST', body: fd, credentials: 'same-origin',
-      }).then(function (r) {
+      var ruta = esComprobante
+        ? '/aspirante/api/borrador/' + input.getAttribute('data-code') + '/comprobante'
+        : '/aspirante/api/borrador/' + input.getAttribute('data-code') + '/documentos/' + input.getAttribute('data-doc');
+      fetch(ruta, { method: 'POST', body: fd, credentials: 'same-origin' }).then(function (r) {
         if (r.ok) location.reload();
         else r.json().then(function (c) { alert((c.message && c.message.join ? c.message.join(' · ') : c.message) || 'No se pudo subir'); });
       });
     });
     return el;
+  }
+
+  function escapar(texto) {
+    var div = document.createElement('div');
+    div.textContent = String(texto);
+    return div.innerHTML;
   }
 })();

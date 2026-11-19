@@ -43,7 +43,7 @@ export function SitioWebSection() {
       institutionType, published, siteMode, externalWebsiteUrl, heroSlides,
       showHeroSearch, sections, benefits, stats, featuredProgramIds, levelLabels,
       contact, whatsappNumber, whatsappMessage, seoTitle, seoDescription,
-      analytics, privacyPolicy, privacyPolicyUrl, privacyVersion, dataControllerName,
+      analytics, paymentInstructions, privacyPolicy, privacyPolicyUrl, privacyVersion, dataControllerName,
     } = form;
     guardar.mutate({
       institutionType, published, siteMode,
@@ -58,6 +58,7 @@ export function SitioWebSection() {
       seoTitle: seoTitle || undefined,
       seoDescription: seoDescription || undefined,
       analytics: analytics ?? undefined,
+      paymentInstructions: paymentInstructions || undefined,
       privacyPolicy: privacyPolicy || undefined,
       privacyPolicyUrl: privacyPolicyUrl || undefined,
       privacyVersion, dataControllerName: dataControllerName || undefined,
@@ -360,6 +361,22 @@ export function SitioWebSection() {
             onChange={(e) => setForm({ ...form, analytics: { ...form.analytics, adsConversion: e.target.value || undefined } })} className={campo} />
         </div>
         <p className="text-xs text-gray-500">Sin identificador configurado no se carga ningún script de terceros.</p>
+      </section>
+
+      {/* ------------------------------------------------ pago manual */}
+      <section className="bg-white rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-gray-900">Instrucciones de pago de inscripción</h3>
+        <p className="text-xs text-gray-500">
+          Lo que ve el aspirante cuando su solicitud queda en "Pago pendiente": cuenta bancaria,
+          Nequi, Daviplata… El dinero va directo a la institución.
+        </p>
+        <textarea
+          rows={4} maxLength={5000}
+          placeholder={'Ej:\nBancolombia Ahorros 123-456789-00 a nombre de la institución.\nNequi: 300 111 2233.\nEnvía el comprobante desde tu página de aspirante.'}
+          value={form.paymentInstructions ?? ''}
+          onChange={(e) => setForm({ ...form, paymentInstructions: e.target.value })}
+          className={campo}
+        />
       </section>
 
       {/* ------------------------------------------------ política de datos */}

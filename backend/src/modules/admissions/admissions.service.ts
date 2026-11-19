@@ -441,13 +441,17 @@ export class AdmissionsService {
     });
     await this.evento(tenantId, app.id, 'doc_uploaded', null, { requisito: regla.name });
 
-    // Si estaba en corrección y ya no quedan rechazados, vuelve a revisión.
+    // Si estaba en corrección y ya no quedan rechazados: vuelve a revisión…
+    // salvo que la inscripción tenga valor y aún no esté pagada, en cuyo caso
+    // el siguiente paso del aspirante es el PAGO, no esperar al revisor.
     if (app.status === 'DOCUMENTOS_INCOMPLETOS') {
       const rechazados = await this.prisma.applicationDocument.count({
         where: { applicationId: app.id, status: 'RECHAZADO' },
       });
       if (rechazados === 0) {
-        await this.cambiarEstado(tenantId, app.id, 'EN_REVISION', null, 'docs_resubmitted');
+        const fee = app.call?.applicationFee ?? 0;
+        const siguiente: ApplicationStatus = fee > 0 && !app.paidAt ? 'PAGO_PENDIENTE' : 'EN_REVISION';
+        await this.cambiarEstado(tenantId, app.id, siguiente, null, 'docs_resubmitted');
       }
     }
 
@@ -563,6 +567,10 @@ export class AdmissionsService {
 
   /** Todas las solicitudes del correo de la sesión (un acudiente ve a sus dos hijos). */
   async misSolicitudes(tenantId: string, email: string) {
+    const site = await this.prisma.tenantSite.findUnique({
+      where: { tenantId },
+      select: { paymentInstructions: true },
+    });
     const apps = await this.prisma.application.findMany({
       where: { tenantId, applicant: { email }, status: { not: 'INTERESADO' } },
       orderBy: { createdAt: 'desc' },
@@ -580,6 +588,12 @@ export class AdmissionsService {
       programaSlug: app.call?.program.slug ?? null,
       targetLevel: app.targetLevel,
       applicationFee: app.call?.applicationFee ?? 0,
+      // Pago manual: instrucciones de la institución y si ya hay comprobante.
+      paymentInstructions:
+        app.status === 'PAGO_PENDIENTE' || app.status === 'PAGO_EN_VERIFICACION'
+          ? site?.paymentInstructions ?? null
+          : null,
+      comprobanteSubido: app.documents.some((d) => d.requiredDocId === null),
       submittedAt: app.submittedAt,
       documentos: (app.call?.requiredDocuments ?? []).map((d) => {
         const subido = app.documents.find((x) => x.requiredDocId === d.id);
@@ -710,7 +724,7 @@ export class AdmissionsService {
     const doc = await this.prisma.applicationDocument.findFirst({
       where: { id: docId, tenantId },
       include: {
-        application: { include: { applicant: true } },
+        application: { include: { applicant: true, call: { select: { applicationFee: true } } } },
         requiredDoc: { select: { name: true } },
       },
     });
@@ -738,11 +752,15 @@ export class AdmissionsService {
         nota: `${doc.requiredDoc?.name ?? 'Documento'}: ${dto.reviewNote ?? 'revisar el archivo adjunto'}`,
         enlaceAcceso: `${baseUrl}/aspirante/acceso?token=${token}`,
       });
-    } else if (app.status === 'ENVIADA' || app.status === 'PAGADA' || app.status === 'EN_REVISION') {
+    } else if (['ENVIADA', 'PAGADA', 'EN_REVISION', 'DOCUMENTOS_INCOMPLETOS'].includes(app.status)) {
       const pendientes = await this.prisma.applicationDocument.count({
-        where: { applicationId: app.id, status: { not: 'APROBADO' } },
+        where: { applicationId: app.id, requiredDocId: { not: null }, status: { not: 'APROBADO' } },
       });
-      if (pendientes === 0) await this.cambiarEstado(tenantId, app.id, 'EN_REVISION', reviewerId, 'docs_complete');
+      if (pendientes === 0) {
+        const fee = (doc.application as { call?: { applicationFee?: number } | null }).call?.applicationFee ?? 0;
+        const siguiente: ApplicationStatus = fee > 0 && !app.paidAt ? 'PAGO_PENDIENTE' : 'EN_REVISION';
+        await this.cambiarEstado(tenantId, app.id, siguiente, reviewerId, 'docs_complete');
+      }
     }
     return this.detalle(tenantId, app.id);
   }
@@ -793,6 +811,448 @@ export class AdmissionsService {
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, slug: true, status: true, program: { select: { name: true } } },
     });
+  }
+
+  // ======================================== CRUD de convocatorias (Fase 4)
+
+  /** Listado para el admin con cupo usado/total. */
+  async convocatoriasDetallado(tenantId: string) {
+    const calls = await this.prisma.admissionCall.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        program: { select: { id: true, name: true } },
+        academicPeriod: { select: { id: true, code: true } },
+        studyPlan: { select: { id: true, version: true } },
+        requiredDocuments: true,
+        _count: { select: { applications: true } },
+      },
+    });
+    const conCupo = [] as ((typeof calls)[number] & { cupoUsado: number; abierta: boolean })[];
+    for (const c of calls) {
+      const cupoUsado = await this.prisma.application.count({
+        where: { tenantId, callId: c.id, status: { in: OCUPAN_CUPO } },
+      });
+      conCupo.push({ ...c, cupoUsado, abierta: this.catalogo.llamadaAbierta(c) });
+    }
+    return conCupo;
+  }
+
+  private async validarReferenciasConvocatoria(tenantId: string, dto: {
+    programId?: string; academicPeriodId?: string; studyPlanId?: string;
+  }) {
+    // Ids del cliente: cada uno contra el tenant ANTES de usarse.
+    if (dto.programId) {
+      const p = await this.prisma.program.findFirst({ where: { id: dto.programId, tenantId }, select: { id: true } });
+      if (!p) throw new BadRequestException('El programa no pertenece a la institución');
+    }
+    if (dto.academicPeriodId) {
+      const per = await this.prisma.academicPeriod.findFirst({ where: { id: dto.academicPeriodId, tenantId }, select: { id: true } });
+      if (!per) throw new BadRequestException('El periodo no pertenece a la institución');
+    }
+    if (dto.studyPlanId) {
+      const plan = await this.prisma.studyPlan.findFirst({
+        where: { id: dto.studyPlanId, tenantId, ...(dto.programId ? { programId: dto.programId } : {}) },
+        select: { id: true },
+      });
+      if (!plan) throw new BadRequestException('El pensum no pertenece al programa de la institución');
+    }
+  }
+
+  async crearConvocatoria(tenantId: string, dto: {
+    programId: string; academicPeriodId: string; studyPlanId: string;
+    name: string; slug: string; opensAt: string; closesAt?: string | null;
+    rolling?: boolean; startsAt?: string | null; capacity?: number | null;
+    schedule?: string | null; modality?: string | null; applicationFee?: number;
+    minAge?: number | null; maxAge?: number | null; minEducation?: string | null;
+    targetLevels?: { level: number; label: string; capacity?: number }[] | null;
+    documentos?: { name: string; required?: boolean }[];
+  }) {
+    await this.validarReferenciasConvocatoria(tenantId, dto);
+    if (!dto.rolling && !dto.closesAt) {
+      throw new BadRequestException('Una convocatoria no permanente necesita fecha de cierre');
+    }
+    const choca = await this.prisma.admissionCall.findFirst({
+      where: { tenantId, slug: dto.slug },
+      select: { id: true },
+    });
+    if (choca) throw new ConflictException('Ya existe una convocatoria con ese slug');
+
+    const call = await this.prisma.admissionCall.create({
+      data: {
+        tenantId,
+        programId: dto.programId,
+        academicPeriodId: dto.academicPeriodId,
+        studyPlanId: dto.studyPlanId,
+        name: dto.name,
+        slug: dto.slug,
+        opensAt: new Date(dto.opensAt),
+        closesAt: dto.closesAt ? new Date(dto.closesAt) : null,
+        rolling: dto.rolling ?? false,
+        startsAt: dto.startsAt ? new Date(dto.startsAt) : null,
+        capacity: dto.capacity ?? null,
+        schedule: dto.schedule ?? null,
+        modality: (dto.modality as never) ?? null,
+        applicationFee: dto.applicationFee ?? 0,
+        paymentMethods: (dto.applicationFee ?? 0) > 0 ? ['MANUAL'] : [],
+        minAge: dto.minAge ?? null,
+        maxAge: dto.maxAge ?? null,
+        minEducation: dto.minEducation ?? null,
+        targetLevels: (dto.targetLevels as Prisma.InputJsonValue) ?? undefined,
+        requiredDocuments: {
+          create: (dto.documentos ?? []).map((d) => ({
+            tenantId,
+            name: d.name,
+            required: d.required ?? true,
+            acceptTypes: ['application/pdf', 'image/jpeg', 'image/png'],
+          })),
+        },
+      },
+      include: { requiredDocuments: true },
+    });
+    return call;
+  }
+
+  async actualizarConvocatoria(tenantId: string, id: string, dto: Partial<Parameters<AdmissionsService['crearConvocatoria']>[1]> & { status?: string }) {
+    const call = await this.prisma.admissionCall.findFirst({ where: { id, tenantId } });
+    if (!call) throw new NotFoundException('Convocatoria no encontrada');
+    await this.validarReferenciasConvocatoria(tenantId, dto);
+
+    if (dto.slug && dto.slug !== call.slug) {
+      const choca = await this.prisma.admissionCall.findFirst({
+        where: { tenantId, slug: dto.slug, id: { not: id } },
+        select: { id: true },
+      });
+      if (choca) throw new ConflictException('Ya existe una convocatoria con ese slug');
+    }
+
+    const actualizada = await this.prisma.admissionCall.update({
+      where: { id: call.id },
+      data: {
+        name: dto.name,
+        slug: dto.slug,
+        status: dto.status as never,
+        opensAt: dto.opensAt ? new Date(dto.opensAt) : undefined,
+        closesAt: dto.closesAt === undefined ? undefined : dto.closesAt ? new Date(dto.closesAt) : null,
+        rolling: dto.rolling,
+        startsAt: dto.startsAt === undefined ? undefined : dto.startsAt ? new Date(dto.startsAt) : null,
+        capacity: dto.capacity === undefined ? undefined : dto.capacity,
+        schedule: dto.schedule === undefined ? undefined : dto.schedule,
+        applicationFee: dto.applicationFee,
+        minAge: dto.minAge === undefined ? undefined : dto.minAge,
+        maxAge: dto.maxAge === undefined ? undefined : dto.maxAge,
+        minEducation: dto.minEducation === undefined ? undefined : dto.minEducation,
+        targetLevels: dto.targetLevels === undefined ? undefined : ((dto.targetLevels as Prisma.InputJsonValue) ?? Prisma.JsonNull),
+      },
+      include: { requiredDocuments: true },
+    });
+
+    // Documentos requeridos: reemplazo completo del conjunto cuando viene.
+    if (dto.documentos) {
+      await this.prisma.admissionRequiredDocument.deleteMany({ where: { callId: call.id } });
+      for (const d of dto.documentos) {
+        await this.prisma.admissionRequiredDocument.create({
+          data: {
+            tenantId, callId: call.id, name: d.name, required: d.required ?? true,
+            acceptTypes: ['application/pdf', 'image/jpeg', 'image/png'],
+          },
+        });
+      }
+    }
+    return actualizada;
+  }
+
+  // ================================================ pago manual (Fase 4)
+
+  /**
+   * El aspirante sube el comprobante del pago manual (§7): la solicitud pasa
+   * a PAGO_EN_VERIFICACION y el admin confirma o rechaza. El comprobante es
+   * un ApplicationDocument sin requiredDocId.
+   */
+  async subirComprobante(
+    tenantId: string,
+    email: string,
+    code: string,
+    archivo: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+  ) {
+    const app = await this.appDeSesion(tenantId, email, code);
+    if (app.status !== 'PAGO_PENDIENTE' && app.status !== 'PAGO_EN_VERIFICACION') {
+      throw new BadRequestException('Esta solicitud no tiene un pago pendiente');
+    }
+    const { fileKey, sizeKb } = await this.archivos.guardarValido(tenantId, app.id, archivo, {
+      acceptTypes: [],
+      maxSizeMb: 5,
+    });
+    await this.prisma.applicationDocument.deleteMany({
+      where: { applicationId: app.id, requiredDocId: null },
+    });
+    await this.prisma.applicationDocument.create({
+      data: {
+        tenantId,
+        applicationId: app.id,
+        fileKey,
+        originalName: archivo.originalname.slice(0, 180),
+        mimeType: archivo.mimetype,
+        sizeKb,
+      },
+    });
+    await this.cambiarEstado(tenantId, app.id, 'PAGO_EN_VERIFICACION', null, 'payment_submitted');
+    return this.estadoBorrador(tenantId, code);
+  }
+
+  async confirmarPago(tenantId: string, id: string, ref: string | undefined, reviewerId: string) {
+    const app = await this.prisma.application.findFirst({ where: { id, tenantId } });
+    if (!app) throw new NotFoundException('Solicitud no encontrada');
+    if (app.paidAt) throw new BadRequestException('El pago ya estaba confirmado');
+    if (!['PAGO_PENDIENTE', 'PAGO_EN_VERIFICACION'].includes(app.status)) {
+      throw new BadRequestException('La solicitud no está esperando un pago');
+    }
+    await this.prisma.application.update({
+      where: { id: app.id },
+      data: { paidAt: new Date(), paymentMethod: 'MANUAL', paymentRef: ref?.slice(0, 80) },
+    });
+    await this.cambiarEstado(tenantId, app.id, 'PAGADA', reviewerId, 'payment_confirmed', { ref });
+    // Con todos los documentos requeridos aprobados pasa directo a revisión.
+    const pendientes = await this.prisma.applicationDocument.count({
+      where: { applicationId: app.id, requiredDocId: { not: null }, status: { not: 'APROBADO' } },
+    });
+    if (pendientes === 0) await this.cambiarEstado(tenantId, app.id, 'EN_REVISION', reviewerId, null);
+    return this.detalle(tenantId, app.id);
+  }
+
+  async rechazarPago(tenantId: string, id: string, nota: string, reviewerId: string, baseUrl: string) {
+    const app = await this.prisma.application.findFirst({
+      where: { id, tenantId },
+      include: { applicant: true },
+    });
+    if (!app) throw new NotFoundException('Solicitud no encontrada');
+    if (app.status !== 'PAGO_EN_VERIFICACION') {
+      throw new BadRequestException('No hay un comprobante por verificar');
+    }
+    await this.cambiarEstado(tenantId, app.id, 'PAGO_PENDIENTE', reviewerId, 'payment_rejected', { nota });
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } });
+    const token = await this.generarEnlace(app.id);
+    await this.mail.correccionSolicitada({
+      para: app.applicant.email,
+      institucion: tenant?.name ?? '',
+      nombre: app.applicant.firstName,
+      code: app.code,
+      nota: `Sobre tu pago: ${nota}`,
+      enlaceAcceso: `${baseUrl}/aspirante/acceso?token=${token}`,
+    });
+    return this.detalle(tenantId, app.id);
+  }
+
+  // ==================================================== admisión (Fase 4)
+
+  /**
+   * Admitir crea (o reutiliza) User STUDENT + Student + ProgramEnrollment con
+   * el pensum de la convocatoria, respetando maxStudents del plan (§6.5).
+   * Matricular es un paso aparte porque admisión y matrícula pueden ser
+   * momentos distintos.
+   */
+  async admitir(tenantId: string, id: string, notas: string | undefined, reviewerId: string) {
+    const app = await this.prisma.application.findFirst({
+      where: { id, tenantId },
+      include: { applicant: true, call: { include: { program: { select: { id: true, name: true } } } } },
+    });
+    if (!app || !app.call) throw new NotFoundException('Solicitud no encontrada');
+    if (!['ENVIADA', 'PAGADA', 'EN_REVISION', 'DOCUMENTOS_INCOMPLETOS'].includes(app.status)) {
+      throw new BadRequestException(`No se puede admitir una solicitud en estado ${app.status}`);
+    }
+    if (app.call.applicationFee > 0 && !app.paidAt) {
+      throw new BadRequestException('Confirma el pago de la inscripción antes de admitir');
+    }
+
+    const email = app.applicant.email.toLowerCase();
+    let user = await this.prisma.user.findFirst({ where: { tenantId, email } });
+    let claveTemporal: string | null = null;
+
+    if (user && user.role !== 'STUDENT') {
+      throw new ConflictException(
+        `El correo ${email} ya pertenece a un usuario ${user.role} de la institución; usa otro correo o resuélvelo con soporte`,
+      );
+    }
+
+    let student = user
+      ? await this.prisma.student.findFirst({ where: { tenantId, userId: user.id } })
+      : null;
+
+    if (!student) {
+      // Límite del plan: bloqueo CLARO para el admin, nunca en silencio (§6.5).
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { name: true, maxStudents: true, currentStudents: true },
+      });
+      if (tenant && tenant.currentStudents >= tenant.maxStudents) {
+        throw new ConflictException(
+          `El plan de la institución permite ${tenant.maxStudents} estudiantes y ya están usados. ` +
+            'Amplía el plan para admitir más aspirantes.',
+        );
+      }
+
+      claveTemporal = randomBytes(9).toString('base64url');
+      const bcrypt = await import('bcrypt');
+      const resultado = await this.prisma.$transaction(async (tx) => {
+        const u =
+          user ??
+          (await tx.user.create({
+            data: {
+              tenantId,
+              email,
+              passwordHash: await bcrypt.hash(claveTemporal as string, 10),
+              firstName: app.applicant.firstName,
+              lastName: app.applicant.lastName,
+              role: 'STUDENT',
+              isActive: true,
+            },
+          }));
+        const s = await tx.student.create({
+          data: {
+            tenantId,
+            userId: u.id,
+            studentCode: `STU${Date.now()}`,
+            enrollmentDate: new Date(),
+            tipoIdentificacion: app.applicant.documentType,
+            numeroIdentificacion: app.applicant.documentNumber,
+            fechaNacimiento: app.applicant.birthDate,
+            celular: app.applicant.phone,
+          },
+        });
+        await tx.tenant.update({
+          where: { id: tenantId },
+          data: { currentStudents: { increment: 1 } },
+        });
+        return { u, s };
+      });
+      user = resultado.u;
+      student = resultado.s;
+    }
+
+    // Inscripción al programa con el pensum de la convocatoria. Única por
+    // (student, program): si ya existía, se reutiliza.
+    const matricula = await this.prisma.programEnrollment.upsert({
+      where: { studentId_programId: { studentId: student.id, programId: app.call.program.id } },
+      update: {},
+      create: {
+        tenantId,
+        studentId: student.id,
+        programId: app.call.program.id,
+        studyPlanId: app.call.studyPlanId,
+        currentLevel: app.targetLevel && app.targetLevel > 0 ? app.targetLevel : 1,
+      },
+    });
+
+    await this.prisma.applicant.update({
+      where: { id: app.applicantId },
+      data: { studentId: student.id },
+    });
+    await this.prisma.application.update({
+      where: { id: app.id },
+      data: { decisionNotes: notas, reviewerId },
+    });
+    await this.cambiarEstado(tenantId, app.id, 'ADMITIDA', reviewerId, 'admitted', {
+      studentId: student.id,
+      enrollmentId: matricula.id,
+    });
+
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } });
+    await this.mail.enviar(
+      email,
+      `¡Fuiste admitido! — ${tenant?.name ?? ''}`,
+      [
+        `Hola ${app.applicant.firstName},`,
+        '',
+        `Tu solicitud ${app.code} a ${app.call.program.name} fue ADMITIDA. 🎉`,
+        '',
+        claveTemporal
+          ? `Tu acceso al campus virtual:\n  Usuario: ${email}\n  Clave temporal: ${claveTemporal}\n\nCámbiala al entrar por primera vez (/login).`
+          : 'Ya tienes acceso al campus virtual con tu cuenta de siempre (/login).',
+      ].join('\n'),
+    );
+
+    return this.detalle(tenantId, app.id);
+  }
+
+  async noAdmitir(tenantId: string, id: string, nota: string, reviewerId: string) {
+    const app = await this.prisma.application.findFirst({
+      where: { id, tenantId },
+      include: { applicant: true },
+    });
+    if (!app) throw new NotFoundException('Solicitud no encontrada');
+    await this.prisma.application.update({ where: { id: app.id }, data: { decisionNotes: nota, reviewerId } });
+    await this.cambiarEstado(tenantId, app.id, 'NO_ADMITIDA', reviewerId, 'rejected', { nota });
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } });
+    await this.mail.enviar(
+      app.applicant.email,
+      `Resultado de tu solicitud ${app.code} — ${tenant?.name ?? ''}`,
+      `Hola ${app.applicant.firstName},\n\nTu solicitud ${app.code} no fue admitida en esta ocasión.\n${nota}\n\nGracias por tu interés.`,
+    );
+    return this.detalle(tenantId, app.id);
+  }
+
+  async marcarDesistio(tenantId: string, id: string, reviewerId: string) {
+    const app = await this.prisma.application.findFirst({ where: { id, tenantId }, select: { id: true } });
+    if (!app) throw new NotFoundException('Solicitud no encontrada');
+    await this.cambiarEstado(tenantId, app.id, 'DESISTIO', reviewerId, 'withdrew');
+    return this.detalle(tenantId, app.id);
+  }
+
+  async matricular(tenantId: string, id: string, reviewerId: string) {
+    const app = await this.prisma.application.findFirst({ where: { id, tenantId }, select: { id: true, status: true } });
+    if (!app) throw new NotFoundException('Solicitud no encontrada');
+    if (app.status !== 'ADMITIDA') throw new BadRequestException('Solo se matricula una solicitud ADMITIDA');
+    await this.cambiarEstado(tenantId, app.id, 'MATRICULADA', reviewerId, 'enrolled');
+    return this.detalle(tenantId, app.id);
+  }
+
+  // ====================================================== embudo (Fase 4)
+
+  /**
+   * Embudo por convocatoria y por fuente (§5): la institución ve qué campaña
+   * le trae MATRICULADOS, no solo clics.
+   */
+  async embudo(tenantId: string, callId?: string) {
+    const where: Prisma.ApplicationWhereInput = { tenantId, ...(callId ? { callId } : {}) };
+    const apps = await this.prisma.application.findMany({
+      where,
+      select: {
+        status: true,
+        paidAt: true,
+        applicant: { select: { utm: true } },
+      },
+    });
+
+    const ENVIADA_O_MAS: ApplicationStatus[] = [
+      'ENVIADA', 'PAGO_PENDIENTE', 'PAGO_EN_VERIFICACION', 'PAGADA', 'EN_REVISION',
+      'DOCUMENTOS_INCOMPLETOS', 'ADMITIDA', 'NO_ADMITIDA', 'MATRICULADA',
+    ];
+    const totales = {
+      interesados: apps.filter((a) => a.status === 'INTERESADO' || a.status === 'BORRADOR').length,
+      enviadas: apps.filter((a) => ENVIADA_O_MAS.includes(a.status)).length,
+      pagadas: apps.filter((a) => a.paidAt).length,
+      admitidas: apps.filter((a) => a.status === 'ADMITIDA' || a.status === 'MATRICULADA').length,
+      matriculadas: apps.filter((a) => a.status === 'MATRICULADA').length,
+    };
+
+    const porFuente = new Map<string, { total: number; enviadas: number; admitidas: number; matriculadas: number }>();
+    for (const a of apps) {
+      const utm = (a.applicant.utm || {}) as Record<string, string>;
+      const fuente = utm.utm_source || (utm.gclid ? 'google-ads' : utm.fbclid ? 'meta' : 'directo');
+      if (!porFuente.has(fuente)) porFuente.set(fuente, { total: 0, enviadas: 0, admitidas: 0, matriculadas: 0 });
+      const f = porFuente.get(fuente) as { total: number; enviadas: number; admitidas: number; matriculadas: number };
+      f.total++;
+      if (ENVIADA_O_MAS.includes(a.status)) f.enviadas++;
+      if (a.status === 'ADMITIDA' || a.status === 'MATRICULADA') f.admitidas++;
+      if (a.status === 'MATRICULADA') f.matriculadas++;
+    }
+
+    return {
+      totales,
+      fuentes: [...porFuente.entries()]
+        .map(([fuente, datos]) => ({ fuente, ...datos }))
+        .sort((a, b) => b.total - a.total),
+    };
   }
 
   // ======================================================== auxiliares
