@@ -6,7 +6,7 @@
 </section>
 
 <section class="mx-auto max-w-6xl px-4 -mt-16">
-  <form method="get" action="/programas" data-filtros class="rounded-2xl bg-white shadow-xl border border-gray-100 p-5 md:p-6">
+  <form method="get" action="/programas" data-filtros class="carta rounded-2xl p-5 md:p-6" style="box-shadow:var(--sombra-carta-alta)">
     <div class="flex rounded-xl overflow-hidden border border-gray-300 focus-within:border-[var(--c1)]">
       <svg class="self-center ml-4 shrink-0 text-gray-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.3-3.3"/></svg>
       <input type="search" name="q" value="<%= it.filtros.q || '' %>" placeholder="¿Qué quieres estudiar?"

@@ -8,12 +8,12 @@ module.exports = {
   content: ['./src/modules/public-site/templates/**/*.eta'],
   theme: {
     extend: {
-      // La misma familia tipográfica del campus (index.html de la SPA):
-      // Archivo para titulares, IBM Plex Sans para interfaz y Plex Mono para
-      // todo dato (fechas, códigos, precios, cupos). Una sola marca.
+      // Tipografía del sistema «Horizonte Académico» (DESIGN.md del módulo):
+      // Plus Jakarta Sans para titulares, Inter para cuerpo. Plex Mono se
+      // conserva del campus para todo dato duro (fechas, códigos, precios).
       fontFamily: {
-        display: ['Archivo', 'system-ui', 'sans-serif'],
-        sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
     },

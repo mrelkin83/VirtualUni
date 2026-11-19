@@ -11,6 +11,12 @@
   --tinta-2: var(--c1);
   --tinte: #f4f5f7;
   --borde-tinte: #e5e7eb;
+  /* Lienzo marfil del sistema «Horizonte Académico» (DESIGN.md): las tarjetas
+     blancas se elevan sobre él en vez de flotar sobre blanco puro. */
+  --lienzo: #faf8f5;
+  --borde-carta: rgba(15, 23, 42, 0.08);
+  --sombra-carta: 0 4px 20px -2px rgba(27, 42, 82, 0.05);
+  --sombra-carta-alta: 0 12px 32px -4px rgba(27, 42, 82, 0.12), 0 2px 6px -1px rgba(27, 42, 82, 0.04);
 }
 @supports (color: color-mix(in srgb, red, blue)) {
   :root {
@@ -22,6 +28,22 @@
 }
 
 details > summary::-webkit-details-marker { display: none; }
+
+/* ------------------------------------------------ cartas elevadas */
+
+/* Elevación nivel 1 del sistema de diseño; con .carta-link sube a nivel 2 al
+   pasar el cursor y tiñe el borde con el color institucional. */
+.carta {
+  background: #fff;
+  border: 1px solid var(--borde-carta);
+  box-shadow: var(--sombra-carta);
+}
+.carta-link { transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+.carta-link:hover, .carta-link:focus-visible {
+  border-color: var(--borde-tinte);
+  box-shadow: var(--sombra-carta-alta);
+  transform: translateY(-2px);
+}
 
 /* ------------------------------------------------ bandas y texturas */
 
@@ -70,8 +92,8 @@ details > summary::-webkit-details-marker { display: none; }
 /* ------------------------------------------------ prosa de páginas libres */
 
 .prosa { color: #374151; line-height: 1.75; }
-.prosa h2 { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 1.5rem; color: #111827; margin: 2rem 0 0.75rem; }
-.prosa h3 { font-family: Archivo, system-ui, sans-serif; font-weight: 700; font-size: 1.17rem; color: #111827; margin: 1.5rem 0 0.5rem; }
+.prosa h2 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 1.5rem; color: #111827; margin: 2rem 0 0.75rem; }
+.prosa h3 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-size: 1.17rem; color: #111827; margin: 1.5rem 0 0.5rem; }
 .prosa h4 { font-weight: 700; color: #111827; margin: 1.25rem 0 0.4rem; }
 .prosa p { margin: 0.9rem 0; }
 .prosa ul { list-style: none; margin: 0.9rem 0; padding: 0; }
