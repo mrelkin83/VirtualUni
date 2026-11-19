@@ -1,0 +1,196 @@
+<% const c = it.call; const a = it.analytics || {}; %>
+<section class="bg-gray-50 border-b border-gray-200">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--c1)"><%= it.textos.inscripciones %> en línea</p>
+    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mt-1"><%= c.program.name %></h1>
+    <p class="text-sm text-gray-500 mt-1">
+      <%= c.name %>
+      <% if (c.applicationFee > 0) { %> · Inscripción: $<%= c.applicationFee.toLocaleString('es-CO') %><% } else { %> · Inscripción gratuita<% } %>
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 py-8">
+  <ol data-pasos class="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-8 flex-wrap">
+    <li data-paso-tab="1" class="px-3 py-1.5 rounded-full bg-gray-100">1 · Datos</li>
+    <li data-paso-tab="2" class="px-3 py-1.5 rounded-full bg-gray-100">2 · Formación</li>
+    <li data-paso-tab="3" class="px-3 py-1.5 rounded-full bg-gray-100">3 · Documentos</li>
+    <li data-paso-tab="4" class="px-3 py-1.5 rounded-full bg-gray-100">4 · Enviar</li>
+  </ol>
+
+  <div data-error class="hidden mb-5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3"></div>
+
+  <form
+    data-inscripcion
+    data-call="<%= c.slug %>"
+    data-fee="<%= c.applicationFee %>"
+    data-colegio="<%= it.esColegio ? '1' : '' %>"
+    data-min-age="<%= c.minAge ?? '' %>"
+    data-ga4="<%= a.ga4 || '' %>"
+    data-ads="<%= a.adsConversion || '' %>"
+    data-pixel="<%= a.metaPixel ? '1' : '' %>"
+    class="space-y-6"
+    novalidate
+  >
+    <%~ it.antispam %>
+
+    <!-- ============================================= Paso 1: datos -->
+    <fieldset data-paso="1" class="space-y-4">
+      <% if (it.esColegio) { %>
+      <div class="rounded-xl border border-gray-200 p-5 space-y-3">
+        <h2 class="font-black text-gray-900">¿Quién inscribe?</h2>
+        <p class="text-sm text-gray-500">La inscripción la hace el acudiente; estos serán los datos de contacto.</p>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input data-campo="guardian.nombre" placeholder="Nombre completo del acudiente *" class="campo" />
+          <input data-campo="guardian.documento" placeholder="Documento del acudiente *" class="campo" />
+          <select data-campo="guardian.parentesco" class="campo">
+            <option value="">Parentesco *</option>
+            <option>Madre</option><option>Padre</option><option>Abuelo(a)</option><option>Tío(a)</option><option>Tutor legal</option>
+          </select>
+          <input data-campo="guardian.telefono" placeholder="Teléfono / WhatsApp *" class="campo" />
+        </div>
+      </div>
+      <% } %>
+
+      <div class="rounded-xl border border-gray-200 p-5 space-y-3">
+        <h2 class="font-black text-gray-900"><%= it.esColegio ? 'Datos del estudiante' : 'Tus datos' %></h2>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <select data-campo="documentType" class="campo">
+            <option value="">Tipo de documento *</option>
+            <option value="CC">Cédula de ciudadanía</option>
+            <option value="TI">Tarjeta de identidad</option>
+            <option value="RC">Registro civil</option>
+            <option value="CE">Cédula de extranjería</option>
+            <option value="PPT">PPT</option>
+            <option value="PASAPORTE">Pasaporte</option>
+          </select>
+          <input data-campo="documentNumber" placeholder="Número de documento *" class="campo" />
+          <input data-campo="firstName" placeholder="Nombres *" class="campo" />
+          <input data-campo="lastName" placeholder="Apellidos *" class="campo" />
+          <input data-campo="email" type="email" placeholder="<%= it.esColegio ? 'Correo del acudiente *' : 'Correo electrónico *' %>" class="campo" />
+          <input data-campo="phone" placeholder="Teléfono / WhatsApp *" class="campo" />
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Fecha de nacimiento<%= (c.minAge || it.esColegio) ? ' *' : '' %></label>
+            <input data-campo="birthDate" type="date" class="campo" />
+          </div>
+          <input data-campo="city" placeholder="Ciudad" class="campo" />
+          <% if (it.esColegio) { %>
+          <select data-campo="targetLevel" class="campo">
+            <option value="">Grado al que aspira *</option>
+            <% for (const g of it.targetLevels) { %>
+            <option value="<%= g.level %>"><%= g.label %></option>
+            <% } %>
+          </select>
+          <% } %>
+        </div>
+      </div>
+
+      <div data-acudiente-menor class="<%= it.esColegio ? 'hidden' : '' %> rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3 hidden">
+        <h2 class="font-black text-amber-900">Datos del acudiente</h2>
+        <p class="text-sm text-amber-800">El aspirante es menor de edad: se requieren los datos y la autorización del acudiente.</p>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input data-campo="guardian.nombre" placeholder="Nombre completo *" class="campo bg-white" />
+          <input data-campo="guardian.documento" placeholder="Documento *" class="campo bg-white" />
+          <select data-campo="guardian.parentesco" class="campo bg-white">
+            <option value="">Parentesco *</option>
+            <option>Madre</option><option>Padre</option><option>Abuelo(a)</option><option>Tío(a)</option><option>Tutor legal</option>
+          </select>
+          <input data-campo="guardian.telefono" placeholder="Teléfono *" class="campo bg-white" />
+        </div>
+      </div>
+
+      <label data-consent-acudiente class="hidden items-start gap-2 text-sm text-gray-700">
+        <input type="checkbox" data-campo="guardianConsent" class="mt-0.5" />
+        <span>Como acudiente autorizo esta inscripción y respondo por la veracidad de los datos del menor.</span>
+      </label>
+
+      <% if (c.minEducation || c.minAge) { %>
+      <p class="text-xs text-gray-500">
+        Requisitos de esta convocatoria:
+        <% if (c.minAge) { %> edad mínima <%= c.minAge %> años.<% } %>
+        <% if (c.minEducation) { %> escolaridad mínima: <%= c.minEducation %>.<% } %>
+      </p>
+      <% } %>
+
+      <button type="button" data-accion="paso1" class="btn-principal">Guardar y continuar</button>
+    </fieldset>
+
+    <!-- ========================================= Paso 2: formación -->
+    <fieldset data-paso="2" class="hidden space-y-4">
+      <div class="rounded-xl border border-gray-200 p-5 space-y-3">
+        <h2 class="font-black text-gray-900">Formación previa</h2>
+        <select data-campo="previousEducation" class="campo">
+          <option value="">Último nivel de estudios alcanzado *</option>
+          <option>Primaria</option>
+          <option>9° aprobado</option>
+          <option>Bachiller</option>
+          <option>Técnico</option>
+          <option>Tecnólogo</option>
+          <option>Profesional</option>
+          <option>Especialista o más</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" data-accion="volver" class="btn-secundario">Volver</button>
+        <button type="button" data-accion="paso2" class="btn-principal">Continuar</button>
+      </div>
+    </fieldset>
+
+    <!-- ======================================== Paso 3: documentos -->
+    <fieldset data-paso="3" class="hidden space-y-4">
+      <div class="rounded-xl border border-gray-200 p-5 space-y-4">
+        <h2 class="font-black text-gray-900">Documentos</h2>
+        <p class="text-sm text-gray-500">Formatos: PDF, JPG o PNG.</p>
+        <div data-lista-docs class="space-y-3"></div>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" data-accion="volver" class="btn-secundario">Volver</button>
+        <button type="button" data-accion="paso3" class="btn-principal">Continuar</button>
+      </div>
+    </fieldset>
+
+    <!-- =========================================== Paso 4: enviar -->
+    <fieldset data-paso="4" class="hidden space-y-4">
+      <div class="rounded-xl border border-gray-200 p-5">
+        <h2 class="font-black text-gray-900">Resumen</h2>
+        <dl data-resumen class="mt-3 text-sm text-gray-600 space-y-1"></dl>
+      </div>
+      <label class="flex items-start gap-2 text-sm text-gray-700">
+        <input type="checkbox" data-campo="consent" />
+        <span>Autorizo el tratamiento de mis datos personales según la
+          <a href="/privacidad" target="_blank" class="underline" style="color:var(--c1)">política de tratamiento de datos</a>
+          de <%= it.tenant.name %>.</span>
+      </label>
+      <div class="flex gap-3">
+        <button type="button" data-accion="volver" class="btn-secundario">Volver</button>
+        <button type="button" data-accion="enviar" class="btn-principal">Enviar solicitud</button>
+      </div>
+    </fieldset>
+
+    <!-- ================================================= Enviada -->
+    <fieldset data-paso="ok" class="hidden">
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center space-y-3">
+        <p class="text-3xl">🎉</p>
+        <h2 class="text-xl font-black text-emerald-900">¡Solicitud enviada!</h2>
+        <p class="text-sm text-emerald-800">Tu código es <strong data-code-final></strong>. Te enviamos un correo con el acceso para seguir tu proceso.</p>
+        <p data-pago-aviso class="hidden text-sm font-semibold text-amber-800 bg-amber-100 rounded-lg px-4 py-2">
+          Queda pendiente el pago de la inscripción; en el siguiente paso del proceso la institución te indicará cómo pagar.
+        </p>
+        <div class="flex gap-3 justify-center flex-wrap pt-2">
+          <a href="/aspirante" class="btn-principal">Ver mi solicitud</a>
+          <% if (it.esColegio) { %>
+          <button type="button" data-accion="otro-hijo" class="btn-secundario">Inscribir otro hijo</button>
+          <% } %>
+        </div>
+      </div>
+    </fieldset>
+  </form>
+</section>
+
+<style>
+  .campo{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.625rem .75rem;font-size:.875rem;background:#fff}
+  .btn-principal{display:inline-block;background:var(--c1);color:#fff;font-weight:700;border-radius:.5rem;padding:.75rem 1.5rem;font-size:.875rem}
+  .btn-principal:disabled{opacity:.5}
+  .btn-secundario{display:inline-block;border:1px solid #d1d5db;color:#374151;font-weight:600;border-radius:.5rem;padding:.75rem 1.25rem;font-size:.875rem}
+</style>
+<script src="/public-assets/inscripcion.js" defer></script>

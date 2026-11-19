@@ -312,6 +312,7 @@ export class SiteRenderController {
     const permitidos: Record<string, string> = {
       'site.css': 'text/css',
       'site.js': 'application/javascript',
+      'inscripcion.js': 'application/javascript',
     };
     const tipo = permitidos[archivo];
     const ruta = join(__dirname, 'modules/public-site/assets', archivo);
