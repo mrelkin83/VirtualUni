@@ -72,7 +72,7 @@ const ExamenCard: React.FC<{
         esProximo ? 'border-l-4 border-l-yellow-500' : ''
       }`}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex flex-wrap items-start justify-between mb-3 gap-4">
         <div className="flex-1">
           <h3 className={`font-bold text-pn-ink text-lg mb-1`}>{examen.titulo}</h3>
           <p className={`text-sm text-pn-ink-2`}>{examen.curso}</p>
@@ -115,7 +115,7 @@ const ExamenCard: React.FC<{
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {examen.estado === 'pendiente' && fechaExamen <= hoy && (
           <button
             onClick={() => iniciarExamen(examen.id)}

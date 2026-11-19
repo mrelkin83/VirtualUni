@@ -88,7 +88,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
       >
         <div className="p-6">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
             <h2 id="titulo-nuevo-mensaje-docente" className={`text-2xl font-bold text-pn-ink flex items-center gap-2`}>
               <Send size={24} className="text-pn-accent-text" />
               Nuevo Mensaje Individual

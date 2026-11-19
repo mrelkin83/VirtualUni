@@ -143,7 +143,7 @@ export const NominaSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className="text-3xl font-bold text-pn-ink">Gestión de Nómina</h2>
         <button
           onClick={() => handleOpenModal()}
@@ -157,7 +157,7 @@ export const NominaSection: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-pn-surface rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="text-sm text-pn-ink-2">Total Empleados</div>
               <div className="text-3xl font-bold text-pn-ink mt-2">
@@ -312,7 +312,7 @@ export const NominaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Empleado' : 'Nuevo Empleado'}" className="bg-pn-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-pn-line gap-4">
               <h3 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Empleado' : 'Nuevo Empleado'}
               </h3>

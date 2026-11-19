@@ -135,7 +135,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Tareas</h2>
         <button
           onClick={abrirModalNuevaTarea}
@@ -200,7 +200,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                 className={`border border-pn-line rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
                 {...pulsable(() => setTareaEnRevision(tarea))}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex-1">
                     <h4 className={`font-bold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2 mb-2`}>{tarea.curso}</p>
@@ -336,7 +336,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
               </div>
 
               <div className={`p-4 rounded-lg border-pn-line border`}>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                   <label className={`block text-pn-ink font-medium`}>
                     Tarea Grupal
                   </label>
@@ -365,7 +365,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                     <label className={`block text-pn-ink mb-2 font-medium`}>
                       Tipo de Asignación
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => setConfigGrupo({ ...configGrupo, tipoAsignacion: 'manual' })}
@@ -521,7 +521,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                             : 'hover:bg-pn-surface-2'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
                           <span className={`font-bold text-pn-ink`}>{grupo.nombre}</span>
                           <span className={`text-sm text-pn-ink opacity-70`}>
                             {grupo.estudiantes.length}/{configGrupo.estudiantesPorGrupo} estudiantes
@@ -566,7 +566,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                                 : 'hover:bg-pn-surface-2'
                             }`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-4">
                               <div>
                                 <p className={`font-medium text-pn-ink`}>{estudiante.nombre}</p>
                                 <p className={`text-sm text-pn-ink opacity-70`}>{estudiante.email}</p>

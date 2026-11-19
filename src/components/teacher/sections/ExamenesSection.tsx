@@ -268,7 +268,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Exámenes</h2>
           <p className={`text-pn-ink opacity-70 mt-1`}>
@@ -287,7 +287,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Total Exámenes</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{examenes.length}</p>
@@ -297,7 +297,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Programados</p>
               <p className={`text-2xl font-bold text-pn-ink`}>
@@ -309,7 +309,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Activos</p>
               <p className={`text-2xl font-bold text-pn-ink`}>
@@ -321,7 +321,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Banco Preguntas</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{bancoPreguntas.length}</p>
@@ -332,7 +332,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setFiltro('todos')}
           className={`px-4 py-2 rounded-lg transition ${
@@ -604,7 +604,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
               {tabActiva === 'preguntas' && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                     <div>
                       <p className={`text-pn-ink font-medium`}>
                         Preguntas del Examen: {nuevoExamen.preguntas?.length || 0}
@@ -613,7 +613,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         Puntaje total: {nuevoExamen.preguntas?.reduce((sum, p) => sum + p.puntos, 0) || 0} puntos
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setModalNuevaPregunta(true)}
                         className="bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-ok transition"
@@ -635,7 +635,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                     <div className="space-y-3">
                       {nuevoExamen.preguntas.map((pregunta, index) => (
                         <div key={index} className={`border-pn-line border rounded-lg p-4`}>
-                          <div className="flex justify-between items-start">
+                          <div className="flex flex-wrap justify-between items-start gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className={`text-pn-ink font-medium`}>#{index + 1}</span>
@@ -815,7 +815,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <select
                   value={filtroCategoriaPreguntas}
                   onChange={(e) => setFiltroCategoriaPreguntas(e.target.value)}
@@ -891,7 +891,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -936,7 +936,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
               <p className={`text-pn-ink opacity-70`}>
                 {preguntasSeleccionadas.length} {preguntasSeleccionadas.length === 1 ? 'pregunta seleccionada' : 'preguntas seleccionadas'}
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setModalBancoPreguntas(false)}
                   className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
@@ -1016,7 +1016,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
               {nuevaPregunta.tipo === 'multiple' && (
                 <div>
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex flex-wrap justify-between items-center mb-2 gap-4">
                     <label className={`text-pn-ink font-medium`}>Opciones de Respuesta</label>
                     <button
                       onClick={agregarOpcionNuevaPregunta}

@@ -115,7 +115,7 @@ export function ProgramasTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {programas.map((programa) => (
           <div key={programa.id} className="bg-pn-surface rounded-lg shadow p-4 border border-pn-line">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <h4 className="font-bold text-pn-ink truncate">{programa.name}</h4>

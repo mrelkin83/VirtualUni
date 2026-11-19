@@ -99,7 +99,7 @@ export function PublicacionProgramaModal({
         className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[88vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-wrap justify-between items-center mb-1 gap-4">
           <h3 className="text-lg font-bold text-pn-ink flex items-center gap-2">
             <Globe size={18} className="text-pn-ok" /> Publicación en el sitio web
           </h3>
@@ -188,7 +188,7 @@ export function PublicacionProgramaModal({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-pn-line">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-pn-line">
             <label className="flex items-center gap-2 text-sm text-pn-ink-2">
               <input type="checkbox" checked={publicado} onChange={(e) => setPublicado(e.target.checked)} />
               Visible en el sitio público

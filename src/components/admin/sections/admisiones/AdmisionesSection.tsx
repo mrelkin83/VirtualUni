@@ -119,7 +119,9 @@ function BandejaTab() {
         <select
           value={filtros.callId ?? ''}
           onChange={(e) => setFiltros((f) => ({ ...f, callId: e.target.value || undefined }))}
-          className={campo}
+          // El nombre de una convocatoria puede ser largo: sin min-w-0 el
+          // select crecía hasta sacar la fila de la pantalla a 390 px.
+          className={`${campo} min-w-0 flex-1`}
         >
           <option value="">Todas las convocatorias</option>
           {(convocatorias ?? []).map((c) => (
@@ -272,7 +274,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
           <p className="text-sm text-pn-muted">Cargando…</p>
         ) : (
           <>
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <div>
                 <h3 className="text-lg font-bold text-pn-ink flex items-center gap-2">
                   <span className="font-mono text-base">{s.code}</span> <Badge status={s.status} />
@@ -362,7 +364,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
                   <Banknote size={16} />
                   {s.status === 'PAGO_EN_VERIFICACION' ? 'Comprobante recibido: verifícalo arriba y decide.' : 'Esperando el pago del aspirante.'}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => decision.mutate({ accion: 'confirmarPago' })}
                     className="px-3 py-1.5 rounded-lg bg-pn-ok text-pn-surface text-sm font-semibold"
@@ -563,7 +565,7 @@ function ConvocatoriaModal({ convocatoria, onClose }: { convocatoria: Convocator
         className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-4">
           <h3 className="text-lg font-bold text-pn-ink">{c ? 'Editar convocatoria' : 'Nueva convocatoria'}</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
@@ -662,7 +664,7 @@ function EmbudoTab() {
 
   return (
     <div className="space-y-4">
-      <select value={callId} onChange={(e) => setCallId(e.target.value)} className="border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface">
+      <select value={callId} onChange={(e) => setCallId(e.target.value)} className="w-full max-w-sm border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface">
         <option value="">Todas las convocatorias</option>
         {(convocatorias ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>

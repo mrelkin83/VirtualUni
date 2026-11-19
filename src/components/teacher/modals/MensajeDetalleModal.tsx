@@ -118,7 +118,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
       >
         {/* Header */}
         <div className={`p-6 border-pn-line border-b`}>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
@@ -210,7 +210,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                   <User className="text-pn-accent-text" size={24} />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                       <p className={`font-bold text-pn-ink`}>
                         {mensaje.tipo === 'recibido' ? mensaje.de : `Para: ${mensaje.para}`}
@@ -280,7 +280,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                     key={resp.id}
                     className={`p-3 rounded-lg bg-pn-surface-3`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                       <p className={`font-semibold text-pn-ink text-sm`}>{resp.de}</p>
                       <p className="text-xs text-pn-muted">{resp.fecha}</p>
                     </div>

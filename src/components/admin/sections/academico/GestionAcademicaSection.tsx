@@ -52,8 +52,10 @@ export function GestionAcademicaSection({
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-pn-ink">Gestión académica</h2>
 
-      <div className="border-b border-pn-line">
-        <nav className="flex gap-1 -mb-px" aria-label="Pestañas de gestión académica">
+      {/* Las pestañas se desplazan en vez de envolverse: son ocho y a 390 px
+          se salían 570 px. Apiladas ocuparían media pantalla. */}
+      <div className="pn-scroll overflow-x-auto border-b border-pn-line">
+        <nav className="flex w-max gap-1 -mb-px" aria-label="Pestañas de gestión académica">
           {PESTANAS.map(({ id, label, icono: Icono }) => (
             <button
               key={id}

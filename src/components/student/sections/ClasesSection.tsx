@@ -66,7 +66,7 @@ const ClaseCard: React.FC<{
 
   return (
     <div className={`bg-pn-surface rounded-lg shadow-md p-5 border border-pn-line hover:shadow-lg transition-shadow`}>
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex flex-wrap items-start justify-between mb-3 gap-4">
         <div className="flex items-center gap-3">
           {getTipoIcon()}
           <div>
@@ -123,7 +123,7 @@ const ClaseCard: React.FC<{
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {clase.estado === 'en_curso' && (
           <button
             onClick={() => unirseClase(clase.id)}

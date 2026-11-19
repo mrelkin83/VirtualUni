@@ -215,7 +215,7 @@ function ModalRevision({
         aria-labelledby="titulo-revision"
         className="bg-pn-surface rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h3 id="titulo-revision" className="text-lg font-semibold">
               Solicitud de {solicitud.student.user.firstName}{' '}
@@ -309,7 +309,7 @@ function ModalRevision({
 
                 {!resuelta && (
                   <>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() =>
                           setDecisiones({

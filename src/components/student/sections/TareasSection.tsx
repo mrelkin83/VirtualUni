@@ -80,7 +80,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
           <div className="space-y-3">
             {tareasPendientes.map(tarea => (
               <div key={tarea.id} className={`border border-pn-line rounded-lg p-4`}>
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex flex-wrap justify-between items-start mb-2 gap-4">
                   <div className="flex-1">
                     <h4 className={`font-bold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2`}>{tarea.curso}</p>
@@ -94,7 +94,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                     {tarea.descripcion}
                   </p>
                 )}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <span className="text-sm text-pn-warn">📅 Límite: {tarea.fechaLimite}</span>
                   <button
                     onClick={() => setModalTarea(tarea)}
@@ -120,7 +120,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
           <div className="space-y-3">
             {tareasEntregadas.map(tarea => (
               <div key={tarea.id} className={`border border-pn-line rounded-lg p-4`}>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>
                     <h4 className={`font-bold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2`}>{tarea.curso}</p>
@@ -145,7 +145,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
           <div className="space-y-3">
             {tareasCalificadas.map(tarea => (
               <div key={tarea.id} className={`border border-pn-line rounded-lg p-4`}>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>
                     <h4 className={`font-bold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2`}>{tarea.curso}</p>
@@ -172,7 +172,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
       {modalTarea && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Entregar Tarea" className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}>
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Entregar Tarea</h3>
               <button
                 onClick={() => setModalTarea(null)}
@@ -228,7 +228,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                 className={`w-full bg-pn-surface text-pn-ink-2 border border-pn-line rounded p-3 min-h-[100px] focus:ring-2 focus:ring-pn-accent focus:outline-none`}
                 rows={4}
               />
-              <div className="flex justify-between items-center mt-1">
+              <div className="flex flex-wrap justify-between items-center mt-1 gap-4">
                 <p className="text-sm text-pn-muted">
                   Máximo 500 caracteres
                 </p>
@@ -238,7 +238,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => entregarTarea(modalTarea.id)}
                 className="flex-1 bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover"

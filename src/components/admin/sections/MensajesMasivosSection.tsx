@@ -173,9 +173,9 @@ export const MensajesMasivosSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold text-pn-ink">Mensajes Masivos</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={handleShowStats}
             className="bg-pn-ink hover:bg-pn-ink text-pn-surface font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
@@ -336,7 +336,7 @@ export const MensajesMasivosSection: React.FC = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Mensaje' : 'Nuevo Mensaje Masivo'}" className="bg-pn-surface rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-pn-line gap-4">
               <h2 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Mensaje' : 'Nuevo Mensaje Masivo'}
               </h2>
@@ -460,7 +460,7 @@ export const MensajesMasivosSection: React.FC = () => {
       {showStatsModal && stats && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div role="dialog" aria-modal="true" aria-label="Estadísticas de Mensajes" className="bg-pn-surface rounded-lg max-w-md w-full mx-4">
-            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-pn-line gap-4">
               <h2 className="text-xl font-bold text-pn-ink">
                 Estadísticas de Mensajes
               </h2>

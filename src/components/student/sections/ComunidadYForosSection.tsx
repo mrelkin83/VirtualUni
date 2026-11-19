@@ -40,7 +40,7 @@ export const ComunidadYForosSection: React.FC<ComunidadYForosSectionProps> = ({
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Comunidad</h2>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setTabActiva('social')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg transition font-semibold ${

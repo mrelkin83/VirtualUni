@@ -154,7 +154,7 @@ export function ProgramaFormModal({
         className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className="text-xl font-bold text-pn-ink">
             {programa ? 'Editar programa' : 'Nuevo programa'}
           </h3>

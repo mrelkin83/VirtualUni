@@ -77,7 +77,7 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Header con estadísticas */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-wrap justify-between items-start gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Estudiantes</h2>
           <p className={`text-sm text-pn-ink-2 mt-1`}>
@@ -213,7 +213,7 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
               key={estudiante.id}
               className={`bg-pn-surface rounded-lg shadow p-4 hover:shadow-lg transition`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-pn-accent to-pn-accent-hover rounded-full flex items-center justify-center text-pn-accent-ink font-bold text-lg">
                     {estudiante.nombre.charAt(0)}
@@ -271,7 +271,7 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
                   </div>
 
                   {/* Acciones */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => verPerfilEstudiante(estudiante.id)}
                       className="p-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"

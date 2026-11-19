@@ -173,7 +173,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className={`${cursoDetalle.color} ${tintaDeRelleno(cursoDetalle.color)} -m-6 mb-4 p-6 rounded-t-lg`}>
-            <div className="flex justify-between items-start">
+            <div className="flex flex-wrap justify-between items-start gap-4">
               <div>
                 <h2 className="text-2xl font-bold">{cursoDetalle.nombre}</h2>
                 <p>{cursoDetalle.codigo} • {cursoDetalle.estudiantes} estudiantes</p>
@@ -205,7 +205,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
           {/* Contenido del Curso */}
           <div className="border-t pt-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Contenido del Curso</h3>
               <button
                 onClick={() => setModalModulo(true)}
@@ -222,7 +222,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                 .map((modulo, index) => (
                   <div key={modulo.id} className={`border border-pn-line rounded-lg overflow-hidden`}>
                     <div className={`bg-pn-surface-2 p-4`}>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-wrap justify-between items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="bg-pn-accent text-pn-accent-ink rounded px-2 py-1 text-xs font-bold">
@@ -239,7 +239,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                             </span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => abrirModalCrearTema(modulo.id)}
                             className="p-2 hover:bg-pn-surface-3 rounded text-pn-ok"
@@ -281,7 +281,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                 {tema.tipo === 'teoria' ? <BookOpen size={16} /> : <ClipboardCheck size={16} />}
                               </div>
                               <div className="flex-1">
-                                <div className="flex justify-between items-start mb-2">
+                                <div className="flex flex-wrap justify-between items-start mb-2 gap-4">
                                   <div>
                                     <div className="flex items-center gap-2">
                                       <span className="text-xs text-pn-muted">Tema {temaIndex + 1}</span>
@@ -296,7 +296,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                       <p className="text-xs text-pn-muted mt-1">{tema.descripcion}</p>
                                     )}
                                   </div>
-                                  <div className="flex gap-1">
+                                  <div className="flex flex-wrap gap-1">
                                     <button
                                       onClick={() => abrirModalEditarTema(tema)}
                                       className="p-1 hover:bg-pn-surface-3 rounded text-pn-accent-text"
@@ -325,7 +325,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                 {materialesDeTema(tema.titulo).length > 0 && (
                                   <div className={`bg-pn-surface-2 rounded p-2 mt-2 space-y-1`}>
                                     {materialesDeTema(tema.titulo).map((material) => (
-                                      <div key={material.id} className="flex items-center justify-between text-sm">
+                                      <div key={material.id} className="flex flex-wrap items-center justify-between text-sm gap-4">
                                         <div className="flex items-center gap-2 min-w-0">
                                           {material.tipo === 'VIDEO' ? (
                                             <Video className="text-pn-accent-2-text shrink-0" size={14} />
@@ -399,7 +399,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div role="dialog" aria-modal="true" aria-label="{moduloEditando ? 'Editar Módulo' : 'Nuevo Módulo'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
               <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
                   <h2 className={`text-2xl font-bold text-pn-ink`}>
                     {moduloEditando ? 'Editar Módulo' : 'Nuevo Módulo'}
                   </h2>
@@ -484,7 +484,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div role="dialog" aria-modal="true" aria-label="{temaEditando ? 'Editar Tema' : 'Nuevo Tema'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
               <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
                   <h2 className={`text-2xl font-bold text-pn-ink`}>
                     {temaEditando ? 'Editar Tema' : 'Nuevo Tema'}
                   </h2>
@@ -612,7 +612,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   // Vista de lista de cursos
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Cursos</h2>
       </div>
 
@@ -627,7 +627,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             className={`bg-pn-surface rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer`}
             {...pulsable(() => setCursoDetalle(curso))}
           >
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
               <div>
                 <h3 className={`text-xl font-bold text-pn-ink`}>{curso.nombre}</h3>
                 <p className={`text-sm text-pn-ink-2`}>{curso.codigo}</p>

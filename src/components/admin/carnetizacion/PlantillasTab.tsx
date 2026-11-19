@@ -136,7 +136,7 @@ export const PlantillasTab: React.FC = () => {
       )}
 
       {/* Header Actions */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <input
             type="text"

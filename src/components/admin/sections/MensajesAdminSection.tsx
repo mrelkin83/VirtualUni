@@ -203,9 +203,9 @@ export const MensajesAdminSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Centro de Comunicaciones</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setModalMasivo(true)}
             className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg flex items-center gap-2"
@@ -283,7 +283,7 @@ export const MensajesAdminSection: React.FC = () => {
 
       {/* Tabs */}
       <div className={`bg-pn-surface rounded-lg shadow-sm border border-pn-line p-2`}>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setVistaActiva('mensajes')}
             className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
@@ -365,7 +365,7 @@ export const MensajesAdminSection: React.FC = () => {
                             <Circle className="text-pn-accent-text fill-blue-600 flex-shrink-0 mt-1" size={8} />
                           )}
                           <div className="flex-1">
-                            <div className="flex justify-between items-start mb-1">
+                            <div className="flex flex-wrap justify-between items-start mb-1 gap-4">
                               <h4 className={`font-bold text-pn-ink ${!mensaje.leido ? 'text-pn-accent-text' : ''}`}>
                                 {mensaje.de}
                               </h4>
@@ -415,7 +415,7 @@ export const MensajesAdminSection: React.FC = () => {
                         className={`border border-pn-line rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
                         {...pulsable(() => setConversacionActiva(mensaje))}
                       >
-                        <div className="flex justify-between items-start mb-1">
+                        <div className="flex flex-wrap justify-between items-start mb-1 gap-4">
                           <h4 className={`font-bold text-pn-ink`}>Para: {mensaje.para}</h4>
                           <span className="text-xs text-pn-muted">{mensaje.fecha}</span>
                         </div>
@@ -468,7 +468,7 @@ export const MensajesAdminSection: React.FC = () => {
               ) : (
                 anuncios.map((anuncioItem) => (
                   <div key={anuncioItem.id} className={`border border-pn-line rounded-lg p-6`}>
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-wrap justify-between items-start mb-3 gap-4">
                       <div className="flex items-center gap-2">
                         <Megaphone className="text-pn-warn" size={24} />
                         <h4 className={`text-xl font-bold text-pn-ink`}>{anuncioItem.titulo}</h4>
@@ -520,7 +520,7 @@ export const MensajesAdminSection: React.FC = () => {
       {vistaActiva === 'plantillas' && (
         <div className={`bg-pn-surface rounded-lg shadow-sm border border-pn-line`}>
           <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-lg font-bold text-pn-ink`}>Plantillas de Mensajes</h3>
               <button
                 onClick={() => setModalPlantilla(true)}
@@ -546,7 +546,7 @@ export const MensajesAdminSection: React.FC = () => {
               ) : (
                 plantillas.map((plantillaItem) => (
                   <div key={plantillaItem.id} className={`border border-pn-line rounded-lg p-4`}>
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-wrap justify-between items-start mb-2 gap-4">
                       <h4 className={`font-bold text-pn-ink`}>{plantillaItem.nombre}</h4>
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoriaColor(plantillaItem.categoria)}`}>
                         {plantillaItem.categoria}
@@ -558,7 +558,7 @@ export const MensajesAdminSection: React.FC = () => {
                     <p className={`text-sm text-pn-ink-2 line-clamp-2 mb-3`}>
                       {plantillaItem.contenido}
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => usarPlantilla(plantillaItem)}
                         className="flex-1 bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-3 py-2 rounded text-sm"
@@ -585,7 +585,7 @@ export const MensajesAdminSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Enviar Mensaje Masivo" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
                 <h2 className={`text-2xl font-bold text-pn-ink`}>Enviar Mensaje Masivo</h2>
                 <button
                   onClick={() => {
@@ -709,7 +709,7 @@ export const MensajesAdminSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Crear Anuncio" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
                 <h2 className={`text-2xl font-bold text-pn-ink`}>Crear Anuncio</h2>
                 <button
                   onClick={() => {
@@ -845,7 +845,7 @@ export const MensajesAdminSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Nueva Plantilla" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
                 <h2 className={`text-2xl font-bold text-pn-ink`}>Nueva Plantilla</h2>
                 <button
                   onClick={() => {

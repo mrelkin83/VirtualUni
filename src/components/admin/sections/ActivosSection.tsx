@@ -147,7 +147,7 @@ export const ActivosSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className="text-3xl font-bold text-pn-ink">Gestión de Activos</h2>
         <button
           onClick={() => handleOpenModal()}
@@ -281,7 +281,7 @@ export const ActivosSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Activo' : 'Nuevo Activo'}" className="bg-pn-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-pn-line gap-4">
               <h3 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Activo' : 'Nuevo Activo'}
               </h3>

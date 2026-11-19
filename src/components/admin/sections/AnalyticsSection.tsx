@@ -128,12 +128,12 @@ export function AnalyticsSection() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-pn-ink">Analytics Dashboard</h2>
           <p className="text-pn-ink-2">Vista general de estadísticas y métricas</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -216,7 +216,7 @@ export function AnalyticsSection() {
       {/* Student Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-pn-surface rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-pn-accent-text" />
               <h3 className="text-lg font-semibold">Analíticas de Estudiantes</h3>
@@ -315,12 +315,12 @@ export function AnalyticsSection() {
 
       {/* Financial Analytics */}
       <div className="bg-pn-surface rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-pn-ok" />
             <h3 className="text-lg font-semibold">Analíticas Financieras</h3>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={downloadFinancialExcel}
               className="flex items-center gap-2 px-3 py-1.5 bg-pn-ok text-pn-surface text-sm rounded-lg hover:bg-pn-ok transition-colors"
@@ -412,7 +412,7 @@ function StatCard({ title, value, change, trending, icon: Icon, color }: any) {
 
   return (
     <div className="bg-pn-surface rounded-lg shadow p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-6 h-6" />
         </div>
@@ -432,7 +432,7 @@ function StatCard({ title, value, change, trending, icon: Icon, color }: any) {
 // Componente de fila de métrica
 function MetricRow({ label, value, suffix = '' }: any) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-wrap justify-between items-center gap-4">
       <span className="text-sm text-pn-ink-2">{label}</span>
       <span className="font-semibold text-pn-ink">{value}{suffix}</span>
     </div>

@@ -162,7 +162,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
       {/* Clases en Vivo y Próximas */}
       {(clasesEnVivo.length > 0 || clasesProximas.length > 0) && (
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
             <h3 className={`text-lg font-bold text-pn-ink flex items-center gap-2`}>
               <Video size={20} />
               Clases en Vivo y Próximas
@@ -191,7 +191,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                     className={`bg-pn-surface border border-pn-line rounded-lg p-3 cursor-pointer hover:shadow-md transition`}
                     {...pulsable(() => unirseClase && unirseClase(clase.id))}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                       <div className="flex-1">
                         <h5 className={`font-semibold text-pn-ink`}>{clase.titulo}</h5>
                         <p className={`text-sm text-pn-ink-2`}>{clase.curso}</p>
@@ -222,7 +222,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                   className={`border border-pn-line rounded-lg p-3 hover:shadow-md transition cursor-pointer`}
                   {...pulsable(() => setActiveSection('clases'))}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex-1">
                       <h5 className={`font-semibold text-pn-ink`}>{clase.titulo}</h5>
                       <p className={`text-sm text-pn-ink-2`}>{clase.curso}</p>
@@ -246,7 +246,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
 
       {/* Announcements */}
       <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className={`text-lg font-bold text-pn-ink flex items-center gap-2`}>
             <Calendar size={20} />
             Anuncios Importantes
@@ -292,7 +292,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* My Courses */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
             <h3 className={`text-lg font-bold text-pn-ink`}>Mis Cursos</h3>
             <button
               onClick={() => setActiveSection('cursos')}
@@ -311,14 +311,14 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                   setActiveSection('cursos');
                 })}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                   <h4 className={`font-semibold text-pn-ink`}>{curso.nombre}</h4>
                   <span className={`text-sm font-bold text-pn-ink`}>{curso.progreso}%</span>
                 </div>
                 <div className={`w-full bg-pn-surface-3 rounded-full h-2 mb-2`}>
                   <div className={`${curso.color} h-2 rounded-full`} style={{ width: `${curso.progreso}%` }}></div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex flex-wrap items-center justify-between text-sm gap-4">
                   <span className={'text-pn-ink-2'}>{curso.profesor}</span>
                   <span className="text-pn-accent-text">{curso.tareasPendientes} tareas</span>
                 </div>
@@ -329,7 +329,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
 
         {/* Pending Tasks */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
             <h3 className={`text-lg font-bold text-pn-ink`}>Tareas Pendientes</h3>
             <button
               onClick={() => setActiveSection('tareas')}
@@ -345,7 +345,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                 className={`border border-pn-line rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
                 {...pulsable(() => setActiveSection('tareas'))}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex-1">
                     <h4 className={`font-semibold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2 mb-2`}>{tarea.curso}</p>
@@ -374,7 +374,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
       {/* Submitted Tasks */}
       {tareas.filter(t => t.estado === 'entregada' || t.estado === 'calificada').length > 0 && (
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
             <h3 className={`text-lg font-bold text-pn-ink`}>Tareas Entregadas</h3>
             <button
               onClick={() => setActiveSection('tareas')}
@@ -390,7 +390,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                 className={`border border-pn-line rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
                 {...pulsable(() => setActiveSection('tareas'))}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex-1">
                     <h4 className={`font-semibold text-pn-ink mb-1`}>{tarea.titulo}</h4>
                     <p className={`text-sm text-pn-ink-2 mb-2`}>{tarea.curso}</p>

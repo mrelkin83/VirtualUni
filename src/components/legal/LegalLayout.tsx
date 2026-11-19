@@ -17,7 +17,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ titulo, actualizado, c
   return (
     <div className="min-h-screen bg-pn-surface-2">
       <header className="bg-pn-surface border-b border-pn-line">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4">
           <Link to="/login" className="flex items-center gap-2 text-pn-ink-2 hover:text-pn-ink">
             <GraduationCap className="w-6 h-6 text-pn-accent-text" />
             <span className="font-semibold">VirtualUni</span>

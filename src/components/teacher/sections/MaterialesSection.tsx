@@ -260,14 +260,14 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Materiales</h2>
           <p className={`text-pn-ink opacity-70 mt-1`}>
             Sube, organiza y comparte recursos educativos
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setModalCarpeta(true)}
             className="bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-ok transition"
@@ -292,7 +292,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Total Materiales</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.total}</p>
@@ -302,7 +302,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Videos</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.videos}</p>
@@ -312,7 +312,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Documentos</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.documentos}</p>
@@ -322,7 +322,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-pn-ink opacity-70 text-sm`}>Carpetas</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{carpetas.length}</p>
@@ -374,7 +374,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
           </select>
 
           {/* Vista */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setVista('grid')}
               className={`p-2 rounded-lg transition ${
@@ -413,9 +413,9 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 })}
                 className={`bg-pn-surface p-4 rounded-lg border-pn-line border hover:shadow-lg transition cursor-pointer group`}
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex flex-wrap items-start justify-between mb-2 gap-4">
                   <Folder className="text-pn-warn" size={32} />
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -475,7 +475,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 className={`bg-pn-surface p-4 rounded-lg border-pn-line border hover:shadow-lg transition group cursor-pointer`}
                 {...pulsable(() => abrirDetalleMaterial(material))}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex flex-wrap items-start justify-between mb-3 gap-4">
                   {getTipoIcon(material.tipo)}
                   <span className={`px-2 py-1 rounded text-xs ${getTipoColor(material.tipo)}`}>
                     {material.tipo}
@@ -573,7 +573,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                       {material.vistas || 0} vistas · {material.descargas || 0} descargas
                     </td>
                     <td className="p-4">
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => uploadsApi.abrir(material.url).catch(() => avisos.error('No se pudo abrir el material.'))}
                           className="p-1 hover:bg-pn-accent-soft rounded"
@@ -678,7 +678,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink text-sm`}
                 />
                 {nuevoMaterial.archivo ? (
-                  <div className="flex items-center justify-between gap-2 mt-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                     <p className="text-pn-ok text-xs">
                       Se subirá <strong>{nuevoMaterial.archivo.name}</strong> ({nuevoMaterial.tamaño})
                     </p>
@@ -1136,7 +1136,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               <div className={`text-sm text-pn-ink opacity-70`}>
                 Total: {obtenerMaterialesCarpeta(carpetaAbierta).length} {obtenerMaterialesCarpeta(carpetaAbierta).length === 1 ? 'archivo' : 'archivos'}
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => {
                     // Compartir carpeta - copiar lista de URLs

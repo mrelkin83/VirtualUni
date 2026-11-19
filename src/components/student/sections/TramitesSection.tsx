@@ -60,7 +60,7 @@ export const TramitesSection: React.FC<TramitesSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Trámites</h2>
         <button
           onClick={() => setModalTramite(true)}
@@ -117,7 +117,7 @@ export const TramitesSection: React.FC<TramitesSectionProps> = ({
           {tramites.length > 0 ? (
             tramites.map(tramite => (
               <div key={tramite.id} className={`border border-pn-line rounded-lg p-4`}>
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex flex-wrap items-start justify-between mb-2 gap-4">
                   <div className="flex items-start gap-3 flex-1">
                     {getEstadoIcon(tramite.estado)}
                     <div className="flex-1">
@@ -136,7 +136,7 @@ export const TramitesSection: React.FC<TramitesSectionProps> = ({
                     {tramite.estado}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <span className="text-xs text-pn-muted">Fecha: {tramite.fecha}</span>
                   {tramite.estado !== 'Completado' && (
                     <button
@@ -188,7 +188,7 @@ export const TramitesSection: React.FC<TramitesSectionProps> = ({
       {modalTramite && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Nueva Solicitud de Trámite" className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}>
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Nueva Solicitud de Trámite</h3>
               <button
                 onClick={() => {
@@ -227,7 +227,7 @@ export const TramitesSection: React.FC<TramitesSectionProps> = ({
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={enviarTramite}
                   className="flex-1 bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover"

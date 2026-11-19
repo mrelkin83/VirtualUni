@@ -256,7 +256,7 @@ export function MiProgramaSection() {
                       : 'border-pn-line bg-pn-surface-2'
                   }`}
                 >
-                  <div className="px-3 py-2 border-b border-inherit flex items-center justify-between">
+                  <div className="px-3 py-2 border-b border-inherit flex flex-wrap items-center justify-between gap-4">
                     <h4 className={`font-semibold text-sm ${texto}`}>
                       {etiquetaNivel} {nivel.level}
                     </h4>
@@ -303,7 +303,7 @@ function TarjetaAsignatura({
         'bg-pn-surface border-pn-line'
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className={`text-xs ${suave}`}>{asignatura.code}</p>
           <p className={`text-sm font-medium ${texto}`}>{asignatura.name}</p>

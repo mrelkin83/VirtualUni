@@ -372,7 +372,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-pn-ok-soft rounded-lg p-6 border border-pn-ok">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
               <span className="text-sm font-medium text-pn-ok">Total Ingresos</span>
               <TrendingUp className="w-5 h-5 text-pn-ok" />
             </div>
@@ -380,7 +380,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
           </div>
 
           <div className="bg-pn-danger-soft rounded-lg p-6 border border-pn-danger">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
               <span className="text-sm font-medium text-pn-danger">Total Egresos</span>
               <TrendingDown className="w-5 h-5 text-pn-danger" />
             </div>
@@ -388,7 +388,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
           </div>
 
           <div className="bg-pn-accent-soft rounded-lg p-6 border border-pn-accent-line">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
               <span className="text-sm font-medium text-pn-accent-text">Balance</span>
               <Wallet className="w-5 h-5 text-pn-accent-text" />
             </div>
@@ -396,7 +396,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
           </div>
 
           <div className="bg-pn-accent-2-soft rounded-lg p-6 border border-pn-accent-2">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
               <span className="text-sm font-medium text-pn-accent-2-text">Transacciones</span>
               <PieChart className="w-5 h-5 text-pn-accent-2-text" />
             </div>
@@ -407,8 +407,8 @@ export const FinanzasContabilidadSection: React.FC = () => {
 
       {/* Tabs */}
       <div className="bg-pn-surface rounded-lg shadow-sm border border-pn-line mb-6">
-        <div className="border-b border-pn-line">
-          <nav className="flex -mb-px">
+        <div className="pn-scroll overflow-x-auto border-b border-pn-line">
+          <nav className="flex w-max -mb-px">
             <button
               onClick={() => setActiveTab('transactions')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition ${
@@ -592,7 +592,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                       key={account.id}
                       className="bg-pn-surface border border-pn-line rounded-lg p-6 hover:shadow-lg transition"
                     >
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
                         <div>
                           <h3 className="text-lg font-semibold text-pn-ink">{account.nombre}</h3>
                           <p className="text-sm text-pn-muted">{account.codigo}</p>
@@ -610,7 +610,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                         <p className="text-2xl font-bold text-pn-ink">{formatearCop(account.balance)}</p>
                       </div>
                       <p className="text-sm text-pn-ink-2 mb-4">{account.descripcion}</p>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleOpenAccountModal(account)}
                           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-pn-accent-soft text-pn-accent-text rounded hover:bg-pn-accent-soft transition"
@@ -645,7 +645,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                         key={budget.id}
                         className="bg-pn-surface border border-pn-line rounded-lg p-6 hover:shadow-lg transition"
                       >
-                        <div className="flex items-start justify-between mb-4">
+                        <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
                           <div>
                             <h3 className="text-lg font-semibold text-pn-ink">{budget.nombre}</h3>
                             <p className="text-sm text-pn-muted">{budget.categoria}</p>
@@ -682,7 +682,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
                         {budget.descripcion && (
                           <p className="text-sm text-pn-ink-2 mb-4">{budget.descripcion}</p>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => handleOpenBudgetModal(budget)}
                             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-pn-accent-soft text-pn-accent-text rounded hover:bg-pn-accent-soft transition"
@@ -716,7 +716,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       {showModal && activeTab === 'transactions' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Transacción' : 'Nueva Transacción'}" className="bg-pn-surface rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-pn-surface border-b border-pn-line px-6 py-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-pn-surface border-b border-pn-line px-6 py-4 flex flex-wrap items-center justify-between gap-4">
               <h3 className="text-lg font-semibold text-pn-ink">
                 {editingId ? 'Editar Transacción' : 'Nueva Transacción'}
               </h3>
@@ -879,7 +879,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       {showModal && activeTab === 'accounts' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Cuenta' : 'Nueva Cuenta'}" className="bg-pn-surface rounded-lg max-w-lg w-full">
-            <div className="border-b border-pn-line px-6 py-4 flex items-center justify-between">
+            <div className="border-b border-pn-line px-6 py-4 flex flex-wrap items-center justify-between gap-4">
               <h3 className="text-lg font-semibold text-pn-ink">
                 {editingId ? 'Editar Cuenta' : 'Nueva Cuenta'}
               </h3>
@@ -976,7 +976,7 @@ export const FinanzasContabilidadSection: React.FC = () => {
       {showModal && activeTab === 'budgets' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}" className="bg-pn-surface rounded-lg max-w-lg w-full">
-            <div className="border-b border-pn-line px-6 py-4 flex items-center justify-between">
+            <div className="border-b border-pn-line px-6 py-4 flex flex-wrap items-center justify-between gap-4">
               <h3 className="text-lg font-semibold text-pn-ink">
                 {editingId ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
               </h3>

@@ -62,7 +62,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Mi Perfil</h2>
         <div className="text-sm text-pn-muted">Última actualización: 12/07/2025</div>
       </div>
@@ -126,7 +126,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
 
         {/* Información Personal */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
             <h3 className={`text-xl font-bold text-pn-ink`}>Información Personal</h3>
             {!editandoPerfil && (
               <button
@@ -554,7 +554,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
 
         {/* Action Buttons */}
         {editandoPerfil && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={actualizarPerfil}
               className="flex-1 bg-pn-accent text-pn-accent-ink py-3 rounded hover:bg-pn-accent-hover font-semibold flex items-center justify-center gap-2"

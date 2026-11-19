@@ -122,7 +122,7 @@ export function BloquesPanel({
                 </div>
               </div>
               {editable && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() =>
                       setEnEdicion(enEdicion === bloque.id ? null : bloque.id)

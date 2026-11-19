@@ -143,7 +143,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
           <div className={`w-1/3 border-pn-line border-r overflow-y-auto`}>
             <div className={`p-4 border-pn-line border-b sticky top-0 bg-pn-surface z-10`}>
               <h4 className={`font-bold text-pn-ink mb-3`}>Entregas</h4>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setFiltro('todas')}
                   className={`px-3 py-1 rounded text-sm ${
@@ -193,7 +193,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
                         : `border-pn-line border hover:bg-pn-surface-2`
                     }`}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <User size={14} className={'text-pn-ink-2'} />
@@ -325,7 +325,7 @@ export const RevisionTareaModal: React.FC<RevisionTareaModalProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => {
                         setSelectedSubmission(null);

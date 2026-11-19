@@ -279,7 +279,7 @@ export function PensumEditor({
       <div className="flex gap-4 overflow-x-auto pb-4">
         {niveles.map((nivel) => (
           <div key={nivel.level} className="min-w-64 w-64 shrink-0 bg-pn-surface-2 rounded-lg border border-pn-line">
-            <div className="px-3 py-2 border-b border-pn-line flex items-center justify-between">
+            <div className="px-3 py-2 border-b border-pn-line flex flex-wrap items-center justify-between gap-4">
               <h4 className="font-semibold text-sm text-pn-ink">
                 {etiquetaNivel} {nivel.level}
               </h4>
@@ -362,7 +362,7 @@ function TarjetaAsignatura({
 
   return (
     <div className="bg-pn-surface rounded-lg border border-pn-line p-3 shadow-sm">
-      <div className="flex items-start justify-between gap-1">
+      <div className="flex flex-wrap items-start justify-between gap-1">
         <div className="min-w-0">
           <p className="text-xs text-pn-muted">{fila.subject.code}</p>
           <p className="font-medium text-sm text-pn-ink">{fila.subject.name}</p>
@@ -482,7 +482,7 @@ function AgregarAsignaturaModal({
         className="bg-pn-surface rounded-lg p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">
             Agregar asignatura — {etiquetaNivel} {nivel}
           </h3>
@@ -659,7 +659,7 @@ function PrerrequisitosModal({
         className="bg-pn-surface rounded-lg p-6 max-w-md w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-wrap justify-between items-center mb-1 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">Prerrequisitos</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>

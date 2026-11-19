@@ -192,7 +192,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>
                 Total
@@ -204,7 +204,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>
                 En Curso
@@ -216,7 +216,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>
                 Programadas
@@ -228,7 +228,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>
                 Finalizadas
@@ -240,7 +240,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>
                 Pregrabadas
@@ -324,7 +324,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
         ) : (
           clasesFiltradas.map(clase => (
             <div key={clase.id} className={`bg-pn-surface p-6 rounded-lg shadow-sm border border-pn-line hover:shadow-md transition-shadow`}>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className={`text-xl font-semibold text-pn-ink`}>{clase.titulo}</h3>

@@ -19,7 +19,7 @@ export const MensajesSection: React.FC<MensajesSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Mensajes</h2>
         <button
           onClick={() => setNuevoMensajeModal(true)}
@@ -75,7 +75,7 @@ export const MensajesSection: React.FC<MensajesSectionProps> = ({
                     <Circle className="text-pn-accent-text fill-blue-600 flex-shrink-0 mt-1" size={8} />
                   )}
                   <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex flex-wrap justify-between items-start mb-1 gap-4">
                       <div className="flex items-center gap-2">
                         <div className="w-10 h-10 bg-gradient-to-br from-pn-accent to-pn-accent-hover rounded-full flex items-center justify-center text-pn-accent-ink text-sm font-bold">
                           {mensaje.avatar}

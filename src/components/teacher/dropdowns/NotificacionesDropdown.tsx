@@ -110,7 +110,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                       {getIcono(notif.tipo)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
+                      <div className="flex flex-wrap justify-between items-start gap-2">
                         <p className={`font-semibold text-pn-ink text-sm`}>
                           {notif.titulo}
                         </p>
@@ -121,9 +121,9 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                       <p className="text-sm text-pn-ink-2 mt-1">
                         {notif.mensaje}
                       </p>
-                      <div className="flex justify-between items-center mt-2">
+                      <div className="flex flex-wrap justify-between items-center mt-2 gap-4">
                         <p className="text-xs text-pn-muted">{notif.fecha}</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {!notif.leida && (
                             <button
                               onClick={() => marcarComoLeida(notif.id)}

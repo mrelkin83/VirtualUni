@@ -64,7 +64,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
         {/* Los dos filtros juntos miden más que la pantalla a 390 px: envuelven
             y cada uno se queda con la mitad. */}
-        <div className="flex flex-wrap gap-3 [&>select]:min-w-0 [&>select]:flex-1">
+        <div className="flex w-full flex-wrap gap-3 sm:w-auto [&>select]:min-w-0 [&>select]:flex-1">
           <select
             value={periodoSeleccionado}
             onChange={(e) => setPeriodoSeleccionado(e.target.value)}
@@ -91,7 +91,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
       {/* Tarjetas de Estadísticas Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <Users className="text-pn-accent-text" size={32} />
             <span className="text-2xl font-bold text-pn-accent-text">+{estudiantesActivos}</span>
           </div>
@@ -104,7 +104,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <Award className="text-pn-ok" size={32} />
             <span className="text-2xl font-bold text-pn-ok">{promedioGeneral}</span>
           </div>
@@ -117,7 +117,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <ClipboardCheck className="text-pn-warn" size={32} />
             <span className="text-2xl font-bold text-pn-warn">{tareasPendientes}</span>
           </div>
@@ -134,7 +134,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <BookOpen className="text-pn-accent-2-text" size={32} />
             <span className="text-2xl font-bold text-pn-accent-2-text">{cursos.length}</span>
           </div>
@@ -150,7 +150,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rendimiento Académico */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-2">
               <BarChart3 className="text-pn-accent-text" size={24} />
               <h3 className={`text-lg font-bold text-pn-ink`}>Rendimiento Académico</h3>
@@ -178,7 +178,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
 
         {/* Distribución de Calificaciones */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-2">
               <PieChart className="text-pn-accent-2-text" size={24} />
               <h3 className={`text-lg font-bold text-pn-ink`}>Distribución de Calificaciones</h3>
@@ -215,7 +215,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
 
         {/* Asistencia */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-2">
               <Activity className="text-pn-ok" size={24} />
               <h3 className={`text-lg font-bold text-pn-ink`}>Asistencia</h3>
@@ -245,7 +245,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
 
         {/* Próximas Actividades */}
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="text-pn-warn" size={24} />
               <h3 className={`text-lg font-bold text-pn-ink`}>Actividad Reciente</h3>

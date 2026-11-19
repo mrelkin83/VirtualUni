@@ -151,7 +151,7 @@ function WidgetTab({ resumen }: { resumen: ResumenIntegraciones }) {
           )}
         </div>
         <pre className="bg-pn-ink text-pn-ok-soft text-xs rounded-lg p-4 overflow-x-auto">{fragmento}</pre>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => copiar(fragmento)} className="px-3 py-2 rounded-lg border border-pn-line text-sm font-semibold flex items-center gap-2"><Copy size={14} /> Copiar código</button>
         </div>
         <p className="text-xs text-pn-muted">
@@ -374,7 +374,7 @@ function Entregas({ endpointId }: { endpointId: string }) {
   return (
     <div className="mt-3 border-t border-pn-line pt-2 text-xs">
       {(data ?? []).map((d) => (
-        <div key={d.id} className="flex items-center justify-between gap-2 py-1.5">
+        <div key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
           <span className="font-mono">{d.eventType}</span>
           <span className="text-pn-muted">{new Date(d.createdAt).toLocaleString('es-CO')}</span>
           <span className={d.deliveredAt ? 'text-pn-ok font-bold' : 'text-pn-warn'}>

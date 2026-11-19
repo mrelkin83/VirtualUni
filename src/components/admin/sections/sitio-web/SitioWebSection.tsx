@@ -98,7 +98,7 @@ export function SitioWebSection() {
             La página que ven los aspirantes en el dominio de la institución.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a
             href={`${window.location.origin}/?preview=${previewToken}`}
             target="_blank" rel="noopener noreferrer"
@@ -554,7 +554,7 @@ function TarjetaPaginas({ campo, etiqueta }: { campo: string; etiqueta: string }
 
   return (
     <section className="bg-pn-surface rounded-lg shadow p-5 space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-bold text-pn-ink">Páginas institucionales</h3>
           <p className="text-xs text-pn-muted">
@@ -578,7 +578,7 @@ function TarjetaPaginas({ campo, etiqueta }: { campo: string; etiqueta: string }
       )}
 
       {(paginas ?? []).map((p: PaginaSitio) => (
-        <div key={p.id} className="flex items-center justify-between gap-3 border border-pn-line rounded-lg px-4 py-2.5">
+        <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 border border-pn-line rounded-lg px-4 py-2.5">
           <div className="min-w-0">
             <p className="font-semibold text-sm text-pn-ink truncate">
               {p.title}
@@ -640,7 +640,7 @@ function TarjetaPaginas({ campo, etiqueta }: { campo: string; etiqueta: string }
                 onChange={(e) => setEditando({ ...editando, isPublished: e.target.checked })} />
               Publicada (visible en el menú del sitio)
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button onClick={() => setEditando(null)} className="px-4 py-2 rounded-lg border border-pn-line text-sm font-semibold">Cancelar</button>
               <button
                 onClick={() => {
@@ -719,9 +719,9 @@ function TarjetaWompi() {
       </div>
       <p className="text-xs text-pn-muted">
         URL del webhook para el panel de Wompi:
-        <code className="bg-pn-surface-3 rounded px-1.5 py-0.5 ml-1">{window.location.origin}/public/payments/wompi/&lt;slug-institución&gt;</code>
+        <code className="bg-pn-surface-3 rounded px-1.5 py-0.5 ml-1 break-all">{window.location.origin}/public/payments/wompi/&lt;slug-institución&gt;</code>
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => guardar.mutate({})}
           disabled={guardar.isPending || (!publicKey && !integrityKey && !eventsKey)}

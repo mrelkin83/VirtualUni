@@ -58,7 +58,7 @@ export const ConfiguracionCursoModal: React.FC<ConfiguracionCursoModalProps> = (
         tabIndex={-1}
         className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
       >
-        <div className="sticky top-0 bg-inherit p-6 border-b border-pn-line flex justify-between items-center">
+        <div className="sticky top-0 bg-inherit p-6 border-b border-pn-line flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <Settings className="text-pn-accent-text" size={24} />
             <h2 id="titulo-configuracion-curso" className={`text-2xl font-bold text-pn-ink`}>Configuración del Curso</h2>

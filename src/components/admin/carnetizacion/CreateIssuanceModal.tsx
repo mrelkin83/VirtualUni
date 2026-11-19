@@ -183,7 +183,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
         className="bg-pn-surface rounded-lg shadow-xl max-w-4xl w-full my-8"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-pn-line">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-pn-line gap-4">
           <h3 id="titulo-nueva-expedicion" className="text-2xl font-bold text-pn-ink">Nueva Expedición de Carnets</h3>
           <button
             onClick={onClose}
@@ -412,7 +412,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
                     {usuarios.map((usuario, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-pn-surface border border-pn-line rounded-lg"
+                        className="flex flex-wrap items-center justify-between p-3 bg-pn-surface border border-pn-line rounded-lg gap-4"
                       >
                         <div>
                           <div className="font-medium text-pn-ink">{usuario.nombre}</div>
@@ -481,7 +481,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-pn-line bg-pn-surface-2">
+        <div className="flex flex-wrap items-center justify-between p-6 border-t border-pn-line bg-pn-surface-2 gap-4">
           <button
             onClick={onClose}
             disabled={loading}
@@ -490,7 +490,7 @@ export const CreateIssuanceModal: React.FC<CreateIssuanceModalProps> = ({ onClos
             Cancelar
           </button>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             {step > 1 && (
               <button
                 onClick={() => setStep(step - 1)}

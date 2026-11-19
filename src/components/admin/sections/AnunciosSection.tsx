@@ -176,7 +176,7 @@ export const AnunciosSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold text-pn-ink">Anuncios</h1>
         <button
           onClick={() => handleOpenModal()}
@@ -330,7 +330,7 @@ export const AnunciosSection: React.FC = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Anuncio' : 'Nuevo Anuncio'}" className="bg-pn-surface rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-pn-line gap-4">
               <h2 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Anuncio' : 'Nuevo Anuncio'}
               </h2>

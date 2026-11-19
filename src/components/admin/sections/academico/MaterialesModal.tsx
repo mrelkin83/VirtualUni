@@ -213,7 +213,7 @@ export function MaterialesModal({
         className="bg-pn-surface rounded-lg p-6 max-w-3xl w-full max-h-[88vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-wrap justify-between items-center mb-1 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">
             {esAsignatura ? 'Contenido de la asignatura' : 'Materiales del grupo'}
           </h3>

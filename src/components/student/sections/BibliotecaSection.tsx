@@ -92,7 +92,7 @@ const BookCard: React.FC<{
             {libro.descripcion}
           </p>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className={`text-sm text-pn-ink-2`}>
               {libro.copiasDisponibles}/{libro.copias} disponibles
@@ -109,7 +109,7 @@ const BookCard: React.FC<{
               </span>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {libro.disponible ? (
               <button
                 onClick={onSolicitarPrestamo}
@@ -151,7 +151,7 @@ const LoanCard: React.FC<{
 
   return (
     <div className={`bg-pn-surface rounded-lg shadow-md p-4 border border-pn-line`}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between mb-3 gap-4">
         <h4 className={`font-bold text-pn-ink`}>{prestamo.libroTitulo}</h4>
         <span className={`flex items-center gap-1 text-sm ${getEstadoColor()}`}>
           {getEstadoIcon()}
@@ -225,7 +225,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Biblioteca Digital</h2>
         <div className={`flex items-center gap-2 px-4 py-2 bg-pn-surface rounded-lg border border-pn-line`}>
           <Book className="text-pn-accent-text" size={20} />
@@ -238,7 +238,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Total Libros</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalLibros}</p>
@@ -247,7 +247,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Disponibles</p>
               <p className={`text-2xl font-bold text-pn-ok`}>{stats.librosDisponibles}</p>
@@ -256,7 +256,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Préstamos Activos</p>
               <p className={`text-2xl font-bold text-pn-accent-text`}>{stats.prestamosActivos}</p>
@@ -265,7 +265,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Vencidos</p>
               <p className={`text-2xl font-bold text-pn-danger`}>{stats.prestamosVencidos}</p>

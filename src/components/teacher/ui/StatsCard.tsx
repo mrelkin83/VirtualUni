@@ -17,7 +17,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 }) => {
   return (
     <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className={`text-sm text-pn-ink-2`}>{titulo}</p>
           <p className={`text-3xl font-bold text-pn-ink mt-2`}>{valor}</p>

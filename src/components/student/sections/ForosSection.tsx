@@ -59,7 +59,7 @@ const TopicCard: React.FC<{
       {...pulsable(onClick)}
       className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line hover:shadow-lg transition cursor-pointer`}
     >
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex flex-wrap items-start justify-between mb-2 gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className={`font-bold text-pn-ink text-lg`}>{topico.titulo}</h3>
@@ -185,7 +185,7 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
   if (topicoSeleccionado) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <button
             onClick={() => setTopicoSeleccionado(null)}
             className="text-pn-accent-text hover:text-pn-accent-text flex items-center gap-2"
@@ -253,7 +253,7 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
   // Vista de lista de tópicos
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Foros de Discusión</h2>
         <button
           onClick={() => setModalNuevoTopico(true)}
@@ -330,7 +330,7 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
       {modalNuevoTopico && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Crear Nuevo Tema" className={`bg-pn-surface rounded-lg max-w-2xl w-full p-6`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nuevo Tema</h3>
               <button onClick={() => setModalNuevoTopico(false)} className="text-pn-muted hover:text-pn-ink-2">
                 <X size={24} />

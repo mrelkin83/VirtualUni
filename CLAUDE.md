@@ -38,7 +38,9 @@ Docker Desktop's WSL2 backend can corrupt Postgres auth packets on docker-compos
 
 ## Testing
 
-Backend: Jest, `backend/**/*.spec.ts`, `testEnvironment: node`. Frontend: Vitest + Testing Library, `src/**/*.{test,spec}.{ts,tsx}`, jsdom — note `element.offsetParent` is always `null` under jsdom (no real layout), so don't write logic that depends on it without a jsdom-safe alternative.
+Backend: Jest, `backend/**/*.spec.ts`, `testEnvironment: node`. Frontend: Vitest + Testing Library, `src/**/*.{test,spec}.{ts,tsx}`, jsdom — note `element.offsetParent` is always `null` under jsdom (no real layout), so don't write logic that depends on it without a jsdom-safe alternative. `Element.scrollIntoView` is likewise **not implemented** and throws, so guard it (`typeof el.scrollIntoView === 'function'`) rather than calling it bare in an effect.
+
+For responsive/contrast work, measure in a real browser rather than reasoning from the source — two traps cost real time here. The app shell's root is `overflow-hidden`, so an overflowing child gets *clipped* instead of growing `document.scrollWidth`: compare against `main`'s content box, not the viewport, or the sweep reports a clean bill of health it hasn't earned. And `getComputedStyle().backgroundColor` can come back as `color(srgb 0.89 0.92 0.98)` with **0–1 floats** instead of `rgb()` 0–255, which silently skews any contrast math that assumes one scale (it invents failures in light mode and hides them in dark).
 
 ## Deployment
 

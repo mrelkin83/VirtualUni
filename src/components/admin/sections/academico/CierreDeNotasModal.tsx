@@ -56,7 +56,7 @@ export function CierreDeNotasModal({
         aria-labelledby="titulo-cierre"
         className="bg-pn-surface rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h3 id="titulo-cierre" className="text-lg font-semibold">
               Cierre de notas · {nombreGrupo}

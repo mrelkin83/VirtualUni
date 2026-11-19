@@ -88,7 +88,7 @@ export const CalificacionesSection: React.FC<CalificacionesSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Libro de Calificaciones</h2>
           <p className="text-pn-muted mt-1">Gestiona las calificaciones de tus estudiantes</p>

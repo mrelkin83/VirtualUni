@@ -281,7 +281,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     : 'border-l-4 border-pn-warn'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                   <h4 className={`font-bold text-pn-ink`}>{deuda.concepto}</h4>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                     deuda.estado === 'vencido'
@@ -291,7 +291,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     {deuda.estado === 'vencido' ? 'Vencido' : 'Pendiente'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className={`text-2xl font-bold text-pn-ink`}>{formatearCop(deuda.monto)}</p>
                     <p className="text-sm text-pn-muted">Vence: {deuda.fechaVencimiento}</p>
@@ -313,9 +313,9 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
       {/* Historial de Pagos */}
       <div className={`bg-pn-surface rounded-lg shadow`}>
         <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
             <h3 className={`text-lg font-bold text-pn-ink`}>Historial de Pagos</h3>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFiltroEstado('todos')}
                 className={`px-3 py-1 rounded text-sm ${
@@ -342,7 +342,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
           <div className="space-y-3">
             {pagosFiltrados.map(pago => (
               <div key={pago.id} className={`border border-pn-line rounded-lg p-4`}>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                   <div className="flex items-center gap-3 flex-1">
                     <div className={`p-2 rounded-full ${
                       pago.estado === 'completado'
@@ -446,7 +446,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
             className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Detalle del Pago</h3>
               <button
                 onClick={() => setDetalleModal(null)}
@@ -506,7 +506,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
           >
             {!pagoExitoso ? (
               <>
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
                   <div>
                     <h3 className={`text-xl font-bold text-pn-ink`}>Realizar Pago</h3>
                     <p className="text-sm text-pn-muted mt-1">

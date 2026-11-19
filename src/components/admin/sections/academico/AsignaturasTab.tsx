@@ -224,7 +224,7 @@ function EditoresModal({
         className="bg-pn-surface rounded-lg p-6 max-w-md w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-wrap justify-between items-center mb-1 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">Editores del contenido</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
@@ -333,7 +333,7 @@ function AsignaturaFormModal({
         className="bg-pn-surface rounded-lg p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">
             {asignatura ? 'Editar asignatura' : 'Nueva asignatura'}
           </h3>
@@ -421,7 +421,7 @@ function UsoModal({ asignatura, onClose }: { asignatura: Asignatura; onClose: ()
         className="bg-pn-surface rounded-lg p-6 max-w-md w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex flex-wrap justify-between items-center mb-2 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">{asignatura.name}</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>

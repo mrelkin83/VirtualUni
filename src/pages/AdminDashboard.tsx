@@ -1020,9 +1020,9 @@ export default function AdminDashboard() {
 
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-4">
           <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Usuarios</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={() => setComunicacionMasivaModal(true)} className="bg-pn-ok text-pn-surface px-4 py-2 rounded hover:bg-pn-ok flex items-center gap-2">
               <Send size={18} />Comunicación Masiva
             </button>
@@ -1032,7 +1032,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {['todos', 'estudiante', 'docente', 'admin'].map(filtro => (
             <button
               key={filtro}
@@ -1048,7 +1048,10 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* La tabla de usuarios era la única sin carril de desplazamiento: a
+            390 px se salía 217 px y el `overflow-hidden` la recortaba. */}
         <div className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
+          <div className="pn-scroll overflow-x-auto">
           <table className="w-full">
             <thead className={`bg-pn-surface-2`}>
               <tr>
@@ -1086,7 +1089,7 @@ export default function AdminDashboard() {
                   </td>
                   <td className={`p-3 text-sm text-pn-ink`}>{usuario.ultimoAcceso}</td>
                   <td className="p-3">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {usuario.rol === 'estudiante' && (
                         <button onClick={() => setVerHistorialModal(usuario)} className="p-2 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded" title="Ver historial académico">
                           <BookOpen size={16} />
@@ -1104,13 +1107,14 @@ export default function AdminDashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Modal Historial Académico */}
         {verHistorialModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setVerHistorialModal(null)}>
             <div role="dialog" aria-modal="true" aria-label="Historial" className={`bg-pn-surface rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                 <div>
                   <h3 className={`text-xl font-bold text-pn-ink`}>Historial Académico</h3>
                   <p className={`text-sm text-pn-ink-2`}>{verHistorialModal.nombre}</p>
@@ -1211,7 +1215,7 @@ export default function AdminDashboard() {
                     className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                   ></textarea>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <button 
                     onClick={() => { 
                       avisar.ok('Mensaje enviado a los destinatarios seleccionados'); 
@@ -1234,7 +1238,7 @@ export default function AdminDashboard() {
         {createUserModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setCreateUserModal(false)}>
             <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nuevo Usuario</h3>
                 <button onClick={() => setCreateUserModal(false)}><X size={24} /></button>
               </div>
@@ -1357,7 +1361,7 @@ export default function AdminDashboard() {
         {editUserModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditUserModal(null)}>
             <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Editar Usuario</h3>
                 <button onClick={() => setEditUserModal(null)}><X size={24} /></button>
               </div>
@@ -1669,7 +1673,7 @@ export default function AdminDashboard() {
               <p className={'text-pn-ink-2'}>{platformConfig.universityName}</p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button style={{ backgroundColor: platformConfig.primaryColor, color: tintaDe(platformConfig.primaryColor) }} className="px-6 py-2 rounded hover:opacity-90">
               Botón Primario
             </button>
@@ -1709,7 +1713,7 @@ export default function AdminDashboard() {
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Notificaciones</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className={`font-semibold text-pn-ink`}>Notificaciones por Email</p>
                 <p className={`text-sm text-pn-ink-2`}>Recibir alertas por correo electrónico</p>
@@ -1725,7 +1729,7 @@ export default function AdminDashboard() {
               </label>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className={`font-semibold text-pn-ink`}>Notificaciones SMS</p>
                 <p className={`text-sm text-pn-ink-2`}>Recibir alertas por mensaje de texto</p>
@@ -1746,7 +1750,7 @@ export default function AdminDashboard() {
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Seguridad</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className={`font-semibold text-pn-ink`}>Modo Mantenimiento</p>
                 <p className={`text-sm text-pn-ink-2`}>Desactivar acceso temporal a la plataforma</p>
@@ -1762,7 +1766,7 @@ export default function AdminDashboard() {
               </label>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className={`font-semibold text-pn-ink`}>Registro Abierto</p>
                 <p className={`text-sm text-pn-ink-2`}>Permitir nuevos registros de usuarios</p>
@@ -1807,7 +1811,7 @@ export default function AdminDashboard() {
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Copias de Seguridad</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-pn-ok-soft border-l-4 border-pn-ok">
+            <div className="flex flex-wrap items-center justify-between p-3 rounded-lg bg-pn-ok-soft border-l-4 border-pn-ok gap-4">
               <div>
                 <p className="text-sm font-semibold text-pn-ok">Última copia de seguridad</p>
                 <p className="text-xs text-pn-ok">03 de Octubre, 2025 - 02:00 AM</p>
@@ -1828,15 +1832,15 @@ export default function AdminDashboard() {
             inventadas; la pasarela real del proyecto es Wompi y sus claves
             viven en el servidor, nunca en el navegador. */}
         <div className="space-y-3">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             <span className={'text-pn-ink-2'}>Pasarela de Pago:</span>
             <span className={`font-semibold text-pn-ink`}>Wompi</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             <span className={'text-pn-ink-2'}>Moneda:</span>
             <span className={`font-semibold text-pn-ink`}>COP</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             <span className={'text-pn-ink-2'}>Pagos en línea del plan:</span>
             <span className={`px-2 py-1 rounded text-xs ${
               tenantActual?.enablePayments ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-warn-soft text-pn-warn'
@@ -1852,7 +1856,7 @@ export default function AdminDashboard() {
 
       {/* Logs de Auditoría */}
       <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className={`text-xl font-bold text-pn-ink`}>Logs de Auditoría</h3>
           <button onClick={() => setLogsAuditoriaModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
             <Eye size={18} />Ver Todos los Logs
@@ -1880,7 +1884,7 @@ export default function AdminDashboard() {
       {logsAuditoriaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setLogsAuditoriaModal(false)}>
           <div className={`bg-pn-surface rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Logs de Auditoría del Sistema</h3>
               <button onClick={() => setLogsAuditoriaModal(false)}><X size={24} /></button>
             </div>
@@ -1927,7 +1931,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
               <button className="bg-pn-ok text-pn-surface px-4 py-2 rounded hover:bg-pn-ok flex items-center gap-2">
                 <Download size={18} />Exportar Logs
               </button>
@@ -1960,9 +1964,9 @@ export default function AdminDashboard() {
 
   const renderDocumentos = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Generación de Documentos</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => setHistorialQRModal(true)} className="bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded hover:bg-pn-accent-2 flex items-center gap-2">
             <Eye size={18} />Historial QR
           </button>
@@ -1993,7 +1997,7 @@ export default function AdminDashboard() {
       {historialQRModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setHistorialQRModal(false)}>
           <div className={`bg-pn-surface rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Historial de Códigos QR</h3>
               <button onClick={() => setHistorialQRModal(false)}><X size={24} /></button>
             </div>
@@ -2026,7 +2030,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="p-3">
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <button className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded" title="Ver QR">
                               <Eye size={16} />
                             </button>
@@ -2079,7 +2083,7 @@ export default function AdminDashboard() {
                 <input type="checkbox" id="generarQR" className="w-4 h-4" defaultChecked />
                 <label htmlFor="generarQR" className="text-sm">Generar código QR de verificación</label>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button onClick={() => { 
                   const codigoQR = generarCodigoQR();
                   const nuevoQR = {
@@ -2112,7 +2116,7 @@ export default function AdminDashboard() {
 
   const renderPlantillas = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Plantillas de Certificados</h2>
         <button onClick={() => setCrearPlantillaModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
           <Plus size={18} />Crear Plantilla
@@ -2137,7 +2141,7 @@ export default function AdminDashboard() {
               <p className={`text-sm text-pn-ink-2 mb-4 line-clamp-2`}>
                 {plantilla.descripcion}
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button onClick={() => setVistaPreviewPlantilla(plantilla)} className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover text-sm flex items-center justify-center gap-1">
                   <Eye size={16} />Vista Previa
                 </button>
@@ -2163,7 +2167,7 @@ export default function AdminDashboard() {
       {crearPlantillaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4" onClick={() => setCrearPlantillaModal(false)}>
           <div className={`bg-pn-surface rounded-lg p-6 max-w-6xl w-full my-8`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nueva Plantilla</h3>
               <button onClick={() => setCrearPlantillaModal(false)}><X size={24} /></button>
             </div>
@@ -2375,7 +2379,7 @@ export default function AdminDashboard() {
       {vistaPreviewPlantilla && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setVistaPreviewPlantilla(null)}>
           <div className={`bg-pn-surface rounded-lg p-6 max-w-5xl w-full`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Vista Previa - {vistaPreviewPlantilla.nombre}</h3>
               <button onClick={() => setVistaPreviewPlantilla(null)}><X size={24} /></button>
             </div>
@@ -2436,7 +2440,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button onClick={() => {
                   const estudiante = (document.getElementById('estudiante-select') as HTMLInputElement).value;
                   const curso = (document.getElementById('curso-select') as HTMLInputElement).value;

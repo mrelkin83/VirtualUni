@@ -127,7 +127,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                       <Bell size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
                         <h4 className={`font-semibold text-sm text-pn-ink ${!notif.leida ? 'font-bold' : ''}`}>
                           {notif.titulo}
                         </h4>
@@ -138,9 +138,9 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                       <p className={`text-sm text-pn-ink-2 mb-2 line-clamp-2`}>
                         {notif.mensaje}
                       </p>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
                         <span className="text-xs text-pn-muted">{notif.fecha}</span>
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap gap-1">
                           {!notif.leida && (
                             <button
                               onClick={() => marcarComoLeida(notif.id)}
@@ -179,7 +179,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
             <p className="text-sm text-pn-muted">
               Página {paginaActual} de {totalPaginas}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setPaginaActual(Math.max(1, paginaActual - 1))}
                 disabled={paginaActual === 1}

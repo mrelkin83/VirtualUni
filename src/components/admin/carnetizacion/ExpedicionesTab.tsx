@@ -238,7 +238,7 @@ export const ExpedicionesTab: React.FC = () => {
               >
                 <div className="p-5">
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-bold text-lg text-pn-ink">{expedicion.lote}</h3>
@@ -307,7 +307,7 @@ export const ExpedicionesTab: React.FC = () => {
                   )}
 
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {expedicion.estado === 'COMPLETADO' && (
                       <button
                         onClick={() => handleDownloadPDF(expedicion.id)}

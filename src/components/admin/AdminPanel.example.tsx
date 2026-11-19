@@ -144,7 +144,7 @@ export const AdminPanel: React.FC = () => {
       <main className="flex-1 overflow-auto">
         {/* Top Bar */}
         <header className="bg-pn-surface shadow-md p-6 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {currentNav && <div className={`${currentNav.color}`}>{currentNav.icon}</div>}
               <h2 className="text-2xl font-bold text-pn-ink">

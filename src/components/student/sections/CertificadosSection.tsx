@@ -58,7 +58,7 @@ const CertificateCard: React.FC<{
             )}
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <span className={`text-sm ${getEstadoColor()} font-semibold`}>
               {certificado.estado === 'disponible' && 'Disponible'}
               {certificado.estado === 'en_proceso' && 'En proceso'}
@@ -125,7 +125,7 @@ const RequestCard: React.FC<{
       <div className="flex items-start gap-4">
         {config.icon}
         <div className="flex-1">
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex flex-wrap items-start justify-between mb-2 gap-4">
             <h4 className={`font-bold text-pn-ink`}>{solicitud.tipoCertificado}</h4>
             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${config.badge}`}>
               {config.text}
@@ -145,7 +145,7 @@ const RequestCard: React.FC<{
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={onVerDetalle}
               className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 font-semibold p-2 -m-2 rounded"
@@ -198,9 +198,9 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Certificados y Constancias</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setVistaActual('disponibles')}
             className={`px-4 py-2 rounded-lg transition ${
@@ -302,7 +302,7 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
             className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Solicitar Certificado</h3>
               <button
                 onClick={() => setModalSolicitud(null)}
@@ -383,7 +383,7 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
             className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>Detalle de Solicitud</h3>
               <button
                 onClick={() => setDetalleModal(null)}

@@ -58,7 +58,7 @@ export const PerfilEstudianteModal: React.FC<PerfilEstudianteModalProps> = ({
       >
         {/* Header */}
         <div className={`p-6 border-pn-line border-b`}>
-          <div className="flex justify-between items-start">
+          <div className="flex flex-wrap justify-between items-start gap-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-pn-accent to-pn-accent-hover rounded-full flex items-center justify-center text-pn-accent-ink font-bold text-2xl">
                 {estudiante.nombre.charAt(0)}

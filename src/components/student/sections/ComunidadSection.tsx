@@ -229,7 +229,7 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
               'bg-pn-surface text-pn-ink'
             } focus:outline-none focus:ring-2 focus:ring-pn-accent mb-3`}
           />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <button
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${
                 'hover:bg-pn-surface-3'
@@ -238,7 +238,7 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
               <ImageIcon size={20} className="text-pn-accent-text" />
               <span className={`text-sm text-pn-ink`}>Agregar imagen</span>
             </button>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarCrearPost(false)}
                 className={`px-4 py-2 rounded-lg transition ${
@@ -259,7 +259,7 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
       )}
 
       {/* Filtros */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setFiltro('todos')}
           className={`px-4 py-2 rounded-lg transition ${

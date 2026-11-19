@@ -99,7 +99,7 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className={`text-2xl font-bold text-pn-ink`}>Control de Asistencia</h2>
           <p className="text-pn-muted mt-1">Registra y consulta la asistencia de tus estudiantes</p>
@@ -216,7 +216,7 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
       {/* Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <CheckCircle className="text-pn-ok" size={32} />
             <span className="text-3xl font-bold text-pn-ok">
               {Object.values(asistencia).filter(a => a === 'presente').length}
@@ -225,7 +225,7 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
           <h3 className={`font-semibold text-pn-ink mt-2`}>Presentes</h3>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <Clock className="text-pn-warn" size={32} />
             <span className="text-3xl font-bold text-pn-warn">
               {Object.values(asistencia).filter(a => a === 'tarde').length}
@@ -234,7 +234,7 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
           <h3 className={`font-semibold text-pn-ink mt-2`}>Tardanzas</h3>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <XCircle className="text-pn-danger" size={32} />
             <span className="text-3xl font-bold text-pn-danger">
               {Object.values(asistencia).filter(a => a === 'ausente').length}

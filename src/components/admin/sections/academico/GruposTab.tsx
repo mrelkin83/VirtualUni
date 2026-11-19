@@ -85,7 +85,7 @@ export function GruposTab() {
             .join(' ');
           return (
             <div key={grupo.id} className="bg-pn-surface rounded-lg shadow p-4 border border-pn-line">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h4 className="font-bold text-pn-ink">{grupo.name}</h4>
@@ -233,7 +233,7 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
         className="bg-pn-surface rounded-lg p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">Crear grupo</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>

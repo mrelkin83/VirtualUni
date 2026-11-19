@@ -74,7 +74,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
               className={`bg-pn-surface rounded-lg shadow p-6 hover:shadow-xl transition cursor-pointer`}
               {...pulsable(() => setCursoDetalle(curso))}
             >
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between mb-3 gap-4">
                 <BookOpen className={curso.color.replace('bg-', 'text-')} size={24} />
                 <span className={`text-sm font-bold text-pn-ink`}>{curso.progreso}%</span>
               </div>
@@ -85,7 +85,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
               <div className={`w-full bg-pn-surface-3 rounded-full h-2 mb-3`}>
                 <div className={`${curso.color} h-2 rounded-full`} style={{ width: `${curso.progreso}%` }}></div>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm gap-4">
                 <span className={'text-pn-ink-2'}>
                   {curso.temas.length} temas
                 </span>
@@ -129,7 +129,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
         </button>
 
         <div className={`bg-pn-surface rounded-lg shadow p-6`}>
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex flex-wrap justify-between items-start mb-6 gap-4">
             <div className="flex-1">
               <h3 className={`text-2xl font-bold text-pn-ink`}>{cursoDetalle.nombre}</h3>
               <p className={`text-pn-ink-2`}>{cursoDetalle.profesor}</p>

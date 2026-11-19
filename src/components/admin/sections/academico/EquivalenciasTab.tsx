@@ -33,7 +33,7 @@ export function EquivalenciasTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="text-sm text-pn-ink-2 max-w-2xl">
           Una equivalencia sirve cuando la asignatura aprobada y la del pensum
           destino <strong>no son la misma</strong> (otro código, otro nombre).
@@ -180,7 +180,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         aria-labelledby="titulo-equivalencia"
         className="bg-pn-surface rounded-xl w-full max-w-lg p-6 space-y-4"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h3 id="titulo-equivalencia" className="text-lg font-semibold">
             Nueva equivalencia
           </h3>

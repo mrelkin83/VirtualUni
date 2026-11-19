@@ -124,7 +124,7 @@ export const MensajesDropdown: React.FC<MensajesDropdownProps> = ({
                 >
                   <div className="flex gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2 mb-1">
+                      <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className={`font-semibold text-pn-ink text-sm ${!mensaje.leido ? 'font-bold' : ''}`}>
@@ -194,7 +194,7 @@ export const MensajesDropdown: React.FC<MensajesDropdownProps> = ({
             <p className="text-sm text-pn-muted">
               Página {paginaActual} de {totalPaginas}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => irAPagina(paginaActual - 1)}
                 disabled={paginaActual === 1}

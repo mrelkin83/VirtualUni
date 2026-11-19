@@ -214,7 +214,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setVistaActual('dia')}
               className={`px-4 py-2 rounded ${vistaActual === 'dia' ? 'bg-pn-accent text-pn-accent-ink' : `bg-pn-surface-3`}`}
@@ -308,7 +308,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
             .slice(0, 10)
             .map((evento) => (
               <div key={evento.id} className="p-4 hover:bg-pn-surface-2">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-wrap justify-between items-start gap-4">
                   <div className="flex-1">
                     <div className="flex items-start gap-3">
                       <div className={`mt-1 px-2 py-1 rounded text-xs font-semibold ${getTipoColor(evento.tipo)}`}>
@@ -338,7 +338,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => {
                         setNuevoEvento(evento);
@@ -365,7 +365,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       {modalEvento && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="{nuevoEvento.id ? 'Editar Evento' : 'Nuevo Evento'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl`}>
-            <div className="p-6 border-b border-pn-line flex justify-between items-center">
+            <div className="p-6 border-b border-pn-line flex flex-wrap justify-between items-center gap-4">
               <h2 className={`text-xl font-bold text-pn-ink`}>
                 {nuevoEvento.id ? 'Editar Evento' : 'Nuevo Evento'}
               </h2>

@@ -209,7 +209,7 @@ export const InicioSection: React.FC<InicioSectionProps> = ({
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pn-accent',
                 )}
               >
-                <span className="flex items-start justify-between gap-2">
+                <span className="flex flex-wrap items-start justify-between gap-2">
                   <span className="min-w-0">
                     <span className="block truncate font-body text-sm font-semibold text-pn-ink">
                       {curso.nombre}

@@ -54,7 +54,7 @@ export function InscripcionesProgramaSection() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-3">
         <h2 className="text-2xl font-bold text-pn-ink">Inscripción a programas</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto [&>select]:min-w-0 [&>select]:flex-1">
           <select
             value={filtroPrograma}
             onChange={(e) => setFiltroPrograma(e.target.value)}
@@ -197,7 +197,7 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
         className="bg-pn-surface rounded-lg p-6 max-w-md w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h3 className="text-lg font-bold text-pn-ink">Inscribir estudiante a un programa</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>

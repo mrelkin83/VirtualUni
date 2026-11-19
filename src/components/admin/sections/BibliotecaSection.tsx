@@ -235,7 +235,7 @@ export const BibliotecaSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className={`text-2xl font-bold text-pn-ink`}>Biblioteca - Administración</h2>
         <button
           onClick={() => setModalNuevoLibro(true)}
@@ -249,7 +249,7 @@ export const BibliotecaSection: React.FC = () => {
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Total Libros</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalLibros}</p>
@@ -258,7 +258,7 @@ export const BibliotecaSection: React.FC = () => {
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Total Copias</p>
               <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalCopias}</p>
@@ -267,7 +267,7 @@ export const BibliotecaSection: React.FC = () => {
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Disponibles</p>
               <p className={`text-2xl font-bold text-pn-ok`}>{stats.copiasDisponibles}</p>
@@ -276,7 +276,7 @@ export const BibliotecaSection: React.FC = () => {
           </div>
         </div>
         <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className={`text-sm text-pn-ink-2`}>Préstamos Activos</p>
               <p className={`text-2xl font-bold text-pn-warn`}>{stats.prestamosActivos}</p>
@@ -382,7 +382,7 @@ export const BibliotecaSection: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => {
                       setLibroSeleccionado(libro);
@@ -417,7 +417,7 @@ export const BibliotecaSection: React.FC = () => {
       ) : (
         <>
           {/* Loans Section */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             <h3 className={`text-lg font-bold text-pn-ink`}>Préstamos Activos</h3>
             <button
               onClick={() => setModalNuevoPrestamo(true)}
@@ -431,7 +431,7 @@ export const BibliotecaSection: React.FC = () => {
           <div className="space-y-3">
             {prestamos.filter(p => p.estado !== 'devuelto').map(prestamo => (
               <div key={prestamo.id} className={`bg-pn-surface p-4 border border-pn-line rounded-lg`}>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-wrap justify-between items-start gap-4">
                   <div className="flex-1">
                     <h4 className={`font-bold text-pn-ink`}>{prestamo.libroTitulo}</h4>
                     <p className={`text-sm text-pn-ink-2 mt-1`}>
@@ -484,7 +484,7 @@ export const BibliotecaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Nuevo Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className={`p-6 border-b border-pn-line`}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Nuevo Libro</h3>
                 <button onClick={() => setModalNuevoLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
@@ -598,7 +598,7 @@ export const BibliotecaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Editar Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className={`p-6 border-b border-pn-line`}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Editar Libro</h3>
                 <button onClick={() => setModalEditarLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
@@ -701,7 +701,7 @@ export const BibliotecaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Detalle del Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-lg`}>
             <div className={`p-6 border-b border-pn-line`}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Detalle del Libro</h3>
                 <button onClick={() => setModalDetalleLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
@@ -761,7 +761,7 @@ export const BibliotecaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Nuevo Préstamo" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-lg`}>
             <div className={`p-6 border-b border-pn-line`}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Nuevo Préstamo</h3>
                 <button onClick={() => setModalNuevoPrestamo(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
@@ -829,7 +829,7 @@ export const BibliotecaSection: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Registrar Devolución" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-md`}>
             <div className={`p-6 border-b border-pn-line`}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-4">
                 <h3 className={`text-xl font-bold text-pn-ink`}>Registrar Devolución</h3>
                 <button onClick={() => setModalDevolucion(false)} className={'text-pn-ink-2'}>
                   <X size={24} />

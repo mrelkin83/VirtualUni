@@ -61,7 +61,7 @@ const GrupoCard: React.FC<{
   return (
     <div className={`bg-pn-surface rounded-lg shadow-md p-5 border border-pn-line hover:shadow-lg transition-shadow`}>
       {/* Header del grupo */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <div className={`w-12 h-12 rounded-lg ${grupo.color} ${tintaDeRelleno(grupo.color)} flex items-center justify-center font-bold text-lg`}>
@@ -73,7 +73,7 @@ const GrupoCard: React.FC<{
             </div>
           </div>
         </div>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <button
             onClick={() => onEditar(grupo)}
             className={`p-2 rounded-lg hover:bg-pn-surface-3 transition`}
@@ -117,7 +117,7 @@ const GrupoCard: React.FC<{
 
       {/* Barra de progreso */}
       <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-wrap justify-between items-center mb-1 gap-4">
           <span className={`text-xs text-pn-ink-2`}>Progreso del grupo</span>
           <span className={`text-xs font-semibold text-pn-ink`}>{grupo.progreso}%</span>
         </div>
@@ -444,7 +444,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
 
               return (
                 <div key={curso} className={`p-4 rounded-lg border border-pn-line`}>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between mb-2 gap-4">
                     <h4 className={`font-semibold text-pn-ink`}>{curso}</h4>
                     <span className={`text-sm text-pn-ink-2`}>
                       {gruposCurso.length} grupo{gruposCurso.length !== 1 ? 's' : ''}
@@ -471,7 +471,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
       {modalCrearGrupo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="{grupoEditando ? 'Editar Grupo' : 'Crear Nuevo Grupo'}" className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <h3 className={`text-xl font-bold text-pn-ink`}>
                 {grupoEditando ? 'Editar Grupo' : 'Crear Nuevo Grupo'}
               </h3>
@@ -653,7 +653,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
       {modalAsignarEstudiantes && grupoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" aria-label="Asignar Estudiantes" className={`bg-pn-surface rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
               <div>
                 <h3 className={`text-xl font-bold text-pn-ink`}>Asignar Estudiantes</h3>
                 <p className={`text-sm text-pn-ink-2`}>
@@ -761,7 +761,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
       {modalDetalleGrupo && grupoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div role="dialog" aria-modal="true" className={`bg-pn-surface rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
               <div>
                 <h3 className={`text-2xl font-bold text-pn-ink`}>{grupoSeleccionado.nombre}</h3>
                 <p className={`text-sm text-pn-ink-2`}>
@@ -825,7 +825,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex flex-wrap justify-between items-center mb-3 gap-4">
                   <h4 className={`font-bold text-pn-ink`}>Miembros del Grupo</h4>
                   <button
                     onClick={() => {
@@ -883,7 +883,7 @@ export const GruposSection: React.FC<GruposSectionProps> = ({
                         key={tarea.id}
                         className={`p-3 rounded-lg border border-pn-line`}
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-wrap justify-between items-start gap-4">
                           <div>
                             <p className={`font-medium text-pn-ink`}>{tarea.titulo}</p>
                             <p className={`text-sm text-pn-ink-2`}>

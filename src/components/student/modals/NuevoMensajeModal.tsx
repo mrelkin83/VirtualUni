@@ -69,7 +69,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-pn-accent-soft rounded-lg">
               <Mail className="text-pn-accent-text" size={24} />
@@ -183,7 +183,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 'bg-pn-surface text-pn-ink'
               }`}
             />
-            <div className="flex justify-between items-center mt-1">
+            <div className="flex flex-wrap justify-between items-center mt-1 gap-4">
               <p className="text-xs text-pn-muted">Máximo 1000 caracteres</p>
               <p className={`text-xs ${mensaje.length > 900 ? 'text-pn-warn font-semibold' : 'text-pn-muted'}`}>
                 {mensaje.length}/1000
