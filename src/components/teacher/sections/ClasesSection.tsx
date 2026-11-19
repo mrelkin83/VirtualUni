@@ -17,13 +17,10 @@ import {
 } from 'lucide-react';
 import { ClaseVivo } from '../../../types/teacher.types';
 import { uploadsApi } from '../../../api/endpoints/uploads';
+import { avisar } from '../../ui';
 
 interface ClasesSectionProps {
   clasesVivo: ClaseVivo[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   programarClase: (claseData: any) => void;
   subirClasePregrabada: (claseData: any) => void;
   iniciarClaseEnVivo: (claseId: number) => void;
@@ -36,10 +33,6 @@ interface ClasesSectionProps {
 
 export const ClasesSection: React.FC<ClasesSectionProps> = ({
   clasesVivo,
-  darkMode,
-  card,
-  text,
-  border,
   programarClase,
   subirClasePregrabada,
   iniciarClaseEnVivo,
@@ -111,7 +104,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
   const handleProgramarClase = () => {
     if (!nuevaClase.titulo || !nuevaClase.curso || !nuevaClase.fecha || !nuevaClase.horaInicio || !nuevaClase.horaFin) {
-      alert('Por favor completa todos los campos obligatorios');
+      avisar.error('Por favor completa todos los campos obligatorios');
       return;
     }
 
@@ -138,7 +131,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
   const handleSubirPregrabada = () => {
     if (!clasePregrabada.titulo || !clasePregrabada.curso || !clasePregrabada.grabacionUrl) {
-      alert('Por favor completa todos los campos obligatorios');
+      avisar.error('Por favor completa todos los campos obligatorios');
       return;
     }
 
@@ -172,11 +165,11 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'en_curso': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'programada': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'finalizada': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-      case 'pregrabada': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'en_curso': return 'bg-pn-ok-soft text-pn-ok';
+      case 'programada': return 'bg-pn-accent-soft text-pn-accent-text';
+      case 'finalizada': return 'bg-pn-surface-3 text-pn-ink';
+      case 'pregrabada': return 'bg-pn-accent-2-soft text-pn-accent-2-text';
+      default: return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
@@ -198,79 +191,79 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
     <div className="space-y-6">
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+        <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 Total
               </p>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.total}</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.total}</p>
             </div>
-            <Video className="text-blue-500" size={32} />
+            <Video className="text-pn-accent-text" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+        <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 En Curso
               </p>
-              <p className={`text-2xl font-bold text-green-600`}>{estadisticas.enCurso}</p>
+              <p className={`text-2xl font-bold text-pn-ok`}>{estadisticas.enCurso}</p>
             </div>
-            <Play className="text-green-500" size={32} />
+            <Play className="text-pn-ok" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+        <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 Programadas
               </p>
-              <p className={`text-2xl font-bold text-blue-600`}>{estadisticas.programadas}</p>
+              <p className={`text-2xl font-bold text-pn-accent-text`}>{estadisticas.programadas}</p>
             </div>
-            <Calendar className="text-blue-500" size={32} />
+            <Calendar className="text-pn-accent-text" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+        <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 Finalizadas
               </p>
-              <p className={`text-2xl font-bold text-gray-600`}>{estadisticas.finalizadas}</p>
+              <p className={`text-2xl font-bold text-pn-ink-2`}>{estadisticas.finalizadas}</p>
             </div>
-            <Square className="text-gray-500" size={32} />
+            <Square className="text-pn-muted" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+        <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 Pregrabadas
               </p>
-              <p className={`text-2xl font-bold text-purple-600`}>{estadisticas.pregrabadas}</p>
+              <p className={`text-2xl font-bold text-pn-accent-2-text`}>{estadisticas.pregrabadas}</p>
             </div>
-            <Upload className="text-purple-500" size={32} />
+            <Upload className="text-pn-accent-2-text" size={32} />
           </div>
         </div>
       </div>
 
       {/* Barra de acciones */}
-      <div className={`${card} p-4 rounded-lg shadow-sm border ${border}`}>
+      <div className={`bg-pn-surface p-4 rounded-lg shadow-sm border border-pn-line`}>
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex-1 w-full md:w-auto">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted" size={20} />
               <input
                 type="text"
                 placeholder="Buscar clases..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                className={`w-full pl-10 pr-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
               />
             </div>
           </div>
@@ -279,7 +272,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
             <select
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
-              className={`px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+              className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
             >
               <option value="todas">Todas</option>
               <option value="en_curso">En Curso</option>
@@ -291,7 +284,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
             <select
               value={filtroCurso}
               onChange={(e) => setFiltroCurso(e.target.value)}
-              className={`px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+              className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
             >
               <option value="todos">Todos los cursos</option>
               {cursosUnicos.map(curso => (
@@ -301,7 +294,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
             <button
               onClick={() => setModalProgramar(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <Calendar size={20} />
               Programar Clase
@@ -309,7 +302,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
             <button
               onClick={() => setModalSubirPregrabada(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <Upload size={20} />
               Subir Pregrabada
@@ -321,20 +314,20 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
       {/* Lista de clases */}
       <div className="grid grid-cols-1 gap-4">
         {clasesFiltradas.length === 0 ? (
-          <div className={`${card} p-8 rounded-lg shadow-sm border ${border} text-center`}>
-            <Video className="mx-auto text-gray-400 mb-4" size={48} />
-            <p className={`${text} text-lg font-semibold mb-2`}>No hay clases</p>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`bg-pn-surface p-8 rounded-lg shadow-sm border border-pn-line text-center`}>
+            <Video className="mx-auto text-pn-muted mb-4" size={48} />
+            <p className={`text-pn-ink text-lg font-semibold mb-2`}>No hay clases</p>
+            <p className={`text-pn-ink-2`}>
               Programa una clase o sube contenido pregrabado para comenzar
             </p>
           </div>
         ) : (
           clasesFiltradas.map(clase => (
-            <div key={clase.id} className={`${card} p-6 rounded-lg shadow-sm border ${border} hover:shadow-md transition-shadow`}>
+            <div key={clase.id} className={`bg-pn-surface p-6 rounded-lg shadow-sm border border-pn-line hover:shadow-md transition-shadow`}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className={`text-xl font-semibold ${text}`}>{clase.titulo}</h3>
+                    <h3 className={`text-xl font-semibold text-pn-ink`}>{clase.titulo}</h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTipoColor(clase.tipo)}`}>
                       {getTipoLabel(clase.tipo)}
                     </span>
@@ -342,44 +335,44 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                     <div className="flex items-center gap-2">
-                      <Video className="text-gray-400" size={18} />
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Video className="text-pn-muted" size={18} />
+                      <span className={`text-sm text-pn-ink-2`}>
                         {clase.curso}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Calendar className="text-gray-400" size={18} />
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Calendar className="text-pn-muted" size={18} />
+                      <span className={`text-sm text-pn-ink-2`}>
                         {clase.fecha}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Clock className="text-gray-400" size={18} />
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Clock className="text-pn-muted" size={18} />
+                      <span className={`text-sm text-pn-ink-2`}>
                         {clase.horaInicio} - {clase.horaFin}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       {getPlataformaIcon(clase.plataforma)}
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <span className={`text-sm text-pn-ink-2`}>
                         {clase.plataforma}
                       </span>
                     </div>
                   </div>
 
                   {clase.descripcion && (
-                    <p className={`mt-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p className={`mt-3 text-sm text-pn-ink-2`}>
                       {clase.descripcion}
                     </p>
                   )}
 
                   {clase.participantes && clase.participantes.length > 0 && (
                     <div className="flex items-center gap-2 mt-3">
-                      <Users className="text-gray-400" size={18} />
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Users className="text-pn-muted" size={18} />
+                      <span className={`text-sm text-pn-ink-2`}>
                         {clase.participantes.filter(p => p.asistio).length} / {clase.participantes.length} estudiantes asistieron
                       </span>
                     </div>
@@ -390,7 +383,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   {clase.tipo === 'programada' && (
                     <button
                       onClick={() => iniciarClaseEnVivo(clase.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                      className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                     >
                       <Play size={18} />
                       Iniciar
@@ -400,7 +393,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   {clase.tipo === 'en_curso' && (
                     <button
                       onClick={() => finalizarClase(clase.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                      className="bg-pn-danger hover:bg-pn-danger text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                     >
                       <Square size={18} />
                       Finalizar
@@ -410,7 +403,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   {clase.enlaceReunion && (
                     <button
                       onClick={() => compartirEnlaceClase(clase.id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                      className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                     >
                       <Share2 size={18} />
                       Compartir
@@ -420,7 +413,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   {(clase.tipo === 'finalizada' || clase.tipo === 'pregrabada') && clase.participantes && (
                     <button
                       onClick={() => verParticipacionClase(clase.id)}
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                      className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                     >
                       <Eye size={18} />
                       Ver Participación
@@ -430,7 +423,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   {clase.grabacionDisponible && (
                     <button
                       onClick={() => setModalDetalleClase(clase)}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                      className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                     >
                       <Download size={18} />
                       Grabación
@@ -439,7 +432,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
                   <button
                     onClick={() => abrirEditar(clase)}
-                    className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} ${text} px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap`}
+                    className={`bg-pn-surface-3 hover:bg-pn-line text-pn-ink px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap`}
                   >
                     <Edit size={18} />
                     Editar
@@ -447,7 +440,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
                   <button
                     onClick={() => eliminarClase(clase.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
+                    className="bg-pn-danger hover:bg-pn-danger text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
                   >
                     <Trash2 size={18} />
                     Eliminar
@@ -462,34 +455,34 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
       {/* Modal Programar Clase */}
       {modalProgramar && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+          <div role="dialog" aria-modal="true" aria-label="{claseEditando ? 'Editar Clase' : 'Programar Clase en Vivo'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <h2 className={`text-2xl font-bold ${text} mb-6`}>
+              <h2 className={`text-2xl font-bold text-pn-ink mb-6`}>
                 {claseEditando ? 'Editar Clase' : 'Programar Clase en Vivo'}
               </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Título *
                   </label>
                   <input
                     type="text"
                     value={nuevaClase.titulo}
                     onChange={(e) => setNuevaClase({ ...nuevaClase, titulo: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     placeholder="Ej: Introducción a React Hooks"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Curso *
                   </label>
                   <select
                     value={nuevaClase.curso}
                     onChange={(e) => setNuevaClase({ ...nuevaClase, curso: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   >
                     <option value="">Seleccionar curso</option>
                     {cursosUnicos.map(curso => (
@@ -500,50 +493,50 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Fecha *
                     </label>
                     <input
                       type="date"
                       value={nuevaClase.fecha}
                       onChange={(e) => setNuevaClase({ ...nuevaClase, fecha: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Hora Inicio *
                     </label>
                     <input
                       type="time"
                       value={nuevaClase.horaInicio}
                       onChange={(e) => setNuevaClase({ ...nuevaClase, horaInicio: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Hora Fin *
                     </label>
                     <input
                       type="time"
                       value={nuevaClase.horaFin}
                       onChange={(e) => setNuevaClase({ ...nuevaClase, horaFin: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Plataforma
                   </label>
                   <select
                     value={nuevaClase.plataforma}
                     onChange={(e) => setNuevaClase({ ...nuevaClase, plataforma: e.target.value as any })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   >
                     <option value="Zoom">Zoom</option>
                     <option value="Google Meet">Google Meet</option>
@@ -553,26 +546,26 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Enlace de Reunión
                   </label>
                   <input
                     type="url"
                     value={nuevaClase.enlaceReunion}
                     onChange={(e) => setNuevaClase({ ...nuevaClase, enlaceReunion: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     placeholder="https://zoom.us/j/..."
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Descripción
                   </label>
                   <textarea
                     value={nuevaClase.descripcion}
                     onChange={(e) => setNuevaClase({ ...nuevaClase, descripcion: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     rows={3}
                     placeholder="Descripción de la clase..."
                   />
@@ -596,13 +589,13 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                       descripcion: ''
                     });
                   }}
-                  className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleProgramarClase}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+                  className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg"
                 >
                   {claseEditando ? 'Actualizar' : 'Programar'}
                 </button>
@@ -615,34 +608,34 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
       {/* Modal Subir Clase Pregrabada */}
       {modalSubirPregrabada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+          <div role="dialog" aria-modal="true" aria-label="Subir Clase Pregrabada" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <h2 className={`text-2xl font-bold ${text} mb-6`}>
+              <h2 className={`text-2xl font-bold text-pn-ink mb-6`}>
                 Subir Clase Pregrabada
               </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Título *
                   </label>
                   <input
                     type="text"
                     value={clasePregrabada.titulo}
                     onChange={(e) => setClasePregrabada({ ...clasePregrabada, titulo: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     placeholder="Ej: Clase sobre Componentes"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Curso *
                   </label>
                   <select
                     value={clasePregrabada.curso}
                     onChange={(e) => setClasePregrabada({ ...clasePregrabada, curso: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   >
                     <option value="">Seleccionar curso</option>
                     {cursosUnicos.map(curso => (
@@ -652,42 +645,42 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     URL de la Grabación *
                   </label>
                   <input
                     type="url"
                     value={clasePregrabada.grabacionUrl}
                     onChange={(e) => setClasePregrabada({ ...clasePregrabada, grabacionUrl: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     placeholder="https://youtube.com/..."
                   />
-                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-xs mt-1 text-pn-ink-2`}>
                     URL del video en YouTube, Vimeo, o tu plataforma de almacenamiento
                   </p>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Duración
                   </label>
                   <input
                     type="text"
                     value={clasePregrabada.duracion}
                     onChange={(e) => setClasePregrabada({ ...clasePregrabada, duracion: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     placeholder="Ej: 1 hora 30 minutos"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                     Descripción
                   </label>
                   <textarea
                     value={clasePregrabada.descripcion}
                     onChange={(e) => setClasePregrabada({ ...clasePregrabada, descripcion: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     rows={3}
                     placeholder="Descripción del contenido..."
                   />
@@ -707,13 +700,13 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                       grabacionUrl: ''
                     });
                   }}
-                  className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSubirPregrabada}
-                  className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg"
+                  className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-6 py-2 rounded-lg"
                 >
                   Subir
                 </button>
@@ -726,9 +719,9 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
       {/* Modal Detalle Clase (Ver grabación) */}
       {modalDetalleClase && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+          <div role="dialog" aria-modal="true" aria-label="{modalDetalleClase.titulo}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="p-6">
-              <h2 className={`text-2xl font-bold ${text} mb-6`}>
+              <h2 className={`text-2xl font-bold text-pn-ink mb-6`}>
                 {modalDetalleClase.titulo}
               </h2>
 
@@ -737,40 +730,40 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTipoColor(modalDetalleClase.tipo)}`}>
                     {getTipoLabel(modalDetalleClase.tipo)}
                   </span>
-                  <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <span className={`text-sm text-pn-ink-2`}>
                     {modalDetalleClase.curso}
                   </span>
                 </div>
 
                 {modalDetalleClase.descripcion && (
-                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p className={`text-pn-ink-2`}>
                     {modalDetalleClase.descripcion}
                   </p>
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Fecha</p>
-                    <p className={`font-semibold ${text}`}>{modalDetalleClase.fecha}</p>
+                    <p className={`text-sm text-pn-ink-2`}>Fecha</p>
+                    <p className={`font-semibold text-pn-ink`}>{modalDetalleClase.fecha}</p>
                   </div>
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Duración</p>
-                    <p className={`font-semibold ${text}`}>{modalDetalleClase.duracion}</p>
+                    <p className={`text-sm text-pn-ink-2`}>Duración</p>
+                    <p className={`font-semibold text-pn-ink`}>{modalDetalleClase.duracion}</p>
                   </div>
                 </div>
 
                 {modalDetalleClase.grabacionUrl && (
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
+                    <p className={`text-sm text-pn-ink-2 mb-2`}>
                       Grabación Disponible
                     </p>
                     <button
                       onClick={() =>
                         uploadsApi
                           .abrir(modalDetalleClase.grabacionUrl)
-                          .catch(() => alert('No se pudo abrir la grabación.'))
+                          .catch(() => avisar.error('No se pudo abrir la grabación.'))
                       }
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
+                      className="bg-pn-accent-2 hover:bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg inline-flex items-center gap-2"
                     >
                       <Download size={18} />
                       Ver Grabación
@@ -782,7 +775,7 @@ export const ClasesSection: React.FC<ClasesSectionProps> = ({
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setModalDetalleClase(null)}
-                  className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
                 >
                   Cerrar
                 </button>

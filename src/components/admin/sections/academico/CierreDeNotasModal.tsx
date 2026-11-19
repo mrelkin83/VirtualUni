@@ -54,7 +54,7 @@ export function CierreDeNotasModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-cierre"
-        className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
+        className="bg-pn-surface rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -62,7 +62,7 @@ export function CierreDeNotasModal({
               Cierre de notas · {nombreGrupo}
             </h3>
             {data && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-pn-ink-2">
                 {data.subject.code} — {data.subject.name}
                 {data.academicPeriod ? ` · ${data.academicPeriod.code}` : ''} ·
                 captura {data.escalaDeCaptura}
@@ -74,9 +74,9 @@ export function CierreDeNotasModal({
           </button>
         </div>
 
-        {isLoading && <p className="text-sm text-gray-500">Calculando…</p>}
+        {isLoading && <p className="text-sm text-pn-muted">Calculando…</p>}
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
             {mensajeDeError(error)}
           </div>
         )}
@@ -84,7 +84,7 @@ export function CierreDeNotasModal({
         {data && (
           <>
             {cerrado && (
-              <div className="flex items-start gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+              <div className="flex items-start gap-2 p-3 bg-pn-surface-2 border border-pn-line rounded-lg text-sm text-pn-ink-2">
                 <Lock size={16} className="mt-0.5 shrink-0" />
                 <span>
                   Las notas se cerraron el{' '}
@@ -95,24 +95,24 @@ export function CierreDeNotasModal({
               </div>
             )}
 
-            <div className="flex flex-wrap gap-4 text-sm text-gray-700">
+            <div className="flex flex-wrap gap-4 text-sm text-pn-ink-2">
               <span>
                 <strong>{data.totales.matriculados}</strong> matriculados
               </span>
               <span>
                 <strong>{data.totales.calculables}</strong> con nota calculable
               </span>
-              <span className="text-green-700">
+              <span className="text-pn-ok">
                 <strong>{data.totales.aprobados}</strong> aprobarían
               </span>
-              <span className="text-red-700">
+              <span className="text-pn-danger">
                 <strong>{data.totales.reprobados}</strong> reprobarían
               </span>
             </div>
 
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+            <div className="overflow-x-auto border border-pn-line rounded-lg">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-gray-600">
+                <thead className="bg-pn-surface-2 text-pn-ink-2">
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">Estudiante</th>
                     <th className="text-right px-3 py-2 font-medium">Parciales</th>
@@ -123,12 +123,12 @@ export function CierreDeNotasModal({
                     <th className="text-left px-3 py-2 font-medium">Resultado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-pn-line">
                   {data.filas.map((fila) => (
                     <tr key={fila.studentId} className="align-top">
                       <td className="px-3 py-2">
-                        <div className="font-medium text-gray-900">{fila.nombre}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-medium text-pn-ink">{fila.nombre}</div>
+                        <div className="text-xs text-pn-muted">
                           {fila.studentCode}
                           {fila.politica.programName
                             ? ` · ${fila.politica.programName}`
@@ -139,7 +139,7 @@ export function CierreDeNotasModal({
                             {fila.avisos.map((aviso) => (
                               <li
                                 key={aviso}
-                                className="flex items-start gap-1 text-xs text-amber-700"
+                                className="flex items-start gap-1 text-xs text-pn-warn"
                               >
                                 <AlertTriangle
                                   size={12}
@@ -157,24 +157,24 @@ export function CierreDeNotasModal({
                       </td>
                       <td className="px-3 py-2 text-right font-semibold">
                         {fila.finalGrade ?? '—'}
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-pn-muted">
                           {' '}
                           / {fila.politica.gradeScaleMax}
                         </span>
                       </td>
                       <td className="px-3 py-2">
                         {fila.passed === null ? (
-                          <span className="text-gray-500">Sin calcular</span>
+                          <span className="text-pn-muted">Sin calcular</span>
                         ) : fila.passed ? (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-pn-ok-soft text-pn-ok">
                             Aprueba
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-pn-danger-soft text-pn-danger">
                             Reprueba
                           </span>
                         )}
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <div className="text-xs text-pn-muted mt-0.5">
                           mínimo {fila.politica.passingGrade}
                         </div>
                       </td>
@@ -189,7 +189,7 @@ export function CierreDeNotasModal({
                 <div>
                   <label
                     htmlFor="obs-cierre"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-pn-ink-2 mb-1"
                   >
                     Observaciones del acta (opcional)
                   </label>
@@ -198,17 +198,17 @@ export function CierreDeNotasModal({
                     type="text"
                     value={observaciones}
                     onChange={(e) => setObservaciones(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-pn-line rounded-lg px-3 py-2"
                   />
                 </div>
 
                 {cerrar.error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                  <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
                     {mensajeDeError(cerrar.error)}
                   </div>
                 )}
                 {cerrar.data && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                  <div className="p-3 bg-pn-ok-soft border border-pn-ok rounded-lg text-sm text-pn-ok">
                     {cerrar.data.message}
                     {cerrar.data.sinCalcular.length > 0 && (
                       <ul className="mt-1 list-disc list-inside">
@@ -225,14 +225,14 @@ export function CierreDeNotasModal({
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={onCerrar}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={() => cerrar.mutate()}
                     disabled={data.totales.calculables === 0 || cerrar.isPending}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover disabled:opacity-50"
                   >
                     <Lock size={16} />
                     {cerrar.isPending
@@ -246,7 +246,7 @@ export function CierreDeNotasModal({
                 <div>
                   <label
                     htmlFor="motivo-reapertura"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-pn-ink-2 mb-1"
                   >
                     Motivo de la reapertura (queda auditado)
                   </label>
@@ -256,17 +256,17 @@ export function CierreDeNotasModal({
                     value={motivo}
                     onChange={(e) => setMotivo(e.target.value)}
                     placeholder="Ej.: se corrigió el parcial 2 de dos estudiantes"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-pn-line rounded-lg px-3 py-2"
                   />
                 </div>
 
                 {reabrir.error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                  <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
                     {mensajeDeError(reabrir.error)}
                   </div>
                 )}
                 {reabrir.data && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                  <div className="p-3 bg-pn-ok-soft border border-pn-ok rounded-lg text-sm text-pn-ok">
                     {reabrir.data.message}
                   </div>
                 )}
@@ -274,14 +274,14 @@ export function CierreDeNotasModal({
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={onCerrar}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
                   >
                     Cerrar
                   </button>
                   <button
                     onClick={() => reabrir.mutate()}
                     disabled={motivo.trim().length < 5 || reabrir.isPending}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-pn-warn text-pn-surface rounded-lg hover:bg-pn-warn disabled:opacity-50"
                   >
                     <Unlock size={16} />
                     {reabrir.isPending ? 'Reabriendo…' : 'Reabrir notas'}

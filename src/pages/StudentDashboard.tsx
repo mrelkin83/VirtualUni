@@ -1,8 +1,17 @@
 import React, { useEffect } from 'react';
+import { Bell, Mail, Moon, Sun } from 'lucide-react';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
+import { useSeccionEnUrl } from '../hooks/useSeccionEnUrl';
+import { AppShell } from '../components/layout/AppShell';
+import { NAV_ESTUDIANTE, esSeccionEstudiante } from '../components/layout/navegacion';
+import { IconButton } from '../components/ui/Button';
+import { useTheme } from '../theme';
+import type { StudentSectionType } from '../types/student.types';
 import { useAuthStore } from '../store/authStore';
-import { StudentSidebar } from '../components/student/layout/StudentSidebar';
-import { StudentHeader } from '../components/student/layout/StudentHeader';
+import { useTenantStore } from '../store/tenantStore';
+// StudentSidebar y StudentHeader quedan sin usar: los sustituye AppShell, que
+// es común a los tres roles. Los archivos siguen ahí; se retiran cuando el
+// docente y el administrador también hayan migrado.
 import { InicioSection } from '../components/student/sections/InicioSection';
 import { MiProgramaSection } from '../components/student/sections/MiProgramaSection';
 import { CursosSection } from '../components/student/sections/CursosSection';
@@ -27,12 +36,12 @@ import { MensajesDropdown } from '../components/student/dropdowns/MensajesDropdo
 
 export default function StudentDashboard() {
   const { logout } = useAuthStore();
+  const tenant = useTenantStore((s) => s.tenant);
+  const { resuelto, establecerTema } = useTheme();
   const state = useStudentDashboard();
 
   const {
     activeSection,
-    sidebarOpen,
-    darkMode,
     mensajes,
     cursos,
     tareas,
@@ -66,13 +75,9 @@ export default function StudentDashboard() {
     eventosHorario,
     certificadosData,
     solicitudesCertificadosData,
-    bg,
-    card,
-    text,
-    border,
-    setSidebarOpen,
+    // `bg` y el par sidebarOpen/setSidebarOpen ya no hacen falta: el fondo lo
+    // pone AppShell con los tokens y el cajón móvil lo gestiona él.
     setActiveSection,
-    setDarkMode,
     setNotificacionesAbiertas,
     setNuevoMensajeModal,
     setCursoDetalle,
@@ -119,6 +124,16 @@ export default function StudentDashboard() {
     subirFotoPerfil
   } = state;
 
+  // La sección vive en useState, así que la URL no cambiaba al navegar: no se
+  // podían compartir enlaces y el botón «atrás» sacaba del portal. Esto la
+  // mantiene en paralelo sin tocar cómo se pintan las secciones.
+  useSeccionEnUrl<StudentSectionType>({
+    base: '/estudiante',
+    seccion: activeSection,
+    setSeccion: setActiveSection,
+    esValida: esSeccionEstudiante,
+  });
+
   // Exam timer effect
   useEffect(() => {
     if (tiempoRestante && tiempoRestante > 0) {
@@ -159,10 +174,6 @@ export default function StudentDashboard() {
             anuncios={anunciosData}
             calificaciones={calificacionesData}
             clases={state.clases || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setCursoDetalle={setCursoDetalle}
             setActiveSection={setActiveSection}
             unirseClase={state.unirseClase}
@@ -171,7 +182,7 @@ export default function StudentDashboard() {
 
       // Autónoma: trae sus propios datos, no pasa por el hook del panel
       case 'miprograma':
-        return <MiProgramaSection darkMode={darkMode} />;
+        return <MiProgramaSection />;
 
       case 'cursos':
         return (
@@ -181,10 +192,6 @@ export default function StudentDashboard() {
             temaSeleccionado={temaSeleccionado}
             bloqueActivo={bloqueActivo}
             expandirIdeasClave={expandirIdeasClave}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setCursoDetalle={setCursoDetalle}
             setTemaSeleccionado={setTemaSeleccionado}
             setBloqueActivo={setBloqueActivo}
@@ -196,7 +203,7 @@ export default function StudentDashboard() {
       // Autónoma, igual que MiProgramaSection: pide GET /materials/my
       case 'materiales':
         return (
-          <MaterialesSection darkMode={darkMode} card={card} text={text} border={border} />
+          <MaterialesSection />
         );
 
       case 'tareas':
@@ -206,10 +213,6 @@ export default function StudentDashboard() {
             modalTarea={modalTarea}
             archivoTarea={archivoTarea}
             comentarioTarea={comentarioTarea}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setModalTarea={setModalTarea}
             setArchivoTarea={setArchivoTarea}
             setComentarioTarea={setComentarioTarea}
@@ -221,10 +224,6 @@ export default function StudentDashboard() {
         return (
           <CalificacionesSection
             calificaciones={calificacionesData}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
 
@@ -232,10 +231,6 @@ export default function StudentDashboard() {
         return (
           <MensajesSection
             mensajes={mensajes}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setConversacionActiva={setConversacionActiva}
             setNuevoMensajeModal={setNuevoMensajeModal}
           />
@@ -249,10 +244,6 @@ export default function StudentDashboard() {
             modalTramite={modalTramite}
             tipoTramite={tipoTramite}
             observacionesTramite={observacionesTramite}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setModalTramite={setModalTramite}
             setTipoTramite={setTipoTramite}
             setObservacionesTramite={setObservacionesTramite}
@@ -267,10 +258,6 @@ export default function StudentDashboard() {
           <BibliotecaSection
             libros={librosData}
             prestamos={prestamosData}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             solicitarPrestamo={solicitarPrestamo}
             devolverLibro={devolverLibro}
             reservarLibro={reservarLibro}
@@ -282,10 +269,6 @@ export default function StudentDashboard() {
           <HorariosSection
             clases={clasesHorario}
             eventos={eventosHorario}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
 
@@ -294,10 +277,6 @@ export default function StudentDashboard() {
           <CertificadosSection
             certificadosDisponibles={certificadosData}
             solicitudes={solicitudesCertificadosData}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             solicitarCertificado={solicitarCertificado}
             descargarCertificado={descargarCertificado}
           />
@@ -307,10 +286,6 @@ export default function StudentDashboard() {
         return (
           <ClasesSection
             clases={state.clases || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             unirseClase={state.unirseClase}
             verGrabacion={state.verGrabacion}
           />
@@ -332,20 +307,12 @@ export default function StudentDashboard() {
               tiempoRestante={state.tiempoRestante}
               finalizarExamen={state.finalizarExamen}
               abandonar={() => state.setExamenActivo(null)}
-              darkMode={darkMode}
-              card={card}
-              text={text}
-              border={border}
             />
           );
         }
         return (
           <ExamenesSection
             examenes={state.examenesData || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             iniciarExamen={state.iniciarExamenNuevo}
             verResultados={state.verResultadosExamen}
           />
@@ -366,10 +333,6 @@ export default function StudentDashboard() {
             compartir={state.compartir}
             crearPost={state.crearPost}
             // Props comunes
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
 
@@ -379,10 +342,6 @@ export default function StudentDashboard() {
             historialPagos={historialPagosData}
             deudasPendientes={deudasPendientesData}
             resumen={resumenFinancieroData}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             realizarPago={state.realizarPago}
           />
         );
@@ -392,10 +351,6 @@ export default function StudentDashboard() {
           <PerfilSection
             datosPerfil={datosPerfil}
             editandoPerfil={editandoPerfil}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             fotoPerfil={fotoPerfil}
             setDatosPerfil={setDatosPerfil}
             setEditandoPerfil={setEditandoPerfil}
@@ -412,10 +367,6 @@ export default function StudentDashboard() {
             anuncios={anunciosData}
             calificaciones={calificacionesData}
             clases={state.clases || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             setCursoDetalle={setCursoDetalle}
             setActiveSection={setActiveSection}
             unirseClase={state.unirseClase}
@@ -447,44 +398,67 @@ export default function StudentDashboard() {
   };
 
   const mensajesNoLeidos = mensajes.filter(m => !m.leido).length;
+  const notificacionesNoLeidas = notificaciones.filter(n => !n.leida).length;
+
+  const alternarTema = () => establecerTema(resuelto === 'dark' ? 'light' : 'dark');
 
   return (
-    <div className={`flex h-screen ${bg}`}>
-      <StudentSidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        mensajesNoLeidos={mensajesNoLeidos}
-        onLogout={logout}
-      />
+    <>
+      <AppShell<StudentSectionType>
+        grupos={NAV_ESTUDIANTE}
+        seccionActiva={activeSection}
+        onCambiarSeccion={setActiveSection}
+        titulo={getSectionTitle()}
+        marca={tenant?.name ?? 'VirtualUni'}
+        subtitulo="Portal del estudiante"
+        logo={tenant?.logo}
+        contadores={{ mensajes: mensajesNoLeidos }}
+        onSalir={logout}
+        accionesCabecera={
+          <>
+            <IconButton
+              icono={resuelto === 'dark' ? Sun : Moon}
+              etiqueta={resuelto === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
+              onClick={alternarTema}
+            />
 
-      <div className="flex-1 overflow-y-auto">
-        <StudentHeader
-          title={getSectionTitle()}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          setSidebarOpen={setSidebarOpen}
-          setNotificacionesAbiertas={setNotificacionesAbiertas}
-          setMensajesAbiertas={setMensajesAbiertas}
-          setNuevoMensajeModal={setNuevoMensajeModal}
-          mensajesNoLeidos={mensajesNoLeidos}
-          notificacionesNoLeidas={notificaciones.filter(n => !n.leida).length}
-          card={card}
-          text={text}
-        />
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Mail}
+                etiqueta="Mensajes"
+                onClick={() => setMensajesAbiertas(true)}
+              />
+              {mensajesNoLeidos > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-accent px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-accent-ink">
+                  {mensajesNoLeidos > 99 ? '99+' : mensajesNoLeidos}
+                  <span className="sr-only"> mensajes sin leer</span>
+                </span>
+              )}
+            </span>
 
-        <div className="p-6">{renderContent()}</div>
-      </div>
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Bell}
+                etiqueta="Notificaciones"
+                onClick={() => setNotificacionesAbiertas(true)}
+              />
+              {notificacionesNoLeidas > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-danger px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-surface">
+                  {notificacionesNoLeidas > 99 ? '99+' : notificacionesNoLeidas}
+                  <span className="sr-only"> notificaciones sin leer</span>
+                </span>
+              )}
+            </span>
+          </>
+        }
+      >
+        {renderContent()}
+      </AppShell>
 
       {/* Modals y Dropdowns */}
       <NuevoMensajeModal
         isOpen={nuevoMensajeModal}
         onClose={() => setNuevoMensajeModal(false)}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
         enviarMensaje={enviarMensaje}
       />
 
@@ -492,10 +466,6 @@ export default function StudentDashboard() {
         isOpen={notificacionesAbiertas}
         onClose={() => setNotificacionesAbiertas(false)}
         notificaciones={notificaciones}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
         marcarComoLeida={marcarComoLeida}
         marcarTodasComoLeidas={marcarTodasComoLeidas}
         eliminarNotificacion={eliminarNotificacion}
@@ -505,10 +475,6 @@ export default function StudentDashboard() {
         isOpen={mensajesAbiertas}
         onClose={() => setMensajesAbiertas(false)}
         mensajes={mensajes}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
         marcarComoLeido={marcarMensajeComoLeido}
         eliminarMensaje={eliminarMensaje}
         onVerMensaje={verMensaje}
@@ -527,11 +493,7 @@ export default function StudentDashboard() {
         onResponder={(_id, respuesta) =>
           enviarMensaje(mensajeDetalle?.de || '', `Re: ${mensajeDetalle?.asunto || ''}`, respuesta)
         }
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
       />
-    </div>
+    </>
   );
 }

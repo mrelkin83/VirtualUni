@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Award, Plus, Trash2 } from 'lucide-react';
 import { bloquesApi, BloqueCreateDto } from '../../../../api/endpoints/homologacion';
 import { mensajeDeError } from './errores';
+import { confirmar } from '../../../ui';
 
 interface AsignaturaDelPensum {
   id: string;
@@ -68,51 +69,51 @@ export function BloquesPanel({
   const sinBloque = asignaturas.filter((a) => !a.blockId);
 
   return (
-    <section className="space-y-3 border border-gray-200 rounded-lg p-4">
+    <section className="space-y-3 border border-pn-line rounded-lg p-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="flex items-center gap-2 font-semibold text-gray-800">
-          <Award size={16} className="text-blue-600" />
+        <h4 className="flex items-center gap-2 font-semibold text-pn-ink">
+          <Award size={16} className="text-pn-accent-text" />
           Bloques de competencia
         </h4>
         {sinBloque.length > 0 && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-pn-muted">
             {sinBloque.length} asignatura(s) sin bloque
           </span>
         )}
       </header>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-pn-ink-2">
         Al aprobar todas las asignaturas de un bloque certificable, el
         estudiante queda elegible para su certificado intermedio.
       </p>
 
-      {isLoading && <p className="text-sm text-gray-500">Cargando bloques…</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Cargando bloques…</p>}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(error)}
         </div>
       )}
 
       {bloques.length === 0 && !isLoading && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-pn-muted">
           Este pensum no tiene bloques todavía.
         </p>
       )}
 
       <ul className="space-y-2">
         {bloques.map((bloque) => (
-          <li key={bloque.id} className="border border-gray-200 rounded-lg p-3">
+          <li key={bloque.id} className="border border-pn-line rounded-lg p-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <div className="font-medium text-gray-900">
+                <div className="font-medium text-pn-ink">
                   {bloque.name}
                   {!bloque.certifiable && (
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span className="ml-2 text-xs text-pn-muted">
                       (no certificable)
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-pn-muted">
                   {bloque.asignaturas.length} asignaturas · {bloque.totalCredits}{' '}
                   créditos · {bloque.totalHours} h
                   {bloque.competencyStandardCode
@@ -126,18 +127,18 @@ export function BloquesPanel({
                     onClick={() =>
                       setEnEdicion(enEdicion === bloque.id ? null : bloque.id)
                     }
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-pn-accent-text hover:underline"
                     aria-expanded={enEdicion === bloque.id}
                   >
                     {enEdicion === bloque.id ? 'Cerrar' : 'Asignaturas'}
                   </button>
                   <button
-                    onClick={() => {
-                      if (window.confirm(`¿Eliminar el bloque "${bloque.name}"?`)) {
+                    onClick={async () => {
+                      if (await confirmar(`¿Eliminar el bloque "${bloque.name}"?`)) {
                         eliminar.mutate(bloque.id);
                       }
                     }}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    className="p-1 text-pn-danger hover:bg-pn-danger-soft rounded"
                     aria-label={`Eliminar bloque ${bloque.name}`}
                   >
                     <Trash2 size={14} />
@@ -151,7 +152,7 @@ export function BloquesPanel({
                 {bloque.asignaturas.map((a) => (
                   <li
                     key={a.studyPlanSubjectId}
-                    className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs"
+                    className="px-2 py-0.5 bg-pn-accent-soft text-pn-accent-text rounded text-xs"
                   >
                     {a.code}
                   </li>
@@ -190,12 +191,12 @@ export function BloquesPanel({
             value={nuevoNombre}
             onChange={(e) => setNuevoNombre(e.target.value)}
             placeholder="Nombre del bloque (p. ej. Contable-Financiero)"
-            className="flex-1 min-w-[220px] border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="flex-1 min-w-[220px] border border-pn-line rounded-lg px-3 py-2 text-sm"
           />
           <button
             type="submit"
             disabled={!nuevoNombre.trim() || crear.isPending}
-            className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 bg-pn-accent text-pn-accent-ink rounded-lg text-sm hover:bg-pn-accent-hover disabled:opacity-50"
           >
             <Plus size={14} />
             {crear.isPending ? 'Creando…' : 'Agregar bloque'}
@@ -204,7 +205,7 @@ export function BloquesPanel({
       )}
 
       {(crear.error || eliminar.error || asignar.error) && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(crear.error ?? eliminar.error ?? asignar.error)}
         </div>
       )}
@@ -234,10 +235,10 @@ function SelectorDeAsignaturas({
 
   return (
     <div className="mt-3 space-y-2">
-      <fieldset className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
+      <fieldset className="max-h-48 overflow-y-auto border border-pn-line rounded-lg p-2 space-y-1">
         <legend className="sr-only">Asignaturas del bloque</legend>
         {asignaturas.map((a) => (
-          <label key={a.id} className="flex items-center gap-2 text-sm text-gray-700">
+          <label key={a.id} className="flex items-center gap-2 text-sm text-pn-ink-2">
             <input
               type="checkbox"
               checked={seleccionadas.includes(a.id)}
@@ -245,7 +246,7 @@ function SelectorDeAsignaturas({
             />
             <span>
               {a.subject.code} — {a.subject.name}
-              <span className="text-xs text-gray-500"> (nivel {a.level})</span>
+              <span className="text-xs text-pn-muted"> (nivel {a.level})</span>
             </span>
           </label>
         ))}
@@ -253,7 +254,7 @@ function SelectorDeAsignaturas({
       <button
         onClick={() => onGuardar(seleccionadas)}
         disabled={guardando}
-        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+        className="px-3 py-1.5 bg-pn-accent text-pn-accent-ink rounded-lg text-sm hover:bg-pn-accent-hover disabled:opacity-50"
       >
         {guardando ? 'Guardando…' : `Guardar ${seleccionadas.length} asignaturas`}
       </button>

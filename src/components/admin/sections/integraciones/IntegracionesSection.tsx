@@ -11,6 +11,7 @@ import {
   WebhookFila,
 } from '../../../../api/endpoints/integraciones';
 import { mensajeDeError } from '../academico/errores';
+import { avisar, confirmar } from '../../../ui';
 
 /**
  * Panel "Integraciones" (§13.6): enlaces y QR, generador del widget con su
@@ -21,12 +22,12 @@ export function IntegracionesSection() {
   const [tab, setTab] = useState<'enlaces' | 'widget' | 'llaves' | 'webhooks' | 'docs'>('enlaces');
   const { data: resumen, isLoading } = useQuery({ queryKey: ['integraciones'], queryFn: integracionesApi.resumen });
 
-  if (isLoading || !resumen) return <p className="p-6 text-sm text-gray-500">Cargando integraciones…</p>;
+  if (isLoading || !resumen) return <p className="p-6 text-sm text-pn-muted">Cargando integraciones…</p>;
 
   const boton = (id: typeof tab, etiqueta: string, Icono: typeof Plug) => (
     <button
       onClick={() => setTab(id)}
-      className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${tab === id ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+      className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${tab === id ? 'bg-pn-ok text-pn-surface' : 'bg-pn-surface border border-pn-line text-pn-ink-2'}`}
     >
       <Icono size={15} /> {etiqueta}
     </button>
@@ -35,14 +36,14 @@ export function IntegracionesSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Plug className="text-emerald-600" /> Integraciones
+        <h2 className="text-2xl font-bold text-pn-ink flex items-center gap-2">
+          <Plug className="text-pn-ok" /> Integraciones
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-pn-muted">
           Conecta la web o el CRM propios de la institución con las inscripciones de VirtualUni.
         </p>
         {!resumen.tenant.enablePublicApi && !resumen.tenant.enableEmbed && (
-          <p className="mt-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-2.5">
+          <p className="mt-2 rounded-lg bg-pn-warn-soft border border-pn-warn text-pn-warn text-sm px-4 py-2.5">
             El widget y la API pública están desactivados en el plan actual; los enlaces siempre funcionan.
           </p>
         )}
@@ -75,7 +76,7 @@ function Qr({ texto }: { texto: string }) {
   useEffect(() => {
     if (ref.current) QRCode.toCanvas(ref.current, texto, { width: 112, margin: 1 }).catch(() => undefined);
   }, [texto]);
-  return <canvas ref={ref} className="rounded border border-gray-200" />;
+  return <canvas ref={ref} className="rounded border border-pn-line" />;
 }
 
 /* ------------------------------------------------------- Enlaces y QR */
@@ -89,23 +90,23 @@ function EnlacesTab({ resumen }: { resumen: ResumenIntegraciones }) {
   ];
   return (
     <div className="grid gap-3">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-pn-muted">
         Nivel 1 (§13.1): pega estos enlaces en la web actual, en afiches o en redes. Llevan utm_source
         para que el embudo muestre de dónde vino cada matriculado. Modo del sitio: {resumen.siteMode}.
       </p>
       {enlaces.map((e) => (
-        <div key={e.nombre} className="bg-white rounded-lg shadow p-4 flex items-center gap-4 flex-wrap">
+        <div key={e.nombre} className="bg-pn-surface rounded-lg shadow p-4 flex items-center gap-4 flex-wrap">
           <Qr texto={e.url} />
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-gray-900">{e.nombre}</p>
-            <p className="text-xs text-gray-500 break-all">{e.url}</p>
+            <p className="font-bold text-pn-ink">{e.nombre}</p>
+            <p className="text-xs text-pn-muted break-all">{e.url}</p>
           </div>
-          <button onClick={() => copiar(e.url)} className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-semibold flex items-center gap-2">
+          <button onClick={() => copiar(e.url)} className="px-3 py-2 rounded-lg border border-pn-line text-sm font-semibold flex items-center gap-2">
             <Copy size={14} /> Copiar
           </button>
         </div>
       ))}
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-pn-muted">
         Los enlaces de un programa o convocatoria concretos se copian desde su ficha (/programas/…slug… e /inscripcion/…slug…).
       </p>
     </div>
@@ -126,7 +127,7 @@ function WidgetTab({ resumen }: { resumen: ResumenIntegraciones }) {
         origins.split(/\s+/).map((o) => o.trim().replace(/\/$/, '')).filter(Boolean),
       ),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['integraciones'] }),
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const origen = window.location.origin;
@@ -135,10 +136,10 @@ function WidgetTab({ resumen }: { resumen: ResumenIntegraciones }) {
 
   return (
     <div className="grid gap-4">
-      <div className="bg-white rounded-lg shadow p-5 space-y-3">
-        <h3 className="font-bold text-gray-900">Generador del fragmento (nivel 2, §13.2)</h3>
+      <div className="bg-pn-surface rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-pn-ink">Generador del fragmento (nivel 2, §13.2)</h3>
         <div className="flex gap-2 flex-wrap">
-          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface">
             <option value="oferta">Catálogo de la oferta</option>
             <option value="programa">Ficha de un programa</option>
             <option value="inscripcion">Formulario de inscripción</option>
@@ -146,37 +147,37 @@ function WidgetTab({ resumen }: { resumen: ResumenIntegraciones }) {
             <option value="validar">Validación de certificados</option>
           </select>
           {(tipo === 'programa' || tipo === 'inscripcion') && (
-            <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={tipo === 'programa' ? 'slug del programa' : 'slug de la convocatoria'} className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-48" />
+            <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={tipo === 'programa' ? 'slug del programa' : 'slug de la convocatoria'} className="border border-pn-line rounded-lg px-3 py-2 text-sm flex-1 min-w-48" />
           )}
         </div>
-        <pre className="bg-gray-900 text-emerald-300 text-xs rounded-lg p-4 overflow-x-auto">{fragmento}</pre>
+        <pre className="bg-pn-ink text-pn-ok-soft text-xs rounded-lg p-4 overflow-x-auto">{fragmento}</pre>
         <div className="flex gap-2">
-          <button onClick={() => copiar(fragmento)} className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-semibold flex items-center gap-2"><Copy size={14} /> Copiar código</button>
+          <button onClick={() => copiar(fragmento)} className="px-3 py-2 rounded-lg border border-pn-line text-sm font-semibold flex items-center gap-2"><Copy size={14} /> Copiar código</button>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-pn-muted">
           La página madre puede escuchar <code>virtualuni:application_submitted</code> (CustomEvent con el código)
           para disparar sus propias conversiones de GA4/Ads/Meta.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5 space-y-3">
-        <h3 className="font-bold text-gray-900">Dominios autorizados a incrustar</h3>
-        <p className="text-xs text-gray-500">
+      <div className="bg-pn-surface rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-pn-ink">Dominios autorizados a incrustar</h3>
+        <p className="text-xs text-pn-muted">
           Uno por línea (https://www.sucolegio.edu.co). Fuera de esta lista el navegador no pinta el widget.
         </p>
-        <textarea rows={3} value={origins} onChange={(e) => setOrigins(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono" />
-        <button onClick={() => guardarOrigins.mutate()} disabled={guardarOrigins.isPending} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold disabled:opacity-50">Guardar dominios</button>
+        <textarea rows={3} value={origins} onChange={(e) => setOrigins(e.target.value)} className="w-full border border-pn-line rounded-lg px-3 py-2 text-sm font-mono" />
+        <button onClick={() => guardarOrigins.mutate()} disabled={guardarOrigins.isPending} className="px-4 py-2 rounded-lg bg-pn-accent text-pn-accent-ink text-sm font-semibold disabled:opacity-50">Guardar dominios</button>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5">
-        <h3 className="font-bold text-gray-900 mb-2">Vista previa en vivo</h3>
+      <div className="bg-pn-surface rounded-lg shadow p-5">
+        <h3 className="font-bold text-pn-ink mb-2">Vista previa en vivo</h3>
         {resumen.embedAllowedOrigins.length === 0 ? (
-          <p className="text-sm text-gray-500">Agrega al menos un dominio para activar los widgets.</p>
+          <p className="text-sm text-pn-muted">Agrega al menos un dominio para activar los widgets.</p>
         ) : (
           <iframe
             title="Vista previa del widget"
             src={`${origen}/embed/${tipo === 'programa' ? `programa/${slug}` : tipo === 'inscripcion' ? `inscripcion/${slug}` : tipo}`}
-            className="w-full h-96 rounded-lg border border-gray-200"
+            className="w-full h-96 rounded-lg border border-pn-line"
           />
         )}
       </div>
@@ -203,75 +204,75 @@ function LlavesTab({ resumen }: { resumen: ResumenIntegraciones }) {
         allowedOrigins: type === 'PUBLISHABLE' ? origins.split(/\s+/).filter(Boolean) : undefined,
       }),
     onSuccess: (r) => { setRecienCreada(r); setName(''); invalidar(); },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.ok(mensajeDeError(e)),
   });
   const rotar = useMutation({
     mutationFn: (id: string) => integracionesApi.rotarLlave(id),
     onSuccess: (r) => { setRecienCreada(r); invalidar(); },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
   const revocar = useMutation({
     mutationFn: (id: string) => integracionesApi.revocarLlave(id),
     onSuccess: invalidar,
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.ok(mensajeDeError(e)),
   });
 
   return (
     <div className="grid gap-4">
       {recienCreada?.llave && (
-        <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 p-4">
-          <p className="font-bold text-emerald-900">Guarda esta llave AHORA: no se volverá a mostrar.</p>
+        <div className="rounded-lg border-2 border-pn-ok bg-pn-ok-soft p-4">
+          <p className="font-bold text-pn-ok">Guarda esta llave AHORA: no se volverá a mostrar.</p>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <code className="bg-white rounded px-3 py-2 text-sm break-all">{recienCreada.llave}</code>
-            <button onClick={() => copiar(recienCreada.llave as string)} className="px-3 py-2 rounded-lg border border-emerald-400 text-sm font-semibold flex items-center gap-2"><Copy size={14} /> Copiar</button>
+            <code className="bg-pn-surface rounded px-3 py-2 text-sm break-all">{recienCreada.llave}</code>
+            <button onClick={() => copiar(recienCreada.llave as string)} className="px-3 py-2 rounded-lg border border-pn-ok text-sm font-semibold flex items-center gap-2"><Copy size={14} /> Copiar</button>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-5 space-y-3">
-        <h3 className="font-bold text-gray-900">Nueva llave (nivel 3, §13.3)</h3>
+      <div className="bg-pn-surface rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-pn-ink">Nueva llave (nivel 3, §13.3)</h3>
         <div className="flex gap-2 flex-wrap">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre (CRM, Web nueva…)" maxLength={80} className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-44" />
-          <select value={type} onChange={(e) => setType(e.target.value as 'PUBLISHABLE' | 'SECRET')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre (CRM, Web nueva…)" maxLength={80} className="border border-pn-line rounded-lg px-3 py-2 text-sm flex-1 min-w-44" />
+          <select value={type} onChange={(e) => setType(e.target.value as 'PUBLISHABLE' | 'SECRET')} className="border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface">
             <option value="SECRET">Secreta (sk_, servidor a servidor)</option>
             <option value="PUBLISHABLE">Publicable (pk_, navegador, solo lectura)</option>
           </select>
-          <label className="flex items-center gap-1.5 text-sm text-gray-700">
+          <label className="flex items-center gap-1.5 text-sm text-pn-ink-2">
             <input type="checkbox" checked={testMode} onChange={(e) => setTestMode(e.target.checked)} /> modo prueba
           </label>
-          <button onClick={() => name.trim() && crear.mutate()} disabled={crear.isPending || !name.trim()} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><Plus size={14} /> Crear</button>
+          <button onClick={() => name.trim() && crear.mutate()} disabled={crear.isPending || !name.trim()} className="px-4 py-2 rounded-lg bg-pn-accent text-pn-accent-ink text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><Plus size={14} /> Crear</button>
         </div>
         {type === 'PUBLISHABLE' && (
-          <input value={origins} onChange={(e) => setOrigins(e.target.value)} placeholder="Orígenes autorizados separados por espacio (https://www.sitio.edu.co)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <input value={origins} onChange={(e) => setOrigins(e.target.value)} placeholder="Orígenes autorizados separados por espacio (https://www.sitio.edu.co)" className="w-full border border-pn-line rounded-lg px-3 py-2 text-sm" />
         )}
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-pn-muted">
           Scopes publicables: {resumen.scopes.publishable.join(', ')} · Scopes secretos: {resumen.scopes.secret.join(', ')}
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-pn-surface rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+          <thead className="bg-pn-surface-2 text-left text-xs text-pn-muted uppercase">
             <tr><th className="px-4 py-2.5">Nombre</th><th className="px-4 py-2.5">Llave</th><th className="px-4 py-2.5">Tipo</th><th className="px-4 py-2.5">Último uso</th><th className="px-4 py-2.5 text-right">Acciones</th></tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-pn-line">
             {(llaves ?? []).map((k) => (
               <tr key={k.id} className={k.revokedAt ? 'opacity-50' : ''}>
-                <td className="px-4 py-2.5 font-semibold text-gray-800">{k.name}{k.testMode && <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">TEST</span>}</td>
+                <td className="px-4 py-2.5 font-semibold text-pn-ink">{k.name}{k.testMode && <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-pn-warn-soft text-pn-warn">TEST</span>}</td>
                 <td className="px-4 py-2.5 font-mono text-xs">{k.prefix}…</td>
                 <td className="px-4 py-2.5 text-xs">{k.type === 'SECRET' ? 'Secreta' : 'Publicable'}</td>
-                <td className="px-4 py-2.5 text-xs text-gray-500">{k.revokedAt ? 'REVOCADA' : k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString('es-CO') : 'nunca'}</td>
+                <td className="px-4 py-2.5 text-xs text-pn-muted">{k.revokedAt ? 'REVOCADA' : k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString('es-CO') : 'nunca'}</td>
                 <td className="px-4 py-2.5 text-right">
                   {!k.revokedAt && (
                     <>
-                      <button onClick={() => confirm('¿Rotar? La llave actual deja de funcionar y se emite una nueva.') && rotar.mutate(k.id)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded" title="Rotar"><RefreshCcw size={15} /></button>
-                      <button onClick={() => confirm('¿Revocar esta llave? Las integraciones que la usen fallarán.') && revocar.mutate(k.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Revocar"><Trash2 size={15} /></button>
+                      <button onClick={async () => await confirmar('¿Rotar? La llave actual deja de funcionar y se emite una nueva.') && rotar.mutate(k.id)} className="p-1.5 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded" title="Rotar"><RefreshCcw size={15} /></button>
+                      <button onClick={async () => await confirmar('¿Revocar esta llave? Las integraciones que la usen fallarán.') && revocar.mutate(k.id)} className="p-1.5 text-pn-danger hover:bg-pn-danger-soft rounded" title="Revocar"><Trash2 size={15} /></button>
                     </>
                   )}
                 </td>
               </tr>
             ))}
-            {(llaves ?? []).length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Sin llaves todavía.</td></tr>}
+            {(llaves ?? []).length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-pn-muted">Sin llaves todavía.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -293,7 +294,7 @@ function WebhooksTab({ resumen }: { resumen: ResumenIntegraciones }) {
   const crear = useMutation({
     mutationFn: () => integracionesApi.crearWebhook({ url, events: eventos }),
     onSuccess: (r) => { setSecretoNuevo(r.secreto ?? null); setUrl(''); invalidar(); },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
   const accion = useMutation({
     mutationFn: async ({ id, que }: { id: string; que: 'activar' | 'desactivar' | 'eliminar' | 'prueba' }): Promise<unknown> => {
@@ -302,25 +303,25 @@ function WebhooksTab({ resumen }: { resumen: ResumenIntegraciones }) {
       return integracionesApi.actualizarWebhook(id, { active: que === 'activar' });
     },
     onSuccess: () => { invalidar(); queryClient.invalidateQueries({ queryKey: ['integraciones-entregas'] }); },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   return (
     <div className="grid gap-4">
       {secretoNuevo && (
-        <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 p-4">
-          <p className="font-bold text-emerald-900">Secreto HMAC del webhook (verifica la cabecera VirtualUni-Signature): guárdalo, no se repite.</p>
-          <code className="mt-1 inline-block bg-white rounded px-3 py-2 text-sm break-all">{secretoNuevo}</code>
-          <button onClick={() => copiar(secretoNuevo)} className="ml-2 px-3 py-2 rounded-lg border border-emerald-400 text-sm font-semibold"><Copy size={13} className="inline mr-1" />Copiar</button>
+        <div className="rounded-lg border-2 border-pn-ok bg-pn-ok-soft p-4">
+          <p className="font-bold text-pn-ok">Secreto HMAC del webhook (verifica la cabecera VirtualUni-Signature): guárdalo, no se repite.</p>
+          <code className="mt-1 inline-block bg-pn-surface rounded px-3 py-2 text-sm break-all">{secretoNuevo}</code>
+          <button onClick={() => copiar(secretoNuevo)} className="ml-2 px-3 py-2 rounded-lg border border-pn-ok text-sm font-semibold"><Copy size={13} className="inline mr-1" />Copiar</button>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-5 space-y-3">
-        <h3 className="font-bold text-gray-900">Nuevo webhook (§13.4)</h3>
-        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://su-servidor.edu.co/virtualuni/webhook" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+      <div className="bg-pn-surface rounded-lg shadow p-5 space-y-3">
+        <h3 className="font-bold text-pn-ink">Nuevo webhook (§13.4)</h3>
+        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://su-servidor.edu.co/virtualuni/webhook" className="w-full border border-pn-line rounded-lg px-3 py-2 text-sm" />
         <div className="flex gap-x-4 gap-y-1.5 flex-wrap">
           {resumen.eventos.map((ev) => (
-            <label key={ev} className="flex items-center gap-1.5 text-xs text-gray-700">
+            <label key={ev} className="flex items-center gap-1.5 text-xs text-pn-ink-2">
               <input
                 type="checkbox"
                 checked={eventos.includes(ev)}
@@ -330,30 +331,30 @@ function WebhooksTab({ resumen }: { resumen: ResumenIntegraciones }) {
             </label>
           ))}
         </div>
-        <button onClick={() => url.trim() && eventos.length && crear.mutate()} disabled={crear.isPending || !url.trim() || !eventos.length} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><Plus size={14} /> Crear webhook</button>
+        <button onClick={() => url.trim() && eventos.length && crear.mutate()} disabled={crear.isPending || !url.trim() || !eventos.length} className="px-4 py-2 rounded-lg bg-pn-accent text-pn-accent-ink text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><Plus size={14} /> Crear webhook</button>
       </div>
 
       <div className="grid gap-3">
         {(webhooks ?? []).map((w: WebhookFila) => (
-          <div key={w.id} className="bg-white rounded-lg shadow p-4">
+          <div key={w.id} className="bg-pn-surface rounded-lg shadow p-4">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div className="min-w-0">
-                <p className="font-mono text-sm text-gray-900 break-all">{w.url}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{w.events.join(' · ')}</p>
-                {w.failureCount > 0 && <p className="text-xs text-red-600 mt-0.5">{w.failureCount} fallo(s) seguidos{!w.active && ' — desactivado automáticamente'}</p>}
+                <p className="font-mono text-sm text-pn-ink break-all">{w.url}</p>
+                <p className="text-xs text-pn-muted mt-0.5">{w.events.join(' · ')}</p>
+                {w.failureCount > 0 && <p className="text-xs text-pn-danger mt-0.5">{w.failureCount} fallo(s) seguidos{!w.active && ' — desactivado automáticamente'}</p>}
               </div>
               <div className="flex gap-1.5 items-center shrink-0">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${w.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>{w.active ? 'Activo' : 'Inactivo'}</span>
-                <button onClick={() => accion.mutate({ id: w.id, que: 'prueba' })} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded" title="Enviar evento de prueba"><Send size={15} /></button>
-                <button onClick={() => accion.mutate({ id: w.id, que: w.active ? 'desactivar' : 'activar' })} className="px-2.5 py-1 rounded border border-gray-300 text-xs font-semibold">{w.active ? 'Pausar' : 'Activar'}</button>
-                <button onClick={() => setVerEntregas(verEntregas === w.id ? null : w.id)} className="px-2.5 py-1 rounded border border-gray-300 text-xs font-semibold">Entregas</button>
-                <button onClick={() => confirm('¿Eliminar el webhook?') && accion.mutate({ id: w.id, que: 'eliminar' })} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${w.active ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-surface-3 text-pn-ink-2'}`}>{w.active ? 'Activo' : 'Inactivo'}</span>
+                <button onClick={() => accion.mutate({ id: w.id, que: 'prueba' })} className="p-1.5 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded" title="Enviar evento de prueba"><Send size={15} /></button>
+                <button onClick={() => accion.mutate({ id: w.id, que: w.active ? 'desactivar' : 'activar' })} className="px-2.5 py-1 rounded border border-pn-line text-xs font-semibold">{w.active ? 'Pausar' : 'Activar'}</button>
+                <button onClick={() => setVerEntregas(verEntregas === w.id ? null : w.id)} className="px-2.5 py-1 rounded border border-pn-line text-xs font-semibold">Entregas</button>
+                <button onClick={async () => await confirmar('¿Eliminar el webhook?') && accion.mutate({ id: w.id, que: 'eliminar' })} className="p-1.5 text-pn-danger hover:bg-pn-danger-soft rounded"><Trash2 size={15} /></button>
               </div>
             </div>
             {verEntregas === w.id && <Entregas endpointId={w.id} />}
           </div>
         ))}
-        {(webhooks ?? []).length === 0 && <p className="text-center text-gray-500 py-8">Sin webhooks configurados.</p>}
+        {(webhooks ?? []).length === 0 && <p className="text-center text-pn-muted py-8">Sin webhooks configurados.</p>}
       </div>
     </div>
   );
@@ -368,21 +369,21 @@ function Entregas({ endpointId }: { endpointId: string }) {
   const reenviar = useMutation({
     mutationFn: (id: string) => integracionesApi.reenviar(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['integraciones-entregas', endpointId] }),
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
   return (
-    <div className="mt-3 border-t border-gray-100 pt-2 text-xs">
+    <div className="mt-3 border-t border-pn-line pt-2 text-xs">
       {(data ?? []).map((d) => (
         <div key={d.id} className="flex items-center justify-between gap-2 py-1.5">
           <span className="font-mono">{d.eventType}</span>
-          <span className="text-gray-500">{new Date(d.createdAt).toLocaleString('es-CO')}</span>
-          <span className={d.deliveredAt ? 'text-emerald-700 font-bold' : 'text-amber-700'}>
+          <span className="text-pn-muted">{new Date(d.createdAt).toLocaleString('es-CO')}</span>
+          <span className={d.deliveredAt ? 'text-pn-ok font-bold' : 'text-pn-warn'}>
             {d.deliveredAt ? `entregado (HTTP ${d.responseCode})` : `intento ${d.attempt}${d.lastError ? ` · ${d.lastError.slice(0, 40)}` : ''}`}
           </span>
-          <button onClick={() => reenviar.mutate(d.id)} className="px-2 py-0.5 rounded border border-gray-300 font-semibold">Reenviar</button>
+          <button onClick={() => reenviar.mutate(d.id)} className="px-2 py-0.5 rounded border border-pn-line font-semibold">Reenviar</button>
         </div>
       ))}
-      {(data ?? []).length === 0 && <p className="text-gray-400 py-2">Sin entregas aún.</p>}
+      {(data ?? []).length === 0 && <p className="text-pn-muted py-2">Sin entregas aún.</p>}
     </div>
   );
 }
@@ -392,19 +393,19 @@ function Entregas({ endpointId }: { endpointId: string }) {
 function DocsTab() {
   const origen = window.location.origin;
   return (
-    <div className="bg-white rounded-lg shadow p-5 space-y-4 max-w-2xl">
-      <h3 className="font-bold text-gray-900">Documentación para desarrolladores</h3>
-      <a href={`${origen}/public/docs`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold">
+    <div className="bg-pn-surface rounded-lg shadow p-5 space-y-4 max-w-2xl">
+      <h3 className="font-bold text-pn-ink">Documentación para desarrolladores</h3>
+      <a href={`${origen}/public/docs`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-pn-ok text-pn-surface text-sm font-bold">
         <BookOpen size={16} /> Abrir la referencia de /public/v1 (OpenAPI)
       </a>
-      <div className="text-sm text-gray-600 space-y-2">
-        <p className="font-semibold text-gray-800">Guía rápida para WordPress (y cualquier web):</p>
+      <div className="text-sm text-pn-ink-2 space-y-2">
+        <p className="font-semibold text-pn-ink">Guía rápida para WordPress (y cualquier web):</p>
         <ol className="list-decimal ml-5 space-y-1">
           <li>En la pestaña <strong>Widget</strong>, agrega el dominio del sitio y copia el fragmento.</li>
           <li>Pégalo en un bloque "HTML personalizado" de la página de admisiones.</li>
           <li>Opcional: escucha <code>virtualuni:application_submitted</code> para tus conversiones.</li>
         </ol>
-        <p className="font-semibold text-gray-800 pt-2">Para el equipo de desarrollo:</p>
+        <p className="font-semibold text-pn-ink pt-2">Para el equipo de desarrollo:</p>
         <ul className="list-disc ml-5 space-y-1">
           <li>Llave <code>sk_</code> solo en el servidor; con <code>pk_</code> el navegador puede leer el catálogo.</li>
           <li>Todos los POST llevan <code>Idempotency-Key</code>.</li>

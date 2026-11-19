@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
 import { Download, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { attendanceApi } from '../../../api/endpoints/attendance';
+import { avisar } from '../../ui';
 
 interface AsistenciaSectionProps {
   estudiantes: any[];
   cursos: any[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
   estudiantes,
   cursos,
-  darkMode,
-  card,
-  text,
-  border
 }) => {
   const [cursoSeleccionado, setCursoSeleccionado] = useState('todos');
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
@@ -34,12 +27,12 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
   const handleGuardarAsistencia = async () => {
     const entradas = Object.entries(asistencia);
     if (entradas.length === 0) {
-      alert('Marca la asistencia de al menos un estudiante.');
+      avisar.info('Marca la asistencia de al menos un estudiante.');
       return;
     }
 
     if (cursoSeleccionado === 'todos') {
-      alert('Selecciona un curso específico para guardar la asistencia.');
+      avisar.info('Selecciona un curso específico para guardar la asistencia.');
       return;
     }
 
@@ -56,26 +49,26 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
           fecha: fechaSeleccionada,
           registros,
         });
-        alert(`Asistencia guardada en el servidor: ${data?.registrados ?? registros.length} estudiantes (${fechaSeleccionada})`);
+        avisar.ok(`Asistencia guardada en el servidor: ${data?.registrados ?? registros.length} estudiantes (${fechaSeleccionada})`);
         return;
       } catch (err: any) {
         console.error('Error guardando asistencia:', err);
-        alert(`No se pudo guardar en el servidor (${err?.message || 'error de conexión'}).`);
+        avisar.error(`No se pudo guardar en el servidor (${err?.message || 'error de conexión'}).`);
         return;
       } finally {
         setGuardando(false);
       }
     }
 
-    alert(`Asistencia guardada para ${entradas.length} estudiantes`);
+    avisar.ok(`Asistencia guardada para ${entradas.length} estudiantes`);
   };
 
   const getEstadoColor = (estado?: string) => {
     switch (estado) {
-      case 'presente': return 'bg-green-100 text-green-800';
-      case 'ausente': return 'bg-red-100 text-red-800';
-      case 'tarde': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'presente': return 'bg-pn-ok-soft text-pn-ok';
+      case 'ausente': return 'bg-pn-danger-soft text-pn-danger';
+      case 'tarde': return 'bg-pn-warn-soft text-pn-warn';
+      default: return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
@@ -92,14 +85,14 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  /** Exporta lo que la tabla muestra; antes el boton era alert('Exportar asistencia'). */
+  /** Exporta lo que la tabla muestra; antes el boton era avisar.error('Exportar asistencia'). */
   const exportarAsistenciaCsv = () => {
     if (!estudiantes.length) {
-      alert('No hay estudiantes para exportar.');
+      avisar.error('No hay estudiantes para exportar.');
       return;
     }
     descargarCsv(`asistencia-${fechaSeleccionada || 'hoy'}.csv`, [
-      ['Estudiante', 'Email', 'Curso', 'Estado'],
+ ['Estudiante', 'Email', 'Curso', 'Estado'],
       ...estudiantes.map((e: any) => [e.nombre, e.email ?? '', e.curso ?? '', asistencia[e.id] ?? 'sin marcar']),
     ]);
   };
@@ -108,12 +101,12 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Control de Asistencia</h2>
-          <p className="text-gray-500 mt-1">Registra y consulta la asistencia de tus estudiantes</p>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Control de Asistencia</h2>
+          <p className="text-pn-muted mt-1">Registra y consulta la asistencia de tus estudiantes</p>
         </div>
         <button
           onClick={exportarAsistenciaCsv}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Download size={18} />
           Exportar
@@ -121,14 +114,14 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
       </div>
 
       {/* Filtros */}
-      <div className={`${card} rounded-lg shadow p-6`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className={`block text-sm font-medium ${text} mb-2`}>Curso</label>
+            <label className={`block text-sm font-medium text-pn-ink mb-2`}>Curso</label>
             <select
               value={cursoSeleccionado}
               onChange={(e) => setCursoSeleccionado(e.target.value)}
-              className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+              className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
             >
               <option value="todos">Todos los Cursos</option>
               {cursos.map(curso => (
@@ -137,19 +130,19 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
             </select>
           </div>
           <div>
-            <label className={`block text-sm font-medium ${text} mb-2`}>Fecha</label>
+            <label className={`block text-sm font-medium text-pn-ink mb-2`}>Fecha</label>
             <input
               type="date"
               value={fechaSeleccionada}
               onChange={(e) => setFechaSeleccionada(e.target.value)}
-              className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+              className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
             />
           </div>
           <div className="flex items-end">
             <button
               onClick={handleGuardarAsistencia}
               disabled={guardando}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg"
+              className="w-full bg-pn-ok hover:bg-pn-ok disabled:opacity-50 text-pn-surface px-4 py-2 rounded-lg"
             >
               {guardando ? 'Guardando...' : 'Guardar Asistencia'}
             </button>
@@ -158,29 +151,29 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
       </div>
 
       {/* Tabla de Asistencia */}
-      <div className={`${card} rounded-lg shadow overflow-hidden`}>
-        <div className="p-6 border-b ${border}">
-          <h3 className={`text-lg font-bold ${text}`}>Registro de Asistencia</h3>
-          <p className="text-sm text-gray-500 mt-1">
+      <div className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
+        <div className="p-6 border-b border-pn-line">
+          <h3 className={`text-lg font-bold text-pn-ink`}>Registro de Asistencia</h3>
+          <p className="text-sm text-pn-muted mt-1">
             {new Date(fechaSeleccionada).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+            <thead className={'bg-pn-surface-2'}>
               <tr>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Estudiante</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Curso</th>
-                <th className={`px-6 py-3 text-center text-xs font-medium ${text} uppercase tracking-wider`}>Estado</th>
-                <th className={`px-6 py-3 text-center text-xs font-medium ${text} uppercase tracking-wider`}>Acciones</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Estudiante</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Curso</th>
+                <th className={`px-6 py-3 text-center text-xs font-medium text-pn-ink uppercase tracking-wider`}>Estado</th>
+                <th className={`px-6 py-3 text-center text-xs font-medium text-pn-ink uppercase tracking-wider`}>Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y ${border}">
+            <tbody className="divide-y border-pn-line">
               {estudiantes.map((estudiante) => (
-                <tr key={estudiante.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr key={estudiante.id} className="hover:bg-pn-surface-2">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-medium">{estudiante.nombre}</div>
-                    <div className="text-sm text-gray-500">{estudiante.email}</div>
+                    <div className="text-sm text-pn-muted">{estudiante.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{estudiante.curso}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -192,24 +185,24 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
                     <div className="flex justify-center gap-2">
                       <button
                         onClick={() => handleMarcarAsistencia(estudiante.id, 'presente')}
-                        className={`p-2 rounded hover:bg-green-100 ${asistencia[estudiante.id] === 'presente' ? 'bg-green-200' : ''}`}
+                        className={`p-2 rounded hover:bg-pn-ok-soft ${asistencia[estudiante.id] === 'presente' ? 'bg-pn-ok-soft' : ''}`}
                         title="Presente"
                       >
-                        <CheckCircle size={18} className="text-green-600" />
+                        <CheckCircle size={18} className="text-pn-ok" />
                       </button>
                       <button
                         onClick={() => handleMarcarAsistencia(estudiante.id, 'tarde')}
-                        className={`p-2 rounded hover:bg-yellow-100 ${asistencia[estudiante.id] === 'tarde' ? 'bg-yellow-200' : ''}`}
+                        className={`p-2 rounded hover:bg-pn-warn-soft ${asistencia[estudiante.id] === 'tarde' ? 'bg-pn-warn-soft' : ''}`}
                         title="Tarde"
                       >
-                        <Clock size={18} className="text-yellow-600" />
+                        <Clock size={18} className="text-pn-warn" />
                       </button>
                       <button
                         onClick={() => handleMarcarAsistencia(estudiante.id, 'ausente')}
-                        className={`p-2 rounded hover:bg-red-100 ${asistencia[estudiante.id] === 'ausente' ? 'bg-red-200' : ''}`}
+                        className={`p-2 rounded hover:bg-pn-danger-soft ${asistencia[estudiante.id] === 'ausente' ? 'bg-pn-danger-soft' : ''}`}
                         title="Ausente"
                       >
-                        <XCircle size={18} className="text-red-600" />
+                        <XCircle size={18} className="text-pn-danger" />
                       </button>
                     </div>
                   </td>
@@ -222,32 +215,32 @@ export const AsistenciaSection: React.FC<AsistenciaSectionProps> = ({
 
       {/* Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between">
-            <CheckCircle className="text-green-600" size={32} />
-            <span className="text-3xl font-bold text-green-600">
+            <CheckCircle className="text-pn-ok" size={32} />
+            <span className="text-3xl font-bold text-pn-ok">
               {Object.values(asistencia).filter(a => a === 'presente').length}
             </span>
           </div>
-          <h3 className={`font-semibold ${text} mt-2`}>Presentes</h3>
+          <h3 className={`font-semibold text-pn-ink mt-2`}>Presentes</h3>
         </div>
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between">
-            <Clock className="text-yellow-600" size={32} />
-            <span className="text-3xl font-bold text-yellow-600">
+            <Clock className="text-pn-warn" size={32} />
+            <span className="text-3xl font-bold text-pn-warn">
               {Object.values(asistencia).filter(a => a === 'tarde').length}
             </span>
           </div>
-          <h3 className={`font-semibold ${text} mt-2`}>Tardanzas</h3>
+          <h3 className={`font-semibold text-pn-ink mt-2`}>Tardanzas</h3>
         </div>
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between">
-            <XCircle className="text-red-600" size={32} />
-            <span className="text-3xl font-bold text-red-600">
+            <XCircle className="text-pn-danger" size={32} />
+            <span className="text-3xl font-bold text-pn-danger">
               {Object.values(asistencia).filter(a => a === 'ausente').length}
             </span>
           </div>
-          <h3 className={`font-semibold ${text} mt-2`}>Ausentes</h3>
+          <h3 className={`font-semibold text-pn-ink mt-2`}>Ausentes</h3>
         </div>
       </div>
     </div>

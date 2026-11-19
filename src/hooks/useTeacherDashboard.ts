@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { avisar, confirmar } from '../components/ui';
 import {
   teacherCoursesApi,
   teacherStudentsApi,
@@ -28,7 +29,6 @@ export const useTeacherDashboard = () => {
   // Navigation & UI state
   const [activeSection, setActiveSection] = useState<SectionType>('inicio');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Data state.
   //
@@ -97,10 +97,6 @@ export const useTeacherDashboard = () => {
   const [asistenciaEstudiantes, setAsistenciaEstudiantes] = useState<any>({});
 
   // Theme classes
-  const bg = darkMode ? 'bg-gray-900' : 'bg-gray-100';
-  const card = darkMode ? 'bg-gray-800' : 'bg-white';
-  const text = darkMode ? 'text-gray-100' : 'text-gray-800';
-  const border = darkMode ? 'border-gray-700' : 'border-gray-200';
 
   // Loading and Error States
   const [loading, setLoading] = useState(false);
@@ -163,12 +159,12 @@ export const useTeacherDashboard = () => {
           // los campos las tarjetas salen en blanco. Se conserva el resto del
           // curso (id uuid, subjectId) porque de ahi cuelgan los materiales.
           const COLORES = [
-            'bg-blue-500',
-            'bg-green-500',
-            'bg-orange-500',
-            'bg-purple-500',
-            'bg-pink-500',
-            'bg-teal-500',
+            'bg-pn-accent',
+            'bg-pn-ok',
+            'bg-pn-warn',
+            'bg-pn-accent-2',
+            'bg-pn-accent-2',
+            'bg-pn-ok',
           ];
           setCursos(
             comoArreglo<any>(coursesData.value).map((c, i) => ({
@@ -325,7 +321,7 @@ export const useTeacherDashboard = () => {
     const grupo = grupos.find(g => g.id === grupoId);
     if (!grupo) return;
 
-    alert(`Detalle del Grupo:\n\nNombre: ${grupo.nombre}\nCódigo: ${grupo.codigo}\nCurso: ${grupo.curso}\nEstudiantes: ${grupo.estudiantesActivos}/${grupo.estudiantesTotales}\nProgreso: ${grupo.progreso}%\nHorario: ${grupo.horario}\nAula: ${grupo.aula}\nPróxima clase: ${grupo.proximaClase}`);
+    avisar.info(`Detalle del Grupo:\n\nNombre: ${grupo.nombre}\nCódigo: ${grupo.codigo}\nCurso: ${grupo.curso}\nEstudiantes: ${grupo.estudiantesActivos}/${grupo.estudiantesTotales}\nProgreso: ${grupo.progreso}%\nHorario: ${grupo.horario}\nAula: ${grupo.aula}\nPróxima clase: ${grupo.proximaClase}`);
     setGrupoSeleccionado(grupo);
   };
 
@@ -335,7 +331,7 @@ export const useTeacherDashboard = () => {
 
     const mensaje = prompt(`Enviar mensaje a todos los estudiantes del ${grupo.nombre}:\n\n(Escribe tu mensaje)`);
     if (mensaje && mensaje.trim()) {
-      alert(`Mensaje enviado a ${grupo.estudiantesActivos} estudiantes del ${grupo.nombre}:\n\n"${mensaje}"`);
+      avisar.ok(`Mensaje enviado a ${grupo.estudiantesActivos} estudiantes del ${grupo.nombre}:\n\n"${mensaje}"`);
       // El aviso decía "mensaje enviado a N estudiantes" y no salía ninguno.
       // No hay envío a grupo en la API, así que se manda uno por integrante.
       const integrantes: any[] = (grupo as any).estudiantes ?? [];
@@ -344,7 +340,7 @@ export const useTeacherDashboard = () => {
         .filter(Boolean);
 
       if (destinatarios.length === 0) {
-        alert('Este grupo no tiene integrantes con cuenta a los que escribir.');
+        avisar.error('Este grupo no tiene integrantes con cuenta a los que escribir.');
       } else {
         Promise.allSettled(
           destinatarios.map((id: string) =>
@@ -356,7 +352,7 @@ export const useTeacherDashboard = () => {
           ),
         ).then((res) => {
           const fallos = res.filter((r) => r.status === 'rejected').length;
-          if (fallos) alert(`${fallos} de ${destinatarios.length} mensajes no se pudieron enviar.`);
+          if (fallos) avisar.error(`${fallos} de ${destinatarios.length} mensajes no se pudieron enviar.`);
         });
       }
 
@@ -389,11 +385,11 @@ export const useTeacherDashboard = () => {
           color: grupoData.color || undefined,
         });
         setGrupos([...grupos, mapGrupoApi(data)] as any);
-        alert(`Grupo "${grupoData.nombre}" creado exitosamente!`);
+        avisar.ok(`Grupo "${grupoData.nombre}" creado exitosamente!`);
         return;
       } catch (err: any) {
         console.error('Error creando grupo en el servidor:', err);
-        alert(
+        avisar.error(
           `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
         );
       }
@@ -409,14 +405,14 @@ export const useTeacherDashboard = () => {
       progreso: 0,
       horario: grupoData.horario || 'Por definir',
       aula: grupoData.aula || 'Por asignar',
-      color: grupoData.color || 'bg-blue-500',
+      color: grupoData.color || 'bg-pn-accent',
       proximaClase: grupoData.proximaClase || 'Por programar',
       estudiantes: [],
       tareas: []
     };
 
     setGrupos([...grupos, nuevoGrupo] as any);
-    alert(`Grupo "${grupoData.nombre}" creado exitosamente!`);
+    avisar.ok(`Grupo "${grupoData.nombre}" creado exitosamente!`);
   };
 
   const editarGrupo = async (grupoId: number | string, grupoData: any) => {
@@ -433,7 +429,7 @@ export const useTeacherDashboard = () => {
         });
       } catch (err: any) {
         console.error('Error actualizando grupo en el servidor:', err);
-        alert(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
@@ -452,7 +448,7 @@ export const useTeacherDashboard = () => {
           }
         : g
     ) as any);
-    alert(`Grupo "${grupoData.nombre}" actualizado exitosamente!`);
+    avisar.ok(`Grupo "${grupoData.nombre}" actualizado exitosamente!`);
   };
 
   const eliminarGrupo = async (grupoId: number | string) => {
@@ -464,13 +460,13 @@ export const useTeacherDashboard = () => {
         await groupsApi.delete(grupoId);
       } catch (err: any) {
         console.error('Error eliminando grupo en el servidor:', err);
-        alert(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
 
     setGrupos((grupos as any[]).filter(g => g.id !== grupoId) as any);
-    alert(`Grupo "${grupo.nombre}" eliminado exitosamente.`);
+    avisar.ok(`Grupo "${grupo.nombre}" eliminado exitosamente.`);
   };
 
   const asignarEstudiantes = (grupoId: number, estudianteIds: number[]) => {
@@ -484,7 +480,7 @@ export const useTeacherDashboard = () => {
     groupsApi
       .addMembers(String(grupoId), estudiantesAsignados.map((e: any) => String(e.id)))
       .catch((err: any) =>
-        alert('No se pudieron asignar los estudiantes: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudieron asignar los estudiantes: ' + (err?.message || 'error de conexión')),
       );
 
     setGrupos(grupos.map(g =>
@@ -498,7 +494,7 @@ export const useTeacherDashboard = () => {
         : g
     ));
 
-    alert(`${estudiantesAsignados.length} estudiante${estudiantesAsignados.length !== 1 ? 's' : ''} asignado${estudiantesAsignados.length !== 1 ? 's' : ''} al grupo "${grupo.nombre}" exitosamente!`);
+    avisar.ok(`${estudiantesAsignados.length} estudiante${estudiantesAsignados.length !== 1 ? 's' : ''} asignado${estudiantesAsignados.length !== 1 ? 's' : ''} al grupo "${grupo.nombre}" exitosamente!`);
   };
 
   const eliminarEstudianteDeGrupo = (grupoId: number, estudianteId: number) => {
@@ -511,7 +507,7 @@ export const useTeacherDashboard = () => {
     groupsApi
       .removeMember(String(grupoId), String(estudianteId))
       .catch((err: any) =>
-        alert('No se pudo sacar del grupo: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo sacar del grupo: ' + (err?.message || 'error de conexión')),
       );
 
     setGrupos(grupos.map(g =>
@@ -525,7 +521,7 @@ export const useTeacherDashboard = () => {
         : g
     ));
 
-    alert(`"${estudiante.nombre}" eliminado del grupo "${grupo.nombre}".`);
+    avisar.ok(`"${estudiante.nombre}" eliminado del grupo "${grupo.nombre}".`);
   };
 
   const crearTareaGrupal = (grupoId: number, tareaData: any) => {
@@ -559,10 +555,10 @@ export const useTeacherDashboard = () => {
           fechaLimite: tareaData.fechaEntrega,
         } as any)
         .catch((err: any) =>
-          alert('No se pudo crear la tarea: ' + (err?.message || 'error de conexión')),
+          avisar.error('No se pudo crear la tarea: ' + (err?.message || 'error de conexión')),
         );
     } else {
-      alert('No se pudo identificar el curso del grupo; la tarea no se guardó.');
+      avisar.error('No se pudo identificar el curso del grupo; la tarea no se guardó.');
     }
 
     setTareas([...tareas, nuevaTarea as any]);
@@ -576,7 +572,7 @@ export const useTeacherDashboard = () => {
         : g
     ));
 
-    alert(`Tarea grupal "${tareaData.titulo}" creada exitosamente para el grupo "${grupo.nombre}"!\n\nSe notificará a ${grupo.estudiantesActivos} estudiante${grupo.estudiantesActivos !== 1 ? 's' : ''}.`);
+    avisar.ok(`Tarea grupal "${tareaData.titulo}" creada exitosamente para el grupo "${grupo.nombre}"!\n\nSe notificará a ${grupo.estudiantesActivos} estudiante${grupo.estudiantesActivos !== 1 ? 's' : ''}.`);
   };
 
   // Aqui vivian crearCurso/editarCurso/eliminarCurso/archivarCurso: mutaban
@@ -608,7 +604,7 @@ export const useTeacherDashboard = () => {
     };
 
     setEstudiantes([...estudiantes, nuevoEstudiante]);
-    alert(`Estudiante "${nombre}" agregado exitosamente!`);
+    avisar.ok(`Estudiante "${nombre}" agregado exitosamente!`);
   };
 
   const editarEstudiante = (estudianteId: number) => {
@@ -620,7 +616,7 @@ export const useTeacherDashboard = () => {
       setEstudiantes(estudiantes.map(e =>
         e.id === estudianteId ? { ...e, email: nuevoEmail } : e
       ));
-      alert('Estudiante actualizado exitosamente!');
+      avisar.ok('Estudiante actualizado exitosamente!');
     }
   };
 
@@ -633,7 +629,7 @@ export const useTeacherDashboard = () => {
     // recargar. Dar de baja a alguien de la institución es competencia de la
     // administración -- el backend responde 403 a un docente --, así que se
     // dice en claro en lugar de aparentar una baja que no ocurre.
-    alert(
+    avisar.info(
       `Los docentes no pueden dar de baja a un estudiante de la institución.\n\n` +
       `Si "${estudiante.nombre}" debe salir de tu curso, pide a la administración ` +
       `que lo retire de la matrícula; si debe salir de un grupo, usa la gestión de grupos.`,
@@ -654,7 +650,7 @@ export const useTeacherDashboard = () => {
       [estudiante.user?.firstName, estudiante.user?.lastName].filter(Boolean).join(' ');
     const destinatario = estudiante.userId ?? estudiante.user?.id;
     if (!destinatario) {
-      alert('No se pudo determinar el destinatario de este estudiante.');
+      avisar.error('No se pudo determinar el destinatario de este estudiante.');
       return;
     }
 
@@ -680,9 +676,9 @@ export const useTeacherDashboard = () => {
         } as any,
         ...mensajes,
       ]);
-      alert(`Mensaje enviado a ${nombre}!`);
+      avisar.ok(`Mensaje enviado a ${nombre}!`);
     } catch (err: any) {
-      alert('No se pudo enviar el mensaje: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo enviar el mensaje: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -691,21 +687,21 @@ export const useTeacherDashboard = () => {
     if (perfilDetallado) {
       setEstudianteDetalle(perfilDetallado);
     } else {
-      alert('No se encontró el perfil detallado del estudiante');
+      avisar.error('No se encontró el perfil detallado del estudiante');
     }
   };
 
   const exportarDatosEstudiante = (estudianteId: number) => {
     const estudiante = estudiantesDetalleData.find(e => e.id === estudianteId);
     if (!estudiante) {
-      alert('Estudiante no encontrado');
+      avisar.error('Estudiante no encontrado');
       return;
     }
 
     try {
       generateStudentDataExcel(estudiante);
     } catch (err: any) {
-      alert('No se pudo generar el archivo: ' + (err?.message || 'error desconocido'));
+      avisar.error('No se pudo generar el archivo: ' + (err?.message || 'error desconocido'));
     }
   };
 
@@ -727,9 +723,9 @@ export const useTeacherDashboard = () => {
     try {
       await teacherMessagesApi.delete(String(mensajeId));
       setMensajes(mensajes.filter(m => m.id !== mensajeId));
-      alert('Mensaje eliminado exitosamente');
+      avisar.ok('Mensaje eliminado exitosamente');
     } catch (err: any) {
-      alert('Error al eliminar mensaje: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al eliminar mensaje: ' + (err.message || 'Error desconocido'));
     }
   };
 
@@ -753,7 +749,7 @@ export const useTeacherDashboard = () => {
         });
         await teacherMessagesApi.markAsRead(String(mensajeId)).catch(() => undefined);
       } catch (err: any) {
-        alert('No se pudo enviar la respuesta: ' + (err?.message || 'error de conexión'));
+        avisar.error('No se pudo enviar la respuesta: ' + (err?.message || 'error de conexión'));
         return;
       }
     }
@@ -786,7 +782,7 @@ export const useTeacherDashboard = () => {
   const archivarMensaje = async (mensajeId: number) => {
     try {
       await teacherMessagesApi.delete(String(mensajeId));
-      alert('Mensaje archivado exitosamente');
+      avisar.ok('Mensaje archivado exitosamente');
     } catch (err: any) {
       console.error('Error archivando mensaje:', err);
     }
@@ -818,9 +814,9 @@ export const useTeacherDashboard = () => {
       };
 
       setMensajes([nuevoMensaje as any, ...mensajes]);
-      alert(`Mensaje enviado a ${destinatario} exitosamente`);
+      avisar.ok(`Mensaje enviado a ${destinatario} exitosamente`);
     } catch (err: any) {
-      alert('Error al enviar mensaje: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al enviar mensaje: ' + (err.message || 'Error desconocido'));
     }
   };
 
@@ -837,9 +833,9 @@ export const useTeacherDashboard = () => {
           puntaje: tareaData.puntaje || 10,
         });
         setTareas([...tareas, created as any]);
-        alert(`Tarea "${tareaData.titulo}" creada exitosamente!`);
+        avisar.ok(`Tarea "${tareaData.titulo}" creada exitosamente!`);
       } catch (err: any) {
-        alert('Error al crear tarea: ' + (err.message || 'Error desconocido'));
+        avisar.error('Error al crear tarea: ' + (err.message || 'Error desconocido'));
       } finally {
         setCrearTareaModal(false);
       }
@@ -863,9 +859,9 @@ export const useTeacherDashboard = () => {
         fechaLimite,
       });
       setTareas([...tareas, created as any]);
-      alert(`Tarea "${titulo}" creada exitosamente!`);
+      avisar.ok(`Tarea "${titulo}" creada exitosamente!`);
     } catch (err: any) {
-      alert('Error al crear tarea: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al crear tarea: ' + (err.message || 'Error desconocido'));
     } finally {
       setCrearTareaModal(false);
     }
@@ -907,7 +903,7 @@ export const useTeacherDashboard = () => {
       });
     } catch (err: any) {
       console.error('Error cargando entregas:', err);
-      alert('No se pudieron cargar las entregas: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudieron cargar las entregas: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -940,9 +936,9 @@ export const useTeacherDashboard = () => {
         };
       }));
 
-      alert('¡Calificación guardada exitosamente!');
+      avisar.ok('¡Calificación guardada exitosamente!');
     } catch (err: any) {
-      alert('Error al guardar calificación: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al guardar calificación: ' + (err.message || 'Error desconocido'));
     }
   };
 
@@ -955,17 +951,17 @@ export const useTeacherDashboard = () => {
       setTareas(tareas.map(t =>
         t.id === tareaId ? { ...t, titulo: nuevoTitulo } : t
       ));
-      alert('Tarea actualizada exitosamente!');
+      avisar.ok('Tarea actualizada exitosamente!');
     }
   };
 
-  const eliminarTarea = (tareaId: number) => {
+  const eliminarTarea = async (tareaId: number) => {
     const tarea = tareas.find(t => t.id === tareaId);
     if (!tarea) return;
 
-    if (window.confirm(`¿Estás seguro de que deseas eliminar la tarea "${tarea.titulo}"?`)) {
+    if (await confirmar({ titulo: 'Eliminar tarea', mensaje: `¿Estás seguro de que deseas eliminar la tarea "${tarea.titulo}"?`, textoConfirmar: 'Eliminar', destructiva: true })) {
       setTareas(tareas.filter(t => t.id !== tareaId));
-      alert('Tarea eliminada exitosamente.');
+      avisar.ok('Tarea eliminada exitosamente.');
     }
   };
 
@@ -975,12 +971,12 @@ export const useTeacherDashboard = () => {
 
     const nota = parseFloat(calificacion);
     if (isNaN(nota) || nota < 0 || nota > 10) {
-      alert('Calificación inválida. Debe estar entre 0 y 10.');
+      avisar.error('Calificación inválida. Debe estar entre 0 y 10.');
       return;
     }
 
     const comentarios = prompt('Comentarios (opcional):');
-    alert(`Tarea calificada:\nNota: ${nota}\nComentarios: ${comentarios || 'Ninguno'}`);
+    avisar.ok(`Tarea calificada:\nNota: ${nota}\nComentarios: ${comentarios || 'Ninguno'}`);
 
     setTareas(tareas.map(t =>
       t.id === tareaId
@@ -1109,7 +1105,7 @@ export const useTeacherDashboard = () => {
       progreso: 0,
       horario: g.horario || '',
       aula: g.aula || '',
-      color: g.color || 'bg-purple-500',
+      color: g.color || 'bg-pn-accent-2',
       proximaClase: g.horario || '',
       miembros: g.members ?? [],
     };
@@ -1161,12 +1157,12 @@ export const useTeacherDashboard = () => {
           })),
         });
         setExamenes([...examenes, mapExamenApi({ ...data, course: { name: examenData.curso } })] as any);
-        alert(`Examen "${examenData.titulo}" creado exitosamente!\n\nPreguntas: ${examenData.preguntas?.length || 0}`);
+        avisar.ok(`Examen "${examenData.titulo}" creado exitosamente!\n\nPreguntas: ${examenData.preguntas?.length || 0}`);
         setCrearExamenModal(false);
         return;
       } catch (err: any) {
         console.error('Error creando examen en el servidor:', err);
-        alert(`No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`);
+        avisar.error(`No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`);
       }
     }
 
@@ -1180,7 +1176,7 @@ export const useTeacherDashboard = () => {
       participantes: examenData.participantes || 0
     };
     setExamenes([...examenes, nuevoExamen]);
-    alert(`Examen "${examenData.titulo}" creado exitosamente!\n\nPreguntas: ${examenData.preguntas?.length || 0}\nPuntaje total: ${examenData.puntajeTotal || 0} puntos`);
+    avisar.ok(`Examen "${examenData.titulo}" creado exitosamente!\n\nPreguntas: ${examenData.preguntas?.length || 0}\nPuntaje total: ${examenData.puntajeTotal || 0} puntos`);
     setCrearExamenModal(false);
   };
 
@@ -1211,12 +1207,12 @@ export const useTeacherDashboard = () => {
         setExamenes(examenes.map((e: any) =>
           e.id === examenId ? mapExamenApi({ ...data, course: { name: examenData.curso || e.curso } }) : e
         ) as any);
-        alert(`Examen "${examenData.titulo}" actualizado exitosamente!`);
+        avisar.ok(`Examen "${examenData.titulo}" actualizado exitosamente!`);
         setCrearExamenModal(false);
         return;
       } catch (err: any) {
         console.error('Error actualizando examen en el servidor:', err);
-        alert(`No se pudo actualizar en el servidor (${err?.message || 'error de conexión'}).`);
+        avisar.error(`No se pudo actualizar en el servidor (${err?.message || 'error de conexión'}).`);
         return;
       }
     }
@@ -1233,7 +1229,7 @@ export const useTeacherDashboard = () => {
     setExamenes(examenes.map(e =>
       e.id === examenId ? examenActualizado : e
     ));
-    alert(`Examen "${examenData.titulo}" actualizado exitosamente!`);
+    avisar.ok(`Examen "${examenData.titulo}" actualizado exitosamente!`);
     setCrearExamenModal(false);
   };
 
@@ -1247,7 +1243,7 @@ export const useTeacherDashboard = () => {
       const lista = (data?.intentos || [])
         .map((i: any) => `- ${i.estudiante} (${i.studentCode || 's/c'}): ${i.calificacion ?? 'sin calificar'}`)
         .join('\n');
-      alert(
+      avisar.ok(
         `Resultados del Examen: ${examen.titulo}\n\n` +
         `Presentados: ${stats.presentados ?? 0}\n` +
         `Promedio: ${stats.promedio ?? 0}\n` +
@@ -1256,7 +1252,7 @@ export const useTeacherDashboard = () => {
       );
     } catch (err: any) {
       console.error('Error consultando resultados:', err);
-      alert(`No se pudieron consultar los resultados (${err?.message || 'error de conexión'}).`);
+      avisar.error(`No se pudieron consultar los resultados (${err?.message || 'error de conexión'}).`);
     }
   };
 
@@ -1264,40 +1260,40 @@ export const useTeacherDashboard = () => {
     const examen: any = examenes.find((e: any) => e.id === examenId);
     if (!examen) return;
 
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar el examen "${examen.titulo}"?`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar examen', mensaje: `¿Estás seguro de que deseas eliminar el examen "${examen.titulo}"?`, textoConfirmar: 'Eliminar', destructiva: true }))) return;
 
     if (typeof examenId === 'string') {
       try {
         await examsApi.delete(examenId);
       } catch (err: any) {
         console.error('Error eliminando examen en el servidor:', err);
-        alert(`No se pudo eliminar en el servidor (${err?.message || 'error de conexión'}).`);
+        avisar.error(`No se pudo eliminar en el servidor (${err?.message || 'error de conexión'}).`);
         return;
       }
     }
     setExamenes(examenes.filter((e: any) => e.id !== examenId));
-    alert('Examen eliminado exitosamente.');
+    avisar.ok('Examen eliminado exitosamente.');
   };
 
   const publicarExamen = async (examenId: any) => {
     const examen: any = examenes.find((e: any) => e.id === examenId);
     if (!examen) return;
 
-    if (!window.confirm(`¿Deseas publicar el examen "${examen.titulo}"?\n\nLos estudiantes podrán verlo y realizarlo.`)) return;
+    if (!(await confirmar({ titulo: 'Publicar examen', mensaje: `¿Deseas publicar el examen "${examen.titulo}"?\n\nLos estudiantes podrán verlo y realizarlo.`, textoConfirmar: 'Publicar' }))) return;
 
     if (typeof examenId === 'string') {
       try {
         await examsApi.publish(examenId);
       } catch (err: any) {
         console.error('Error publicando examen en el servidor:', err);
-        alert(`No se pudo publicar en el servidor (${err?.message || 'error de conexión'}).`);
+        avisar.error(`No se pudo publicar en el servidor (${err?.message || 'error de conexión'}).`);
         return;
       }
     }
     setExamenes(examenes.map((e: any) =>
       e.id === examenId ? { ...e, estado: 'activo' as const } : e
     ) as any);
-    alert('Examen publicado exitosamente!');
+    avisar.ok('Examen publicado exitosamente!');
   };
 
   const obtenerExamenDetallado = (examenId: number) => {
@@ -1354,7 +1350,7 @@ export const useTeacherDashboard = () => {
   const enviarMensajeMasivo = async (mensajeData: any) => {
     const curso: any = cursos.find((c: any) => String(c.id) === String(mensajeData.cursoId));
     if (!curso) {
-      alert('Curso no encontrado');
+      avisar.error('Curso no encontrado');
       return;
     }
 
@@ -1366,7 +1362,7 @@ export const useTeacherDashboard = () => {
         cursoId: curso.id,
       } as any);
     } catch (err: any) {
-      alert('No se pudo enviar el mensaje masivo: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo enviar el mensaje masivo: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1389,7 +1385,7 @@ export const useTeacherDashboard = () => {
       ? `\n\nArchivos adjuntos: ${mensajeData.adjuntos.map((f: File) => f.name).join(', ')}`
       : '';
 
-    alert(`Mensaje masivo enviado exitosamente!\n\nDestinatarios: ${estudiantesCurso.length} estudiantes de ${curso.nombre}\nAsunto: ${mensajeData.asunto}${adjuntosTexto}`);
+    avisar.ok(`Mensaje masivo enviado exitosamente!\n\nDestinatarios: ${estudiantesCurso.length} estudiantes de ${curso.nombre}\nAsunto: ${mensajeData.asunto}${adjuntosTexto}`);
   };
 
   /**
@@ -1405,7 +1401,7 @@ export const useTeacherDashboard = () => {
   const crearAnuncio = async (anuncioData: any) => {
     const curso: any = cursos.find((c: any) => String(c.id) === String(anuncioData.cursoId));
     if (!curso) {
-      alert('Curso no encontrado');
+      avisar.error('Curso no encontrado');
       return;
     }
 
@@ -1417,7 +1413,7 @@ export const useTeacherDashboard = () => {
         dirigidoA: 'ESTUDIANTES',
       } as any);
     } catch (err: any) {
-      alert('No se pudo publicar el anuncio: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo publicar el anuncio: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1440,7 +1436,7 @@ export const useTeacherDashboard = () => {
       ? `\n\nArchivos adjuntos: ${anuncioData.adjuntos.map((f: File) => f.name).join(', ')}`
       : '';
 
-    alert(`${prioridadEmoji}Anuncio creado exitosamente!\n\nTítulo: ${anuncioData.titulo}\nCurso: ${curso.nombre}\nPrioridad: ${anuncioData.prioridad}${adjuntosTexto}\n\nSe notificará a ${nuevoAnuncio.totalEstudiantes} estudiantes.`);
+    avisar.ok(`${prioridadEmoji}Anuncio creado exitosamente!\n\nTítulo: ${anuncioData.titulo}\nCurso: ${curso.nombre}\nPrioridad: ${anuncioData.prioridad}${adjuntosTexto}\n\nSe notificará a ${nuevoAnuncio.totalEstudiantes} estudiantes.`);
   };
 
   /** Las plantillas de mensaje tampoco tenían dónde guardarse. */
@@ -1461,21 +1457,21 @@ export const useTeacherDashboard = () => {
           fechaCreacion: new Date().toISOString().split('T')[0],
         },
       ] as any);
-      alert(`Plantilla "${plantillaData.nombre}" guardada exitosamente!`);
+      avisar.ok(`Plantilla "${plantillaData.nombre}" guardada exitosamente!`);
     } catch (err: any) {
-      alert('No se pudo guardar la plantilla: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo guardar la plantilla: ' + (err?.message || 'error de conexión'));
     }
   };
 
-  const eliminarPlantilla = (plantillaId: number) => {
+  const eliminarPlantilla = async (plantillaId: number) => {
     const plantilla = plantillas.find(p => p.id === plantillaId);
     if (!plantilla) return;
 
-    if (window.confirm(`¿Estás seguro de eliminar la plantilla "${plantilla.nombre}"?`)) {
+    if (await confirmar({ titulo: 'Eliminar plantilla', mensaje: `¿Estás seguro de eliminar la plantilla "${plantilla.nombre}"?`, textoConfirmar: 'Eliminar', destructiva: true })) {
       // Sin esta llamada la plantilla reaparecía al recargar.
       plantillasMensajeApi.remove(String(plantillaId)).catch(() => undefined);
       setPlantillas(plantillas.filter(p => p.id !== plantillaId));
-      alert('Plantilla eliminada exitosamente.');
+      avisar.ok('Plantilla eliminada exitosamente.');
     }
   };
 
@@ -1498,7 +1494,7 @@ export const useTeacherDashboard = () => {
         }
 
         if (!url) {
-          alert('Debes seleccionar un archivo o indicar un enlace.');
+          avisar.warn('Debes seleccionar un archivo o indicar un enlace.');
           return;
         }
 
@@ -1516,11 +1512,11 @@ export const useTeacherDashboard = () => {
           ...materiales,
           mapMaterialApi({ ...data, course: { name: materialData.curso } }),
         ] as any);
-        alert(`Material "${materialData.nombre}" subido exitosamente!`);
+        avisar.ok(`Material "${materialData.nombre}" subido exitosamente!`);
         return;
       } catch (err: any) {
         console.error('Error subiendo material al servidor:', err);
-        alert(
+        avisar.error(
           `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
         );
       }
@@ -1542,27 +1538,27 @@ export const useTeacherDashboard = () => {
     };
 
     setMateriales([...materiales, nuevoMaterial] as any);
-    alert(`Material "${materialData.nombre}" subido exitosamente!`);
+    avisar.ok(`Material "${materialData.nombre}" subido exitosamente!`);
   };
 
   const eliminarMaterial = async (materialId: number | string) => {
     const material = (materiales as any[]).find(m => m.id === materialId);
     if (!material) return;
 
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${material.nombre}"?`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar material', mensaje: `¿Estás seguro de que deseas eliminar "${material.nombre}"?`, textoConfirmar: 'Eliminar', destructiva: true }))) return;
 
     if (typeof materialId === 'string') {
       try {
         await materialsApi.delete(materialId);
       } catch (err: any) {
         console.error('Error eliminando material en el servidor:', err);
-        alert(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
 
     setMateriales((materiales as any[]).filter(m => m.id !== materialId) as any);
-    alert('Material eliminado exitosamente.');
+    avisar.ok('Material eliminado exitosamente.');
   };
 
   const editarMaterial = async (materialId: number | string, materialData: any) => {
@@ -1579,7 +1575,7 @@ export const useTeacherDashboard = () => {
         });
       } catch (err: any) {
         console.error('Error actualizando material en el servidor:', err);
-        alert(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
@@ -1589,7 +1585,7 @@ export const useTeacherDashboard = () => {
         ? { ...m, ...materialData }
         : m
     ) as any);
-    alert('Material actualizado exitosamente!');
+    avisar.ok('Material actualizado exitosamente!');
   };
 
   const crearCarpeta = async (carpetaData: any) => {
@@ -1606,11 +1602,11 @@ export const useTeacherDashboard = () => {
           ...carpetas,
           mapCarpetaApi({ ...data, course: { name: carpetaData.curso } }),
         ] as any);
-        alert(`Carpeta "${carpetaData.nombre}" creada exitosamente!`);
+        avisar.ok(`Carpeta "${carpetaData.nombre}" creada exitosamente!`);
         return;
       } catch (err: any) {
         console.error('Error creando carpeta en el servidor:', err);
-        alert(
+        avisar.error(
           `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
         );
       }
@@ -1624,27 +1620,27 @@ export const useTeacherDashboard = () => {
     };
 
     setCarpetas([...carpetas, nuevaCarpeta] as any);
-    alert(`Carpeta "${carpetaData.nombre}" creada exitosamente!`);
+    avisar.ok(`Carpeta "${carpetaData.nombre}" creada exitosamente!`);
   };
 
   const eliminarCarpeta = async (carpetaId: number | string) => {
     const carpeta = (carpetas as any[]).find(c => c.id === carpetaId);
     if (!carpeta) return;
 
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar la carpeta "${carpeta.nombre}"?`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar carpeta', mensaje: `¿Estás seguro de que deseas eliminar la carpeta "${carpeta.nombre}"?`, textoConfirmar: 'Eliminar', destructiva: true }))) return;
 
     if (typeof carpetaId === 'string') {
       try {
         await materialsApi.deleteFolder(carpetaId);
       } catch (err: any) {
         console.error('Error eliminando carpeta en el servidor:', err);
-        alert(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
 
     setCarpetas((carpetas as any[]).filter(c => c.id !== carpetaId) as any);
-    alert('Carpeta eliminada exitosamente.');
+    avisar.ok('Carpeta eliminada exitosamente.');
   };
 
   /**
@@ -1657,9 +1653,9 @@ export const useTeacherDashboard = () => {
     try {
       await materialsApi.updateFolder(String(carpetaId), carpetaData as any);
       setCarpetas(carpetas.map(c => (c.id === carpetaId ? { ...c, ...carpetaData } : c)));
-      alert('Carpeta actualizada exitosamente!');
+      avisar.ok('Carpeta actualizada exitosamente!');
     } catch (err: any) {
-      alert('No se pudo actualizar la carpeta: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo actualizar la carpeta: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1667,14 +1663,14 @@ export const useTeacherDashboard = () => {
     const carpeta: any = carpetas.find((c: any) => c.id === carpetaId);
 
     if (carpeta?.materiales?.includes(materialId as any)) {
-      alert('Material ya está en la carpeta');
+      avisar.warn('Material ya está en la carpeta');
       return;
     }
 
     try {
       await materialsApi.update(String(materialId), { folderId: String(carpetaId) } as any);
     } catch (err: any) {
-      alert('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1683,7 +1679,7 @@ export const useTeacherDashboard = () => {
         ? { ...c, materiales: [...c.materiales, materialId] }
         : c
     ) as any);
-    alert('Material agregado exitosamente!');
+    avisar.ok('Material agregado exitosamente!');
   };
 
   const removerMaterialCarpeta = async (carpetaId: number | string, materialId: number | string) => {
@@ -1691,7 +1687,7 @@ export const useTeacherDashboard = () => {
       // Sacar de la carpeta es dejar el material sin carpeta, no borrarlo.
       await materialsApi.update(String(materialId), { folderId: null } as any);
     } catch (err: any) {
-      alert('No se pudo sacar el material: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo sacar el material: ' + (err?.message || 'error de conexión'));
       return;
     }
     setCarpetas(carpetas.map(c =>
@@ -1699,7 +1695,7 @@ export const useTeacherDashboard = () => {
         ? { ...c, materiales: c.materiales.filter(mId => mId !== materialId) }
         : c
     ));
-    alert('Material removido exitosamente!');
+    avisar.ok('Material removido exitosamente!');
   };
 
   const moverMaterial = async (
@@ -1715,7 +1711,7 @@ export const useTeacherDashboard = () => {
         folderId: carpetaIdDestino ? String(carpetaIdDestino) : null,
       } as any);
     } catch (err: any) {
-      alert('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo mover el material: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -1735,11 +1731,11 @@ export const useTeacherDashboard = () => {
       ) as any);
     }
 
-    alert('Material movido exitosamente!');
+    avisar.ok('Material movido exitosamente!');
   };
 
   const organizarMateriales = () => {
-    alert('Organizando materiales...\n\nPuedes crear carpetas, mover archivos, y reorganizar el contenido.');
+    avisar.info('Organizando materiales...\n\nPuedes crear carpetas, mover archivos, y reorganizar el contenido.');
     setModalMateriales(true);
   };
 
@@ -1757,7 +1753,7 @@ export const useTeacherDashboard = () => {
     const dia = prompt('Día de la semana (1 = lunes … 7 = domingo):');
     const diaSemana = parseInt(String(dia), 10);
     if (!Number.isFinite(diaSemana) || diaSemana < 1 || diaSemana > 7) {
-      alert('Día inválido. Debe ser un número del 1 al 7.');
+      avisar.error('Día inválido. Debe ser un número del 1 al 7.');
       return;
     }
 
@@ -1768,10 +1764,10 @@ export const useTeacherDashboard = () => {
 
     try {
       await scheduleApi.create({ titulo, diaSemana, horaInicio, horaFin });
-      alert(`Evento "${titulo}" creado.`);
+      avisar.ok(`Evento "${titulo}" creado.`);
       setModalEvento(false);
     } catch (err: any) {
-      alert('No se pudo crear el evento: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo crear el evento: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1782,30 +1778,30 @@ export const useTeacherDashboard = () => {
     if (!horaFin?.trim()) return;
     try {
       await scheduleApi.update(String(eventoId), { horaInicio, horaFin });
-      alert('Evento actualizado exitosamente!');
+      avisar.ok('Evento actualizado exitosamente!');
     } catch (err: any) {
-      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
     }
   };
 
   const eliminarEvento = async (eventoId: number | string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este evento?')) return;
+    if (!(await confirmar({ titulo: 'Eliminar evento', mensaje: '¿Estás seguro de que deseas eliminar este evento?', textoConfirmar: 'Eliminar', destructiva: true }))) return;
     try {
       await scheduleApi.delete(String(eventoId));
-      alert('Evento eliminado exitosamente.');
+      avisar.ok('Evento eliminado exitosamente.');
     } catch (err: any) {
-      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
   // Analíticas Actions
   const generarEstadisticas = () => {
-    alert('Generando estadísticas generales...\n\nIncluye: Rendimiento de estudiantes, progreso de cursos, tendencias');
+    avisar.info('Generando estadísticas generales...\n\nIncluye: Rendimiento de estudiantes, progreso de cursos, tendencias');
   };
 
   // Configuración Actions
   const actualizarConfiguracion = () => {
-    alert('Configuración actualizada exitosamente!');
+    avisar.ok('Configuración actualizada exitosamente!');
   };
 
   const cambiarContrasena = () => {
@@ -1813,9 +1809,9 @@ export const useTeacherDashboard = () => {
     if (nuevaContrasena && nuevaContrasena.trim()) {
       const confirmarContrasena = prompt('Confirmar contraseña:');
       if (nuevaContrasena === confirmarContrasena) {
-        alert('Contraseña actualizada exitosamente!');
+        avisar.ok('Contraseña actualizada exitosamente!');
       } else {
-        alert('Las contraseñas no coinciden.');
+        avisar.warn('Las contraseñas no coinciden.');
       }
     }
   };
@@ -1885,10 +1881,10 @@ export const useTeacherDashboard = () => {
       })
       .then(({ data }) => {
         setBancoPreguntas([...bancoPreguntas, { ...nuevaPregunta, id: (data as any)?.id }] as any);
-        alert('Pregunta agregada al banco exitosamente!');
+        avisar.ok('Pregunta agregada al banco exitosamente!');
       })
       .catch((err: any) =>
-        alert('No se pudo guardar la pregunta: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo guardar la pregunta: ' + (err?.message || 'error de conexión')),
       );
     setModalBancoPreguntas(false);
   };
@@ -1903,7 +1899,7 @@ export const useTeacherDashboard = () => {
       setBancoPreguntas(bancoPreguntas.map(p =>
         p.id === preguntaId ? { ...p, ...preguntaData } : p
       ));
-      alert('Pregunta actualizada exitosamente!');
+      avisar.ok('Pregunta actualizada exitosamente!');
       return;
     }
 
@@ -1913,24 +1909,24 @@ export const useTeacherDashboard = () => {
       setBancoPreguntas(bancoPreguntas.map(p =>
         p.id === preguntaId ? { ...p, pregunta: nuevaPregunta } : p
       ));
-      alert('Pregunta actualizada exitosamente!');
+      avisar.ok('Pregunta actualizada exitosamente!');
     }
   };
 
-  const eliminarPregunta = (preguntaId: number, confirmar: boolean = true) => {
-    // Si confirmar es false, eliminar directamente (llamado desde modal con confirmación previa)
-    if (!confirmar) {
+  const eliminarPregunta = async (preguntaId: number, pedirConfirmacion: boolean = true) => {
+    // Si pedirConfirmacion es false, eliminar directamente (llamado desde modal con confirmación previa)
+    if (!pedirConfirmacion) {
       bancoPreguntasApi.remove(String(preguntaId)).catch(() => undefined);
       setBancoPreguntas(bancoPreguntas.filter(p => p.id !== preguntaId));
-      alert('Pregunta eliminada exitosamente.');
+      avisar.ok('Pregunta eliminada exitosamente.');
       return;
     }
 
     // Modo con confirmación (comportamiento por defecto)
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta pregunta del banco?')) {
+    if (await confirmar({ titulo: 'Eliminar pregunta', mensaje: '¿Estás seguro de que deseas eliminar esta pregunta del banco?', textoConfirmar: 'Eliminar', destructiva: true })) {
       bancoPreguntasApi.remove(String(preguntaId)).catch(() => undefined);
       setBancoPreguntas(bancoPreguntas.filter(p => p.id !== preguntaId));
-      alert('Pregunta eliminada exitosamente.');
+      avisar.ok('Pregunta eliminada exitosamente.');
     }
   };
 
@@ -1958,9 +1954,9 @@ export const useTeacherDashboard = () => {
         setModulosCurso([...modulosCurso, { ...nuevoModulo, id: (data as any)?.id }] as any);
         // El exito se anuncia cuando el servidor confirma; antes el alert salia
         // de inmediato aunque el modulo no se hubiera guardado.
-        alert(`Módulo "${moduloData.titulo}" creado exitosamente!`);
+        avisar.ok(`Módulo "${moduloData.titulo}" creado exitosamente!`);
       })
-      .catch((err) => alert("No se pudo crear el modulo: " + ((err && err.message) || "error de conexion")));
+      .catch((err) => avisar.error("No se pudo crear el modulo: " + ((err && err.message) || "error de conexion")));
   };
 
   const editarModulo = (moduloId: number | string, moduloData: any) => {
@@ -1971,32 +1967,32 @@ export const useTeacherDashboard = () => {
         orderIndex: moduloData.orden,
       })
       .catch((err: any) =>
-        alert('No se pudo actualizar el módulo: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo actualizar el módulo: ' + (err?.message || 'error de conexión')),
       );
     setModulosCurso(modulosCurso.map(m =>
       m.id === moduloId
         ? { ...m, titulo: moduloData.titulo, descripcion: moduloData.descripcion, orden: moduloData.orden }
         : m
     ));
-    alert('Módulo actualizado exitosamente!');
+    avisar.ok('Módulo actualizado exitosamente!');
   };
 
-  const eliminarModulo = (moduloId: number) => {
+  const eliminarModulo = async (moduloId: number) => {
     const modulo = modulosCurso.find(m => m.id === moduloId);
     if (!modulo) return;
 
-    if (window.confirm(`¿Estás seguro de que deseas eliminar el módulo "${modulo.titulo}"?\n\nEsta acción eliminará también todos sus temas.`)) {
+    if (await confirmar({ titulo: 'Eliminar módulo', mensaje: `¿Estás seguro de que deseas eliminar el módulo "${modulo.titulo}"?\n\nEsta acción eliminará también todos sus temas.`, textoConfirmar: 'Eliminar', destructiva: true })) {
       // El borrado arrastra sus temas por la cascada del esquema.
       temarioApi.eliminarModulo(String(moduloId)).catch(() => undefined);
       setModulosCurso(modulosCurso.filter(m => m.id !== moduloId));
-      alert('Módulo eliminado exitosamente.');
+      avisar.ok('Módulo eliminado exitosamente.');
     }
   };
 
   const crearTema = (moduloId: number, temaData: any) => {
     const modulo = modulosCurso.find(m => m.id === moduloId);
     if (!modulo) {
-      alert('Error: Módulo no encontrado');
+      avisar.error('Error: Módulo no encontrado');
       return;
     }
 
@@ -2021,10 +2017,10 @@ export const useTeacherDashboard = () => {
         ));
       })
       .catch((err: any) =>
-        alert('No se pudo crear el tema: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo crear el tema: ' + (err?.message || 'error de conexión')),
       );
 
-    alert(`Tema "${temaData.titulo}" creado exitosamente!`);
+    avisar.ok(`Tema "${temaData.titulo}" creado exitosamente!`);
   };
 
   const editarTema = (temaId: number | string, temaData: any) => {
@@ -2034,7 +2030,7 @@ export const useTeacherDashboard = () => {
         content: temaData.descripcion,
       })
       .catch((err: any) =>
-        alert('No se pudo actualizar el tema: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo actualizar el tema: ' + (err?.message || 'error de conexión')),
       );
     setModulosCurso(modulosCurso.map(modulo => ({
       ...modulo,
@@ -2044,17 +2040,17 @@ export const useTeacherDashboard = () => {
           : tema
       )
     })));
-    alert('Tema actualizado exitosamente!');
+    avisar.ok('Tema actualizado exitosamente!');
   };
 
-  const eliminarTema = (temaId: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este tema?')) {
+  const eliminarTema = async (temaId: number) => {
+    if (await confirmar({ titulo: 'Eliminar tema', mensaje: '¿Estás seguro de que deseas eliminar este tema?', textoConfirmar: 'Eliminar', destructiva: true })) {
       temarioApi.eliminarTema(String(temaId)).catch(() => undefined);
       setModulosCurso(modulosCurso.map(modulo => ({
         ...modulo,
         temas: modulo.temas.filter(tema => tema.id !== temaId)
       })));
-      alert('Tema eliminado exitosamente.');
+      avisar.ok('Tema eliminado exitosamente.');
     }
   };
 
@@ -2086,12 +2082,12 @@ export const useTeacherDashboard = () => {
           ...clasesVivo,
           mapClaseVivoApi({ ...data, course: { name: claseData.curso } }),
         ] as any);
-        alert(`Clase "${claseData.titulo}" programada para ${claseData.fecha} a las ${claseData.horaInicio}!\n\nSe enviará notificación a los estudiantes.`);
+        avisar.ok(`Clase "${claseData.titulo}" programada para ${claseData.fecha} a las ${claseData.horaInicio}!\n\nSe enviará notificación a los estudiantes.`);
         setModalClase(false);
         return;
       } catch (err: any) {
         console.error('Error programando clase en el servidor:', err);
-        alert(
+        avisar.error(
           `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
         );
       }
@@ -2115,7 +2111,7 @@ export const useTeacherDashboard = () => {
     };
 
     setClasesVivo([...clasesVivo, nuevaClase as any]);
-    alert(`Clase "${claseData.titulo}" programada para ${claseData.fecha} a las ${claseData.horaInicio}!\n\nSe enviará notificación a los estudiantes.`);
+    avisar.ok(`Clase "${claseData.titulo}" programada para ${claseData.fecha} a las ${claseData.horaInicio}!\n\nSe enviará notificación a los estudiantes.`);
     setModalClase(false);
   };
 
@@ -2139,7 +2135,7 @@ export const useTeacherDashboard = () => {
     // más y desaparecía al recargar.
     const courseId = resolverCourseId(claseData.curso);
     if (!courseId) {
-      alert('No se pudo identificar el curso; la clase no se guardó.');
+      avisar.error('No se pudo identificar el curso; la clase no se guardó.');
       return;
     }
 
@@ -2156,10 +2152,10 @@ export const useTeacherDashboard = () => {
       } as any)
       .then(({ data }) => {
         setClasesVivo([...clasesVivo, { ...nuevaClase, id: (data as any)?.id ?? nuevaClase.id }] as any);
-        alert(`Clase pregrabada "${claseData.titulo}" subida exitosamente!`);
+        avisar.ok(`Clase pregrabada "${claseData.titulo}" subida exitosamente!`);
       })
       .catch((err: any) =>
-        alert('No se pudo guardar la clase: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo guardar la clase: ' + (err?.message || 'error de conexión')),
       );
   };
 
@@ -2171,7 +2167,7 @@ export const useTeacherDashboard = () => {
       await liveClassesApi.start(String(claseId));
     } catch (err: any) {
       console.error('Error iniciando clase en el servidor:', err);
-      alert(`No se pudo iniciar en el servidor: ${err?.message || 'error de conexión'}`);
+      avisar.error(`No se pudo iniciar en el servidor: ${err?.message || 'error de conexión'}`);
       return;
     }
 
@@ -2184,7 +2180,7 @@ export const useTeacherDashboard = () => {
     if (clase.enlaceReunion) {
       window.open(clase.enlaceReunion, '_blank', 'noopener');
     } else {
-      alert('La clase quedó iniciada, pero no tiene enlace de reunión configurado.');
+      avisar.warn('La clase quedó iniciada, pero no tiene enlace de reunión configurado.');
     }
   };
 
@@ -2192,14 +2188,14 @@ export const useTeacherDashboard = () => {
     const clase = (clasesVivo as any[]).find(c => c.id === claseId);
     if (!clase) return;
 
-    if (!window.confirm(`¿Deseas finalizar la clase "${clase.titulo}"?`)) return;
+    if (!(await confirmar({ titulo: 'Finalizar clase', mensaje: `¿Deseas finalizar la clase "${clase.titulo}"?`, textoConfirmar: 'Finalizar' }))) return;
 
     if (typeof claseId === 'string') {
       try {
         await liveClassesApi.finish(claseId, clase.grabacionUrl || undefined);
       } catch (err: any) {
         console.error('Error finalizando clase en el servidor:', err);
-        alert(`No se pudo finalizar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo finalizar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
@@ -2209,7 +2205,7 @@ export const useTeacherDashboard = () => {
         ? { ...c, tipo: 'finalizada', grabacionDisponible: true }
         : c
     ) as any);
-    alert('Clase finalizada. La grabación estará disponible en breve.');
+    avisar.ok('Clase finalizada. La grabación estará disponible en breve.');
   };
 
   const compartirEnlaceClase = (claseId: number) => {
@@ -2220,9 +2216,9 @@ export const useTeacherDashboard = () => {
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(clase.enlaceReunion);
-      alert(`Enlace copiado al portapapeles!\n\n${textoCompartir}`);
+      avisar.ok(`Enlace copiado al portapapeles!\n\n${textoCompartir}`);
     } else {
-      alert(textoCompartir);
+      avisar.info(textoCompartir);
     }
   };
 
@@ -2236,9 +2232,9 @@ export const useTeacherDashboard = () => {
         .filter(p => p.minutosConectado)
         .reduce((acc, p) => acc + (p.minutosConectado || 0), 0) / asistieron;
 
-      alert(`Participación en: ${clase.titulo}\n\nEstudiantes que asistieron: ${asistieron}/${clase.participantes.length}\nTiempo promedio conectado: ${Math.round(promedio)} minutos\n\nEn un caso real, se mostraría:\n- Lista detallada de participantes\n- Gráficos de asistencia\n- Estadísticas de participación`);
+      avisar.info(`Participación en: ${clase.titulo}\n\nEstudiantes que asistieron: ${asistieron}/${clase.participantes.length}\nTiempo promedio conectado: ${Math.round(promedio)} minutos\n\nEn un caso real, se mostraría:\n- Lista detallada de participantes\n- Gráficos de asistencia\n- Estadísticas de participación`);
     } else {
-      alert(`La clase "${clase.titulo}" aún no tiene datos de participación.`);
+      avisar.info(`La clase "${clase.titulo}" aún no tiene datos de participación.`);
     }
   };
 
@@ -2246,20 +2242,20 @@ export const useTeacherDashboard = () => {
     const clase = (clasesVivo as any[]).find(c => c.id === claseId);
     if (!clase) return;
 
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar la clase "${clase.titulo}"?`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar clase', mensaje: `¿Estás seguro de que deseas eliminar la clase "${clase.titulo}"?`, textoConfirmar: 'Eliminar', destructiva: true }))) return;
 
     if (typeof claseId === 'string') {
       try {
         await liveClassesApi.delete(claseId);
       } catch (err: any) {
         console.error('Error eliminando clase en el servidor:', err);
-        alert(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo eliminar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
 
     setClasesVivo((clasesVivo as any[]).filter(c => c.id !== claseId) as any);
-    alert('Clase eliminada exitosamente.');
+    avisar.ok('Clase eliminada exitosamente.');
   };
 
   const editarClase = async (claseId: number | string, claseData: any) => {
@@ -2279,7 +2275,7 @@ export const useTeacherDashboard = () => {
         });
       } catch (err: any) {
         console.error('Error actualizando clase en el servidor:', err);
-        alert(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
+        avisar.error(`No se pudo actualizar en el servidor: ${err?.message || 'error de conexión'}`);
         return;
       }
     }
@@ -2289,14 +2285,13 @@ export const useTeacherDashboard = () => {
         ? { ...c, ...claseData }
         : c
     ) as any);
-    alert('Clase actualizada exitosamente!');
+    avisar.ok('Clase actualizada exitosamente!');
   };
 
   return {
     // State
     activeSection,
     sidebarOpen,
-    darkMode,
     cursos,
     estudiantes,
     tareas,
@@ -2359,7 +2354,6 @@ export const useTeacherDashboard = () => {
     // Setters
     setActiveSection,
     setSidebarOpen,
-    setDarkMode,
     setCursos,
     setEstudiantes,
     setTareas,
@@ -2417,10 +2411,6 @@ export const useTeacherDashboard = () => {
     setVerTodasNotificaciones,
 
     // Theme classes
-    bg,
-    card,
-    text,
-    border,
 
     // Action Functions
     // Grupos

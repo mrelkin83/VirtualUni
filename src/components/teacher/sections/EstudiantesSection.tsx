@@ -17,10 +17,6 @@ interface EstudiantesSectionProps {
   verPerfilEstudiante: (id: number) => void;
   enviarMensajeEstudiante: (id: number) => void;
   exportarDatosEstudiante: (id: number) => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
@@ -28,10 +24,6 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
   verPerfilEstudiante,
   enviarMensajeEstudiante,
   exportarDatosEstudiante,
-  darkMode,
-  card,
-  text,
-  border
 }) => {
   const [busqueda, setBusqueda] = useState('');
   const [cursoFiltro, setCursoFiltro] = useState('todos');
@@ -87,65 +79,65 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
       {/* Header con estadísticas */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Mis Estudiantes</h2>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Estudiantes</h2>
+          <p className={`text-sm text-pn-ink-2 mt-1`}>
             Gestiona y da seguimiento al progreso de tus estudiantes
           </p>
         </div>
       </div>
 
       {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Users className="text-blue-600" size={24} />
+            <div className="p-3 bg-pn-accent-soft rounded-lg">
+              <Users className="text-pn-accent-text" size={24} />
             </div>
             <div>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.total}</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.total}</p>
+              <p className={`text-xs text-pn-ink-2`}>
                 Total Estudiantes
               </p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-              <Award className="text-green-600" size={24} />
+            <div className="p-3 bg-pn-ok-soft rounded-lg">
+              <Award className="text-pn-ok" size={24} />
             </div>
             <div>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.promedioGeneral.toFixed(1)}</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.promedioGeneral.toFixed(1)}</p>
+              <p className={`text-xs text-pn-ink-2`}>
                 Promedio General
               </p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <TrendingUp className="text-purple-600" size={24} />
+            <div className="p-3 bg-pn-accent-2-soft rounded-lg">
+              <TrendingUp className="text-pn-accent-2-text" size={24} />
             </div>
             <div>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.progresoPromedio.toFixed(0)}%</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.progresoPromedio.toFixed(0)}%</p>
+              <p className={`text-xs text-pn-ink-2`}>
                 Progreso Promedio
               </p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-              <FileText className="text-orange-600" size={24} />
+            <div className="p-3 bg-pn-warn-soft rounded-lg">
+              <FileText className="text-pn-warn" size={24} />
             </div>
             <div>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.conTareasPendientes}</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.conTareasPendientes}</p>
+              <p className={`text-xs text-pn-ink-2`}>
                 Con Tareas Pendientes
               </p>
             </div>
@@ -154,13 +146,13 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
       </div>
 
       {/* Filtros y búsqueda */}
-      <div className={`${card} p-4 rounded-lg ${border} border`}>
+      <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
         <div className="flex gap-4 flex-wrap">
           {/* Búsqueda */}
           <div className="flex-1 min-w-[300px]">
             <div className="relative">
               <Search
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted`}
                 size={20}
               />
               <input
@@ -168,18 +160,18 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
                 placeholder="Buscar por nombre o email..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
               />
             </div>
           </div>
 
           {/* Filtro por curso */}
           <div className="flex items-center gap-2">
-            <Filter size={20} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+            <Filter size={20} className={'text-pn-ink-2'} />
             <select
               value={cursoFiltro}
               onChange={(e) => setCursoFiltro(e.target.value)}
-              className={`px-4 py-2 border ${border} rounded-lg ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
             >
               <option value="todos">Todos los cursos</option>
               {cursosUnicos.map(curso => (
@@ -193,7 +185,7 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
             <select
               value={ordenamiento}
               onChange={(e) => setOrdenamiento(e.target.value as any)}
-              className={`px-4 py-2 border ${border} rounded-lg ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
             >
               <option value="nombre">Ordenar por Nombre</option>
               <option value="progreso">Ordenar por Progreso</option>
@@ -206,12 +198,12 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
       {/* Lista de estudiantes */}
       <div className="grid grid-cols-1 gap-4">
         {estudiantesFiltrados.length === 0 ? (
-          <div className={`${card} rounded-lg shadow p-12 text-center`}>
-            <Users size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-            <p className={`text-lg ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className={`bg-pn-surface rounded-lg shadow p-12 text-center`}>
+            <Users size={64} className={`mx-auto mb-4 text-pn-muted`} />
+            <p className={`text-lg text-pn-muted`}>
               No se encontraron estudiantes
             </p>
-            <p className={`text-sm ${darkMode ? 'text-gray-600' : 'text-gray-500'} mt-2`}>
+            <p className={`text-sm text-pn-muted mt-2`}>
               Intenta ajustar los filtros de búsqueda
             </p>
           </div>
@@ -219,19 +211,19 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
           estudiantesFiltrados.map((estudiante) => (
             <div
               key={estudiante.id}
-              className={`${card} rounded-lg shadow p-4 hover:shadow-lg transition`}
+              className={`bg-pn-surface rounded-lg shadow p-4 hover:shadow-lg transition`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pn-accent to-pn-accent-hover rounded-full flex items-center justify-center text-pn-accent-ink font-bold text-lg">
                     {estudiante.nombre.charAt(0)}
                   </div>
                   <div>
-                    <h3 className={`font-bold ${text}`}>{estudiante.nombre}</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <h3 className={`font-bold text-pn-ink`}>{estudiante.nombre}</h3>
+                    <p className={`text-sm text-pn-ink-2`}>
                       {estudiante.email}
                     </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    <p className={`text-xs text-pn-muted`}>
                       {estudiante.curso}
                     </p>
                   </div>
@@ -239,32 +231,32 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
 
                 <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-1">Progreso</p>
+                    <p className="text-xs text-pn-muted mb-1">Progreso</p>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="w-20 bg-pn-surface-3 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          className="bg-pn-accent h-2 rounded-full transition-all"
                           style={{ width: `${estudiante.progreso}%` }}
                         ></div>
                       </div>
-                      <span className={`text-sm font-semibold ${text}`}>
+                      <span className={`text-sm font-semibold text-pn-ink`}>
                         {estudiante.progreso}%
                       </span>
                     </div>
                   </div>
 
                   <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-1">Calificación</p>
-                    <p className={`text-xl font-bold ${text}`}>
+                    <p className="text-xs text-pn-muted mb-1">Calificación</p>
+                    <p className={`text-xl font-bold text-pn-ink`}>
                       {estudiante.calificacionActual.toFixed(1)}/10
                     </p>
                   </div>
 
                   <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-1">Pendientes</p>
+                    <p className="text-xs text-pn-muted mb-1">Pendientes</p>
                     <p
                       className={`text-xl font-bold ${
-                        estudiante.tareasPendientes > 0 ? 'text-orange-500' : 'text-green-500'
+                        estudiante.tareasPendientes > 0 ? 'text-pn-warn' : 'text-pn-ok'
                       }`}
                     >
                       {estudiante.tareasPendientes}
@@ -272,8 +264,8 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
                   </div>
 
                   <div className="text-right">
-                    <p className="text-xs text-gray-500 mb-1">Última actividad</p>
-                    <p className={`text-sm font-semibold ${text}`}>
+                    <p className="text-xs text-pn-muted mb-1">Última actividad</p>
+                    <p className={`text-sm font-semibold text-pn-ink`}>
                       {estudiante.ultimaActividad}
                     </p>
                   </div>
@@ -282,21 +274,21 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => verPerfilEstudiante(estudiante.id)}
-                      className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      className="p-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
                       title="Ver perfil completo"
                     >
                       <Eye size={18} />
                     </button>
                     <button
                       onClick={() => enviarMensajeEstudiante(estudiante.id)}
-                      className={`p-2 ${border} border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition ${text}`}
+                      className={`p-2 border-pn-line border rounded-lg hover:bg-pn-surface-3 transition text-pn-ink`}
                       title="Enviar mensaje"
                     >
                       <MessageSquare size={18} />
                     </button>
                     <button
                       onClick={() => exportarDatosEstudiante(estudiante.id)}
-                      className={`p-2 ${border} border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition ${text}`}
+                      className={`p-2 border-pn-line border rounded-lg hover:bg-pn-surface-3 transition text-pn-ink`}
                       title="Exportar datos"
                     >
                       <Download size={18} />
@@ -311,7 +303,7 @@ export const EstudiantesSection: React.FC<EstudiantesSectionProps> = ({
 
       {/* Pie de página con información */}
       {estudiantesFiltrados.length > 0 && (
-        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} text-center`}>
+        <div className={`text-sm text-pn-ink-2 text-center`}>
           Mostrando {estudiantesFiltrados.length} de {estudiantes.length} estudiantes
         </div>
       )}

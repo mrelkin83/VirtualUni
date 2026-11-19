@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, CheckCircle, Circle, BookOpen, Play, FileTex
 import { StudentCourse, CourseTopic } from '../../../types/student.types';
 import { generateCertificateFromCourse } from '../../../utils/certificateGenerator';
 import { useAuthStore } from '../../../store/authStore';
+import { avisar } from '../../ui';
+import { pulsable } from '../../../utils/pulsable';
 
 interface CursosSectionProps {
   cursos: StudentCourse[];
@@ -10,10 +12,6 @@ interface CursosSectionProps {
   temaSeleccionado: CourseTopic | null;
   bloqueActivo: number;
   expandirIdeasClave: boolean;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   setCursoDetalle: (curso: StudentCourse | null) => void;
   setTemaSeleccionado: (tema: CourseTopic | null) => void;
   setBloqueActivo: (bloque: number) => void;
@@ -27,10 +25,6 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   temaSeleccionado,
   bloqueActivo,
   expandirIdeasClave,
-  darkMode,
-  card,
-  text,
-  border,
   setCursoDetalle,
   setTemaSeleccionado,
   setBloqueActivo,
@@ -47,7 +41,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
       .join(' ');
 
     if (!studentName) {
-      alert('No se pudo determinar tu nombre. Vuelve a iniciar sesión.');
+      avisar.error('No se pudo determinar tu nombre. Vuelve a iniciar sesión.');
       return;
     }
 
@@ -64,7 +58,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
       if (generarCertificadoCurso) {
         generarCertificadoCurso(curso.id, result.nombreArchivo);
       }
-      alert(`¡Certificado generado exitosamente!\n\nPuedes encontrarlo en:\n- Sección "Certificados" > "Mis Solicitudes"\n- Archivo descargado: ${result.nombreArchivo}`);
+      avisar.ok(`¡Certificado generado exitosamente!\n\nPuedes encontrarlo en:\n- Sección "Certificados" > "Mis Solicitudes"\n- Archivo descargado: ${result.nombreArchivo}`);
     }
   };
 
@@ -72,33 +66,33 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   if (!cursoDetalle) {
     return (
       <div className="space-y-6">
-        <h2 className={`text-2xl font-bold ${text}`}>Mis Cursos</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Cursos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cursos.map(curso => (
             <div
               key={curso.id}
-              className={`${card} rounded-lg shadow p-6 hover:shadow-xl transition cursor-pointer`}
-              onClick={() => setCursoDetalle(curso)}
+              className={`bg-pn-surface rounded-lg shadow p-6 hover:shadow-xl transition cursor-pointer`}
+              {...pulsable(() => setCursoDetalle(curso))}
             >
               <div className="flex items-center justify-between mb-3">
                 <BookOpen className={curso.color.replace('bg-', 'text-')} size={24} />
-                <span className={`text-sm font-bold ${text}`}>{curso.progreso}%</span>
+                <span className={`text-sm font-bold text-pn-ink`}>{curso.progreso}%</span>
               </div>
-              <h3 className={`font-bold ${text} mb-2`}>{curso.nombre}</h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
+              <h3 className={`font-bold text-pn-ink mb-2`}>{curso.nombre}</h3>
+              <p className={`text-sm text-pn-ink-2 mb-3`}>
                 {curso.profesor}
               </p>
-              <div className={`w-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2 mb-3`}>
+              <div className={`w-full bg-pn-surface-3 rounded-full h-2 mb-3`}>
                 <div className={`${curso.color} h-2 rounded-full`} style={{ width: `${curso.progreso}%` }}></div>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <span className={'text-pn-ink-2'}>
                   {curso.temas.length} temas
                 </span>
-                <span className="text-orange-600">{curso.tareasPendientes} tareas</span>
+                <span className="text-pn-warn">{curso.tareasPendientes} tareas</span>
               </div>
-              <div className={`mt-3 pt-3 border-t ${border}`}>
-                <p className="text-sm text-blue-600">📅 Próxima clase: {curso.proximaClase}</p>
+              <div className={`mt-3 pt-3 border-t border-pn-line`}>
+                <p className="text-sm text-pn-accent-text">📅 Próxima clase: {curso.proximaClase}</p>
               </div>
 
               {/* Botón de generar certificado si el curso está completado */}
@@ -109,7 +103,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       e.stopPropagation();
                       handleGenerateCertificate(curso);
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2 px-4 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                    className="w-full flex items-center justify-center gap-2 bg-pn-ok hover:brightness-95 text-pn-surface py-2 px-4 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                   >
                     <Award size={18} />
                     Generar Certificado
@@ -129,27 +123,27 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
       <div className="space-y-6">
         <button
           onClick={() => setCursoDetalle(null)}
-          className="text-blue-600 hover:text-blue-700 flex items-center gap-2"
+          className="text-pn-accent-text hover:text-pn-accent-text flex items-center gap-2"
         >
           <ChevronLeft size={20} /> Volver a cursos
         </button>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex justify-between items-start mb-6">
             <div className="flex-1">
-              <h3 className={`text-2xl font-bold ${text}`}>{cursoDetalle.nombre}</h3>
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{cursoDetalle.profesor}</p>
+              <h3 className={`text-2xl font-bold text-pn-ink`}>{cursoDetalle.nombre}</h3>
+              <p className={`text-pn-ink-2`}>{cursoDetalle.profesor}</p>
             </div>
             <div className="text-right flex flex-col items-end gap-3">
               <div>
-                <p className={`text-3xl font-bold ${text}`}>{cursoDetalle.progreso}%</p>
-                <p className="text-sm text-gray-500">Completado</p>
+                <p className={`text-3xl font-bold text-pn-ink`}>{cursoDetalle.progreso}%</p>
+                <p className="text-sm text-pn-muted">Completado</p>
               </div>
               {/* Botón de certificado en vista de detalle */}
               {cursoDetalle.progreso === 100 && (
                 <button
                   onClick={() => handleGenerateCertificate(cursoDetalle)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2 px-4 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                  className="flex items-center gap-2 bg-pn-ok hover:brightness-95 text-pn-surface py-2 px-4 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                 >
                   <Award size={18} />
                   Generar Certificado
@@ -158,34 +152,34 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             </div>
           </div>
 
-          <div className={`w-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-3 mb-6`}>
+          <div className={`w-full bg-pn-surface-3 rounded-full h-3 mb-6`}>
             <div className={`${cursoDetalle.color} h-3 rounded-full`} style={{ width: `${cursoDetalle.progreso}%` }}></div>
           </div>
 
-          <h4 className={`text-xl font-bold mb-4 ${text}`}>Temas del Curso</h4>
+          <h4 className={`text-xl font-bold mb-4 text-pn-ink`}>Temas del Curso</h4>
           <div className="space-y-3">
             {cursoDetalle.temas.map(tema => (
               <div
                 key={tema.id}
-                className={`border ${border} rounded-lg p-4 cursor-pointer hover:shadow-md transition`}
-                onClick={() => {
+                className={`border border-pn-line rounded-lg p-4 cursor-pointer hover:shadow-md transition`}
+                {...pulsable(() => {
                   setTemaSeleccionado(tema);
                   setBloqueActivo(1);
-                }}
+                })}
               >
                 <div className="flex items-start gap-3">
                   {tema.completado ? (
-                    <CheckCircle className="text-green-500 flex-shrink-0" size={24} />
+                    <CheckCircle className="text-pn-ok flex-shrink-0" size={24} />
                   ) : (
-                    <Circle className="text-gray-400 flex-shrink-0" size={24} />
+                    <Circle className="text-pn-muted flex-shrink-0" size={24} />
                   )}
                   <div className="flex-1">
-                    <h5 className={`font-semibold ${text}`}>{tema.titulo}</h5>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <h5 className={`font-semibold text-pn-ink`}>{tema.titulo}</h5>
+                    <p className={`text-sm text-pn-ink-2`}>
                       {tema.bloques?.length || 0} bloques • {tema.materiales.length} materiales
                     </p>
                   </div>
-                  <ChevronRight className="text-gray-400" size={20} />
+                  <ChevronRight className="text-pn-muted" size={20} />
                 </div>
               </div>
             ))}
@@ -202,13 +196,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
     <div className="space-y-6">
       <button
         onClick={() => setTemaSeleccionado(null)}
-        className="text-blue-600 hover:text-blue-700 flex items-center gap-2"
+        className="text-pn-accent-text hover:text-pn-accent-text flex items-center gap-2"
       >
         <ChevronLeft size={20} /> Volver a temas
       </button>
 
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-2xl font-bold ${text} mb-4`}>{temaSeleccionado.titulo}</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-2xl font-bold text-pn-ink mb-4`}>{temaSeleccionado.titulo}</h3>
 
         {/* Block Navigation */}
         {temaSeleccionado.bloques && temaSeleccionado.bloques.length > 0 && (
@@ -220,8 +214,8 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                   onClick={() => setBloqueActivo(index + 1)}
                   className={`px-4 py-2 rounded whitespace-nowrap ${
                     bloqueActivo === index + 1
-                      ? 'bg-blue-600 text-white'
-                      : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'} hover:bg-gray-300`
+                      ? 'bg-pn-accent text-pn-accent-ink'
+                      : `bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-surface-3`
                   }`}
                 >
                   Bloque {index + 1}
@@ -232,15 +226,15 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             {bloqueSeleccionado && (
               <div className="space-y-6">
                 <div>
-                  <h4 className={`text-xl font-bold ${text} mb-4`}>{bloqueSeleccionado.titulo}</h4>
+                  <h4 className={`text-xl font-bold text-pn-ink mb-4`}>{bloqueSeleccionado.titulo}</h4>
 
                   {/* Objetivos */}
-                  <div className={`${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'} border-l-4 border-blue-600 p-4 rounded mb-6`}>
-                    <h5 className={`font-bold ${text} mb-2`}>Objetivos de Aprendizaje</h5>
+                  <div className={`bg-pn-accent-soft border-l-4 border-pn-accent-line p-4 rounded mb-6`}>
+                    <h5 className={`font-bold text-pn-ink mb-2`}>Objetivos de Aprendizaje</h5>
                     <ul className="space-y-2">
                       {bloqueSeleccionado.objetivos.map((objetivo, idx) => (
-                        <li key={idx} className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex gap-2`}>
-                          <span className="text-blue-600">•</span>
+                        <li key={idx} className={`text-sm text-pn-ink-2 flex gap-2`}>
+                          <span className="text-pn-accent-text">•</span>
                           <span>{objetivo}</span>
                         </li>
                       ))}
@@ -249,10 +243,10 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                   {/* Ideas Clave */}
                   {bloqueSeleccionado.ideasClave && bloqueSeleccionado.ideasClave.length > 0 && (
-                    <div className={`border ${border} rounded-lg p-4 mb-6`}>
+                    <div className={`border border-pn-line rounded-lg p-4 mb-6`}>
                       <button
                         onClick={() => setExpandirIdeasClave(!expandirIdeasClave)}
-                        className={`w-full flex justify-between items-center font-bold ${text}`}
+                        className={`w-full flex justify-between items-center font-bold text-pn-ink`}
                       >
                         <span>Ideas Clave</span>
                         <ChevronRight
@@ -263,8 +257,8 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       {expandirIdeasClave && (
                         <ul className="mt-4 space-y-2">
                           {bloqueSeleccionado.ideasClave.map((idea, idx) => (
-                            <li key={idx} className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} flex gap-2`}>
-                              <span className="text-blue-600 font-bold">{idx + 1}.</span>
+                            <li key={idx} className={`text-sm text-pn-ink-2 flex gap-2`}>
+                              <span className="text-pn-accent-text font-bold">{idx + 1}.</span>
                               <span>{idea}</span>
                             </li>
                           ))}
@@ -275,8 +269,8 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                   {/* Content */}
                   {bloqueSeleccionado.contenido && (
-                    <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-6`}>
-                      <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} leading-relaxed`}>
+                    <div className={`bg-pn-surface-2 rounded-lg p-6`}>
+                      <p className={`text-pn-ink-2 leading-relaxed`}>
                         {bloqueSeleccionado.contenido}
                       </p>
                     </div>
@@ -290,8 +284,8 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                     disabled={bloqueActivo === 1}
                     className={`flex items-center gap-2 px-4 py-2 rounded ${
                       bloqueActivo === 1
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-pn-surface-3 text-pn-muted cursor-not-allowed'
+                        : 'bg-pn-accent text-pn-accent-ink hover:bg-pn-accent-hover'
                     }`}
                   >
                     <ChevronLeft size={20} />
@@ -302,8 +296,8 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                     disabled={bloqueActivo === temaSeleccionado.bloques!.length}
                     className={`flex items-center gap-2 px-4 py-2 rounded ${
                       bloqueActivo === temaSeleccionado.bloques!.length
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-pn-surface-3 text-pn-muted cursor-not-allowed'
+                        : 'bg-pn-accent text-pn-accent-ink hover:bg-pn-accent-hover'
                     }`}
                   >
                     Siguiente
@@ -316,19 +310,19 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
         )}
 
         {/* Materials */}
-        <div className={`mt-6 pt-6 border-t ${border}`}>
-          <h5 className={`font-bold ${text} mb-3`}>Materiales del Tema</h5>
+        <div className={`mt-6 pt-6 border-t border-pn-line`}>
+          <h5 className={`font-bold text-pn-ink mb-3`}>Materiales del Tema</h5>
           <div className="space-y-2">
             {temaSeleccionado.materiales.map((material, idx) => (
-              <div key={idx} className={`flex items-center gap-3 p-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded`}>
+              <div key={idx} className={`flex items-center gap-3 p-3 bg-pn-surface-2 rounded`}>
                 {material.toLowerCase().includes('video') ? (
-                  <Play className="text-red-600" size={20} />
+                  <Play className="text-pn-danger" size={20} />
                 ) : material.toLowerCase().includes('pdf') ? (
-                  <FileText className="text-blue-600" size={20} />
+                  <FileText className="text-pn-accent-text" size={20} />
                 ) : (
-                  <BookOpen className="text-green-600" size={20} />
+                  <BookOpen className="text-pn-ok" size={20} />
                 )}
-                <span className={text}>{material}</span>
+                <span className="text-pn-ink">{material}</span>
               </div>
             ))}
           </div>

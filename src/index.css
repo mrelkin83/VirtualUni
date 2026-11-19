@@ -2,9 +2,242 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   PENSUM — tokens del sistema visual (módulo 1)
+   ----------------------------------------------------------------------------
+   Los valores viven aquí como variables CSS y se exponen a Tailwind en
+   tailwind.config.js bajo el prefijo `pn-` (bg-pn-surface, text-pn-ink, ...).
+
+   Tres reglas que explican por qué esto está escrito así:
+
+   1. El acento es UN solo valor. Todo lo demás se deriva con color-mix(), de
+      modo que inyectar `tenant.primaryColor` en --pn-accent reetiqueta la
+      aplicación entera. Ver src/theme/aplicarAcento.ts.
+
+   2. El tema se conmuta con [data-theme='dark'] sobre <html>, NO con la clase
+      `dark` de Tailwind. Es deliberado: hay 331 variantes `dark:*` repartidas
+      por el código que hoy nunca se activan porque nadie pone esa clase. Si la
+      pusiéramos ahora se encenderían a medias y romperían pantallas. El cambio
+      a `dark` se hace en el módulo 4, cuando se retire el darkMode por props.
+
+   3. Los neutros tienen un sesgo frío deliberado (no son grises puros) para
+      convivir con el acento sin ensuciarse.
+   ========================================================================= */
+
+:root {
+  /* --- superficies ---
+     El fondo tiene un sesgo azul deliberado y se hunde respecto al blanco de
+     las tarjetas: con un gris casi idéntico al blanco, todo quedaba plano. */
+  --pn-ground: #eef2fa;
+  --pn-surface: #ffffff;
+  --pn-surface-2: #f6f9fd;
+  --pn-surface-3: #e8eef8;
+
+  /* --- texto --- */
+  --pn-ink: #0f1b2e;
+  --pn-ink-2: #3a4a63;
+  /* Es el color de casi todo el texto secundario, asi que tiene que llegar a
+     4.5:1 sobre CUALQUIER fondo claro donde se pose, no solo sobre la tarjeta
+     blanca: tambien sobre --pn-surface-3 (4.64), --pn-ground (4.82) y el
+     tinte --pn-accent-soft (4.50). El #6a7a93 original se quedaba en 4.0
+     sobre los dos ultimos. */
+  --pn-muted: #5d6b80;
+
+  /* --- bordes --- */
+  --pn-line: #dde5f0;
+  --pn-line-strong: #bfcde2;
+
+  /* --- acento primario: el único valor que el tenant reemplaza ---
+     Azul institucional saturado. Conserva la identidad de VirtualUni en vez
+     del blue-600 por defecto de Tailwind, que leía como heredado. */
+  --pn-accent: #1e52db;
+  /* Texto sobre un relleno de acento. aplicarAcento() lo recalcula según el
+     contraste real del color del tenant; este es el valor del acento base. */
+  --pn-accent-ink: #ffffff;
+  /* Variante legible del acento SOBRE superficie clara, para texto e iconos.
+     Con un tenant de color claro, aplicarAcento() la oscurece hasta 4.5:1. */
+  --pn-accent-text: var(--pn-accent);
+
+  /* --- derivados del acento: nunca se escriben a mano --- */
+  --pn-accent-soft: color-mix(in srgb, var(--pn-accent) 12%, var(--pn-surface));
+  /* El secundario esta pensado como relleno (la entrada activa del menu). Como
+     texto no sirve: el naranja por defecto da 2.77:1 sobre blanco. Esta es su
+     version legible, que calcula aplicarAcento.ts igual que --pn-accent-text.
+     El valor de aqui es solo el de reserva, cuando no hay color de tenant. */
+  --pn-accent-2-text: #b55015;
+  --pn-accent-line: color-mix(in srgb, var(--pn-accent) 35%, var(--pn-surface));
+  --pn-accent-hover: color-mix(in srgb, var(--pn-accent) 85%, #000000);
+
+  /* --- acento secundario ---
+     Existe por una razón concreta: con el azul como marca, el azul no puede
+     ser además «informativo». El naranja se lleva el énfasis —la métrica que
+     importa, la entrada activa del menú— y así cada color dice una sola cosa.
+     Lo alimenta tenant.secondaryColor, que hasta ahora no se usaba en ningún
+     sitio. */
+  --pn-accent-2: #ff701e;
+  /* Tinta oscura, no blanca: blanco sobre este naranja da 2,8:1 y no llega ni
+     al umbral de texto grande. */
+  --pn-accent-2-ink: #2a1002;
+  --pn-accent-2-soft: color-mix(in srgb, var(--pn-accent-2) 14%, var(--pn-surface));
+
+  /* --- el marco: barra lateral y superficies de chrome ---
+     Patrón tomado de los dashboards de CodeXR que sí tienen presencia: el
+     marco lleva color y el contenido se queda en calma. Su fondo de página
+     saturado (#1e52db a pantalla completa) no aguanta detrás de una tabla de
+     pensum; detrás del menú, sí. Se deriva del acento, así que el marco ES la
+     marca de la institución. */
+  /* El degradado del armazón original de estudiante y docente:
+     `from-blue-600 to-blue-800`, es decir CLARO ARRIBA y profundo abajo.
+     Ese final en blue-800 (#1e40af) es el azul que tira a violeta.
+
+     Ojo con la dirección: el panel de administración iba al revés
+     (`from-blue-900 to-blue-700`), y los dos armazones no coincidían. Se
+     unifica en el de estudiante y docente, que es el que tenían delante dos
+     de los tres perfiles.
+
+     Calibrado sobre el acento por defecto para caer encima de esos dos
+     azules, pero oscureciendo el PROPIO acento en vez de fijar hexadecimales:
+     así cada institución obtiene su degradado en su color. */
+  --pn-shell-from: var(--pn-accent);
+  --pn-shell-to: color-mix(in srgb, var(--pn-accent) 79%, #000000);
+  /* Sólido de respaldo, por si el navegador no pinta la imagen. */
+  --pn-shell: color-mix(in srgb, var(--pn-accent) 90%, #000000);
+  /* Activo y hover: por encima del degradado, así que va hacia el blanco. */
+  --pn-shell-2: color-mix(in srgb, var(--pn-accent) 82%, #ffffff);
+  --pn-shell-ink: #f3f7ff;
+  --pn-shell-muted: color-mix(in srgb, #f3f7ff 64%, transparent);
+  --pn-shell-line: color-mix(in srgb, #ffffff 14%, transparent);
+  /* La entrada activa: el secundario como RELLENO, no como texto.
+     Al revés no funciona — con el violeta de uniprueba sobre el azul aclarado
+     del hover, el texto daba 1,64:1, ilegible. Como relleno sólido, en cambio,
+     recorta con fuerza sobre el degradado azul y la tinta se calcula por
+     contraste. */
+  --pn-shell-activo: var(--pn-accent-2);
+  --pn-shell-activo-ink: var(--pn-accent-2-ink);
+  /* Pulgar de la barra de desplazamiento sobre el marco. */
+  --pn-shell-scroll: color-mix(in srgb, #ffffff 22%, transparent);
+  --pn-shell-scroll-activo: color-mix(in srgb, #ffffff 42%, transparent);
+
+  /* --- semántica: estable entre instituciones, el tenant no la toca --- */
+  /* Tiene que leerse tambien sobre su propio --pn-ok-soft, que es donde se
+     usa de verdad (las insignias de estado). Ahi el anterior daba 4.28:1. */
+  --pn-ok: #0c7d50;
+  --pn-ok-soft: #e3f5ec;
+  --pn-warn: #9a5b00;
+  --pn-warn-soft: #fdf1da;
+  --pn-danger: #c02a28;
+  --pn-danger-soft: #fdeceb;
+  /* «Informativo» se va al verde azulado porque el azul ya es la marca. Dos
+     azules casi iguales en la misma pantalla no comunican dos cosas
+     distintas: comunican confusión. */
+  --pn-info: #2f6d7a;
+  --pn-info-soft: #e4f0f2;
+  --pn-stale: #7c8ba3;
+
+  /* --- elevación: borde en el plano, sombra solo para lo que flota --- */
+  --pn-shadow-pop: 0 16px 40px -12px rgb(10 22 48 / 0.2),
+    0 2px 8px -4px rgb(10 22 48 / 0.09);
+
+  /* --- radios: apretados donde manda el dato, amables en tarjetas --- */
+  --pn-r-sm: 7px;
+  --pn-r-md: 14px;
+  --pn-r-lg: 18px;
+
+  /* --- movimiento --- */
+  --pn-t-fast: 120ms;
+  --pn-t-mid: 180ms;
+  --pn-t-slow: 240ms;
+  --pn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pn-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- tipografía --- */
+  --pn-font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --pn-font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --pn-font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+}
+
+[data-theme='dark'] {
+  --pn-ground: #080c14;
+  --pn-surface: #0f1722;
+  --pn-surface-2: #16202e;
+  --pn-surface-3: #1c2838;
+
+  --pn-ink: #e8edf6;
+  --pn-ink-2: #b6c2d6;
+  /* Mismo criterio que en claro: tiene que llegar a 4.5:1 sobre todos los
+     fondos donde se posa, no solo sobre la tarjeta. El #7e8ca5 anterior se
+     quedaba en 4.38 sobre --pn-surface-3 y en 3.89 sobre el tinte del acento
+     secundario. */
+  --pn-muted: #8b98ae;
+
+  --pn-line: #222d3f;
+  --pn-line-strong: #37445a;
+
+  /* El azul se aclara: #1e52db sobre fondo oscuro no llega al contraste
+     mínimo como texto. El relleno conserva la marca; esto es la versión
+     legible. */
+  --pn-accent: #6b93ff;
+  --pn-accent-ink: #06142e;
+  --pn-accent-text: var(--pn-accent);
+  --pn-accent-hover: color-mix(in srgb, var(--pn-accent) 85%, #ffffff);
+
+  --pn-accent-2: #ff9254;
+  --pn-accent-2-ink: #2a1002;
+  --pn-accent-2-soft: color-mix(in srgb, var(--pn-accent-2) 18%, var(--pn-surface));
+  /* Sobre fondo oscuro el naranja llega a 8.14:1, no hay que corregirlo. */
+  --pn-accent-2-text: var(--pn-accent-2);
+
+  /* En oscuro el marco se separa por el otro lado: algo más claro que el
+     fondo, para que la barra no se funda con la página. */
+  /* En oscuro el degradado se mantiene pero mucho más contenido: con el fondo
+     de página ya casi negro, un degradado marcado pasaría de dar profundidad a
+     dar suciedad. */
+  --pn-shell-from: color-mix(in srgb, var(--pn-accent) 12%, #080e1a);
+  --pn-shell-to: color-mix(in srgb, var(--pn-accent) 22%, #0b1424);
+  --pn-shell: color-mix(in srgb, var(--pn-accent) 16%, #0a1120);
+  --pn-shell-2: color-mix(in srgb, var(--pn-accent) 30%, #0a1120);
+  --pn-shell-ink: #e8edf6;
+  --pn-shell-muted: color-mix(in srgb, #e8edf6 58%, transparent);
+  --pn-shell-line: color-mix(in srgb, #ffffff 10%, transparent);
+  --pn-shell-activo: var(--pn-accent-2);
+  --pn-shell-activo-ink: var(--pn-accent-2-ink);
+  --pn-shell-scroll: color-mix(in srgb, #ffffff 16%, transparent);
+  --pn-shell-scroll-activo: color-mix(in srgb, #ffffff 34%, transparent);
+
+  --pn-ok: #5cc391;
+  --pn-ok-soft: #10301f;
+  --pn-warn: #e0a64b;
+  --pn-warn-soft: #332511;
+  --pn-danger: #f2837a;
+  --pn-danger-soft: #351a18;
+  --pn-info: #58a9b8;
+  --pn-info-soft: #112b31;
+  --pn-stale: #6b7a93;
+
+  --pn-shadow-pop: 0 20px 50px -14px rgb(0 0 0 / 0.72),
+    0 0 0 1px rgb(255 255 255 / 0.05);
+}
+
+/* `color-scheme` alinea los controles nativos (scrollbars, selects, date
+   pickers) con el tema. Se declara solo cuando data-theme está puesto: sin el
+   atributo, el navegador sigue con su comportamiento de siempre. */
+[data-theme='light'] {
+  color-scheme: light;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 @layer base {
   body {
-    @apply bg-gray-50;
+    /* Era `bg-gray-50`, un gris claro fijo. Con el tema oscuro ya operativo
+       eso dejaba el fondo claro detrás de toda la aplicación.
+       Se escriben las variables en crudo y no `@apply bg-pn-ground`: el @apply
+       obliga a Tailwind a resolver la clase a través de la config, y basta con
+       que el servidor de desarrollo tenga la config en caché para que la hoja
+       entera caiga con un 500. En crudo no hay nada que resolver. */
+    background-color: var(--pn-ground);
+    color: var(--pn-ink);
   }
 }
 
@@ -21,5 +254,115 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+
+  /* El marco del menú: degradado vertical sobre color sólido de respaldo, por
+     si el navegador no pinta la imagen. */
+  .pn-shell-bg {
+    background-color: var(--pn-shell);
+    background-image: linear-gradient(
+      to bottom,
+      var(--pn-shell-from),
+      var(--pn-shell-to)
+    );
+  }
+
+  /* ------------------------------------------------------------------
+     Barras de desplazamiento.
+
+     Por defecto el navegador pinta la suya: en Windows, gris y gruesa, con
+     carril visible. Sobre el marco azul del menú desentona por completo.
+
+     Estas dos utilidades la dejan fina, sin carril y teñida con los tokens,
+     de modo que acompaña al tema en vez de pelearse con él. El pulgar se ve
+     siempre —tenue— para que no se pierda la pista de que hay más contenido,
+     y se refuerza al pasar por encima.
+
+     `scrollbar-width`/`scrollbar-color` cubren Firefox; las reglas
+     `::-webkit-scrollbar`, Chrome y Edge. Se declaran ambas a propósito.
+     ------------------------------------------------------------------ */
+  .pn-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pn-line-strong) transparent;
+  }
+  .pn-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .pn-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .pn-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--pn-line-strong);
+    border-radius: 999px;
+    /* El borde transparente con background-clip deja aire a los lados: es lo
+       que hace que el pulgar parezca flotar en vez de llenar un canal. */
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .pn-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: var(--pn-muted);
+  }
+  .pn-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Variante para el marco: el mismo pulgar, en claro sobre fondo oscuro. */
+  .pn-scroll-shell {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pn-shell-scroll) transparent;
+  }
+  .pn-scroll-shell::-webkit-scrollbar {
+    width: 10px;
+  }
+  .pn-scroll-shell::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .pn-scroll-shell::-webkit-scrollbar-thumb {
+    background-color: var(--pn-shell-scroll);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .pn-scroll-shell::-webkit-scrollbar-thumb:hover {
+    background-color: var(--pn-shell-scroll-activo);
+  }
+
+  /* Entrada escalonada sin JavaScript: el contenedor numera a sus hijos con
+     --pn-i y cada uno retrasa su animación. Una vez asentada la vista, el
+     contenedor añade .pn-settled y lo nuevo entra casi al instante. */
+  .pn-rv {
+    animation: pn-rise 0.5s var(--pn-ease) both;
+    animation-delay: calc(var(--pn-d, 0ms) + var(--pn-i, 0) * 45ms);
+  }
+
+  .pn-settled .pn-rv {
+    animation-delay: calc(var(--pn-i, 0) * 15ms);
+  }
+}
+
+@keyframes pn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pn-shimmer {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-rv {
+    animation: none;
   }
 }

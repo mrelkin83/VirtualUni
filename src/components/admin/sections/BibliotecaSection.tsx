@@ -1,13 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { avisar, confirmar } from '../../ui';
 import {
   BookOpen, Search, Plus, Edit, Trash2, Eye, X, Save,
   Calendar, User, CheckCircle, XCircle, AlertCircle, Filter,
   TrendingUp, Clock, Book
 } from 'lucide-react';
-
-interface BibliotecaSectionProps {
-  darkMode?: boolean;
-}
 
 interface Libro {
   id: number;
@@ -34,12 +31,9 @@ interface Prestamo {
   diasRestantes?: number;
 }
 
-export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode = false }) => {
+export const BibliotecaSection: React.FC = () => {
   // Theme classes
-  const card = darkMode ? 'bg-gray-800' : 'bg-white';
-  const text = darkMode ? 'text-gray-100' : 'text-gray-800';
-  const border = darkMode ? 'border-gray-700' : 'border-gray-200';
-  const input = darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300';
+  const input = 'bg-pn-surface text-pn-ink border-pn-line-strong';
 
   // Mock data (initially empty, will be loaded from API)
   const [libros, setLibros] = useState<Libro[]>([
@@ -175,8 +169,8 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
     setLibroSeleccionado(null);
   };
 
-  const handleEliminarLibro = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este libro?')) {
+  const handleEliminarLibro = async (id: number) => {
+    if (await confirmar('¿Estás seguro de eliminar este libro?')) {
       setLibros(libros.filter(l => l.id !== id));
     }
   };
@@ -184,7 +178,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
   const handleCrearPrestamo = () => {
     const libro = libros.find(l => l.id === nuevoPrestamoForm.libroId);
     if (!libro || libro.cantidadDisponible <= 0) {
-      alert('No hay copias disponibles de este libro');
+      avisar.error('No hay copias disponibles de este libro');
       return;
     }
 
@@ -242,10 +236,10 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Biblioteca - Administración</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Biblioteca - Administración</h2>
         <button
           onClick={() => setModalNuevoLibro(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Plus size={20} />
           Nuevo Libro
@@ -254,52 +248,52 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Libros</p>
-              <p className={`text-2xl font-bold ${text}`}>{stats.totalLibros}</p>
+              <p className={`text-sm text-pn-ink-2`}>Total Libros</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalLibros}</p>
             </div>
-            <Book className="text-blue-500" size={32} />
+            <Book className="text-pn-accent-text" size={32} />
           </div>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Copias</p>
-              <p className={`text-2xl font-bold ${text}`}>{stats.totalCopias}</p>
+              <p className={`text-sm text-pn-ink-2`}>Total Copias</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalCopias}</p>
             </div>
-            <BookOpen className="text-purple-500" size={32} />
+            <BookOpen className="text-pn-accent-2-text" size={32} />
           </div>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</p>
-              <p className={`text-2xl font-bold text-green-500`}>{stats.copiasDisponibles}</p>
+              <p className={`text-sm text-pn-ink-2`}>Disponibles</p>
+              <p className={`text-2xl font-bold text-pn-ok`}>{stats.copiasDisponibles}</p>
             </div>
-            <CheckCircle className="text-green-500" size={32} />
+            <CheckCircle className="text-pn-ok" size={32} />
           </div>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Préstamos Activos</p>
-              <p className={`text-2xl font-bold text-orange-500`}>{stats.prestamosActivos}</p>
+              <p className={`text-sm text-pn-ink-2`}>Préstamos Activos</p>
+              <p className={`text-2xl font-bold text-pn-warn`}>{stats.prestamosActivos}</p>
             </div>
-            <TrendingUp className="text-orange-500" size={32} />
+            <TrendingUp className="text-pn-warn" size={32} />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-300 dark:border-gray-700">
+      <div className="flex gap-2 border-b border-pn-line">
         <button
           onClick={() => setActiveTab('catalogo')}
           className={`px-6 py-3 font-medium transition ${
             activeTab === 'catalogo'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+              ? 'border-b-2 border-pn-accent-line text-pn-accent-text'
+              : 'text-pn-ink-2 hover:text-pn-ink'
           }`}
         >
           Catálogo de Libros
@@ -308,13 +302,13 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
           onClick={() => setActiveTab('prestamos')}
           className={`px-6 py-3 font-medium transition ${
             activeTab === 'prestamos'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+              ? 'border-b-2 border-pn-accent-line text-pn-accent-text'
+              : 'text-pn-ink-2 hover:text-pn-ink'
           }`}
         >
           Préstamos
           {stats.prestamosActivos > 0 && (
-            <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+            <span className="ml-2 bg-pn-accent text-pn-accent-ink text-xs px-2 py-1 rounded-full">
               {stats.prestamosActivos}
             </span>
           )}
@@ -327,19 +321,19 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
           {/* Search and Filters */}
           <div className="flex gap-4">
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted`} size={20} />
               <input
                 type="text"
                 placeholder="Buscar por título, autor o ISBN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
               />
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className={`px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+              className={`px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
             >
               <option value="Todas">Todas las categorías</option>
               {categories.map(cat => (
@@ -351,18 +345,18 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
           {/* Books Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredLibros.map(libro => (
-              <div key={libro.id} className={`${card} rounded-lg shadow p-6 border ${border}`}>
+              <div key={libro.id} className={`bg-pn-surface rounded-lg shadow p-6 border border-pn-line`}>
                 <div className="flex items-start gap-4 mb-4">
-                  <div className={`w-16 h-20 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded flex items-center justify-center`}>
-                    <BookOpen size={32} className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
+                  <div className={`w-16 h-20 bg-pn-surface-3 rounded flex items-center justify-center`}>
+                    <BookOpen size={32} className={'text-pn-muted'} />
                   </div>
                   <div className="flex-1">
-                    <h3 className={`font-bold ${text} mb-1`}>{libro.titulo}</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{libro.autor}</p>
+                    <h3 className={`font-bold text-pn-ink mb-1`}>{libro.titulo}</h3>
+                    <p className={`text-sm text-pn-ink-2`}>{libro.autor}</p>
                     <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
                       libro.cantidadDisponible > 0
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-pn-ok-soft text-pn-ok'
+                        : 'bg-pn-danger-soft text-pn-danger'
                     }`}>
                       {libro.cantidadDisponible > 0 ? 'Disponible' : 'No disponible'}
                     </span>
@@ -371,20 +365,20 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
 
                 <div className="space-y-2 text-sm mb-4">
                   <div className="flex justify-between">
-                    <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>ISBN:</span>
-                    <span className={text}>{libro.isbn}</span>
+                    <span className={'text-pn-ink-2'}>ISBN:</span>
+                    <span className="text-pn-ink">{libro.isbn}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Editorial:</span>
-                    <span className={text}>{libro.editorial}</span>
+                    <span className={'text-pn-ink-2'}>Editorial:</span>
+                    <span className="text-pn-ink">{libro.editorial}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Categoría:</span>
-                    <span className={text}>{libro.categoria}</span>
+                    <span className={'text-pn-ink-2'}>Categoría:</span>
+                    <span className="text-pn-ink">{libro.categoria}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Disponibles:</span>
-                    <span className={text}>{libro.cantidadDisponible} / {libro.cantidadTotal}</span>
+                    <span className={'text-pn-ink-2'}>Disponibles:</span>
+                    <span className="text-pn-ink">{libro.cantidadDisponible} / {libro.cantidadTotal}</span>
                   </div>
                 </div>
 
@@ -394,7 +388,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
                       setLibroSeleccionado(libro);
                       setModalDetalleLibro(true);
                     }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm flex items-center justify-center gap-1"
+                    className="flex-1 bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-3 py-2 rounded text-sm flex items-center justify-center gap-1"
                   >
                     <Eye size={16} />
                     Ver
@@ -404,14 +398,14 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
                       setLibroSeleccionado(libro);
                       setModalEditarLibro(true);
                     }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm flex items-center justify-center gap-1"
+                    className="flex-1 bg-pn-ink hover:bg-pn-ink text-pn-surface px-3 py-2 rounded text-sm flex items-center justify-center gap-1"
                   >
                     <Edit size={16} />
                     Editar
                   </button>
                   <button
                     onClick={() => handleEliminarLibro(libro.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
+                    className="bg-pn-danger hover:bg-pn-danger text-pn-surface px-3 py-2 rounded text-sm"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -424,10 +418,10 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
         <>
           {/* Loans Section */}
           <div className="flex justify-between items-center">
-            <h3 className={`text-lg font-bold ${text}`}>Préstamos Activos</h3>
+            <h3 className={`text-lg font-bold text-pn-ink`}>Préstamos Activos</h3>
             <button
               onClick={() => setModalNuevoPrestamo(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <Plus size={20} />
               Nuevo Préstamo
@@ -436,14 +430,14 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
 
           <div className="space-y-3">
             {prestamos.filter(p => p.estado !== 'devuelto').map(prestamo => (
-              <div key={prestamo.id} className={`${card} p-4 border ${border} rounded-lg`}>
+              <div key={prestamo.id} className={`bg-pn-surface p-4 border border-pn-line rounded-lg`}>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h4 className={`font-bold ${text}`}>{prestamo.libroTitulo}</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                    <h4 className={`font-bold text-pn-ink`}>{prestamo.libroTitulo}</h4>
+                    <p className={`text-sm text-pn-ink-2 mt-1`}>
                       {prestamo.libroAutor}
                     </p>
-                    <div className={`flex items-center gap-4 mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <div className={`flex items-center gap-4 mt-2 text-sm text-pn-ink-2`}>
                       <span className="flex items-center gap-1">
                         <User size={14} />
                         {prestamo.usuarioNombre}
@@ -461,10 +455,10 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
                   <div className="flex gap-2">
                     <span className={`px-3 py-1 rounded text-sm ${
                       prestamo.estado === 'vencido'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-pn-danger-soft text-pn-danger'
                         : prestamo.diasRestantes && prestamo.diasRestantes <= 3
-                        ? 'bg-orange-100 text-orange-700'
-                        : 'bg-green-100 text-green-700'
+                        ? 'bg-pn-warn-soft text-pn-warn'
+                        : 'bg-pn-ok-soft text-pn-ok'
                     }`}>
                       {prestamo.estado === 'vencido' ? 'Vencido' : `${prestamo.diasRestantes} días`}
                     </span>
@@ -473,7 +467,7 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
                         setPrestamoSeleccionado(prestamo);
                         setModalDevolucion(true);
                       }}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
+                      className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded text-sm"
                     >
                       Registrar Devolución
                     </button>
@@ -488,108 +482,108 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
       {/* Modal: Nuevo Libro */}
       {modalNuevoLibro && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
-            <div className={`p-6 border-b ${border}`}>
+          <div role="dialog" aria-modal="true" aria-label="Nuevo Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className={`p-6 border-b border-pn-line`}>
               <div className="flex justify-between items-center">
-                <h3 className={`text-xl font-bold ${text}`}>Nuevo Libro</h3>
-                <button onClick={() => setModalNuevoLibro(false)} className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Nuevo Libro</h3>
+                <button onClick={() => setModalNuevoLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Título *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Título *</label>
                 <input
                   type="text"
                   value={nuevoLibroForm.titulo}
                   onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, titulo: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Autor *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Autor *</label>
                 <input
                   type="text"
                   value={nuevoLibroForm.autor}
                   onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, autor: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>ISBN *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>ISBN *</label>
                   <input
                     type="text"
                     value={nuevoLibroForm.isbn}
                     onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, isbn: e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Editorial *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Editorial *</label>
                   <input
                     type="text"
                     value={nuevoLibroForm.editorial}
                     onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, editorial: e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Categoría *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Categoría *</label>
                 <input
                   type="text"
                   value={nuevoLibroForm.categoria}
                   onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, categoria: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   placeholder="Ej: Matemáticas, Programación, etc."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Cantidad Total *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Total *</label>
                   <input
                     type="number"
                     min="1"
                     value={nuevoLibroForm.cantidadTotal}
                     onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, cantidadTotal: parseInt(e.target.value) || 1})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Cantidad Disponible *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Disponible *</label>
                   <input
                     type="number"
                     min="0"
                     max={nuevoLibroForm.cantidadTotal}
                     value={nuevoLibroForm.cantidadDisponible}
                     onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, cantidadDisponible: parseInt(e.target.value) || 0})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Descripción</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Descripción</label>
                 <textarea
                   value={nuevoLibroForm.descripcion}
                   onChange={(e) => setNuevoLibroForm({...nuevoLibroForm, descripcion: e.target.value})}
                   rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   placeholder="Descripción breve del libro..."
                 />
               </div>
             </div>
-            <div className={`p-6 border-t ${border} flex justify-end gap-3`}>
+            <div className={`p-6 border-t border-pn-line flex justify-end gap-3`}>
               <button
                 onClick={() => setModalNuevoLibro(false)}
-                className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'}`}
+                className={`px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCrearLibro}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Save size={20} />
                 Guardar Libro
@@ -602,97 +596,97 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
       {/* Modal: Editar Libro */}
       {modalEditarLibro && libroSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
-            <div className={`p-6 border-b ${border}`}>
+          <div role="dialog" aria-modal="true" aria-label="Editar Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className={`p-6 border-b border-pn-line`}>
               <div className="flex justify-between items-center">
-                <h3 className={`text-xl font-bold ${text}`}>Editar Libro</h3>
-                <button onClick={() => setModalEditarLibro(false)} className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Editar Libro</h3>
+                <button onClick={() => setModalEditarLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Título</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Título</label>
                 <input
                   type="text"
                   value={libroSeleccionado.titulo}
                   onChange={(e) => setLibroSeleccionado({...libroSeleccionado, titulo: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Autor</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Autor</label>
                 <input
                   type="text"
                   value={libroSeleccionado.autor}
                   onChange={(e) => setLibroSeleccionado({...libroSeleccionado, autor: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>ISBN</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>ISBN</label>
                   <input
                     type="text"
                     value={libroSeleccionado.isbn}
                     onChange={(e) => setLibroSeleccionado({...libroSeleccionado, isbn: e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Editorial</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Editorial</label>
                   <input
                     type="text"
                     value={libroSeleccionado.editorial}
                     onChange={(e) => setLibroSeleccionado({...libroSeleccionado, editorial: e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Categoría</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Categoría</label>
                 <input
                   type="text"
                   value={libroSeleccionado.categoria}
                   onChange={(e) => setLibroSeleccionado({...libroSeleccionado, categoria: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Cantidad Total</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Total</label>
                   <input
                     type="number"
                     min="1"
                     value={libroSeleccionado.cantidadTotal}
                     onChange={(e) => setLibroSeleccionado({...libroSeleccionado, cantidadTotal: parseInt(e.target.value) || 1})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Cantidad Disponible</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Cantidad Disponible</label>
                   <input
                     type="number"
                     min="0"
                     max={libroSeleccionado.cantidadTotal}
                     value={libroSeleccionado.cantidadDisponible}
                     onChange={(e) => setLibroSeleccionado({...libroSeleccionado, cantidadDisponible: parseInt(e.target.value) || 0})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   />
                 </div>
               </div>
             </div>
-            <div className={`p-6 border-t ${border} flex justify-end gap-3`}>
+            <div className={`p-6 border-t border-pn-line flex justify-end gap-3`}>
               <button
                 onClick={() => setModalEditarLibro(false)}
-                className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'}`}
+                className={`px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleEditarLibro}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Save size={20} />
                 Guardar Cambios
@@ -705,55 +699,55 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
       {/* Modal: Detalle Libro */}
       {modalDetalleLibro && libroSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-lg`}>
-            <div className={`p-6 border-b ${border}`}>
+          <div role="dialog" aria-modal="true" aria-label="Detalle del Libro" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-lg`}>
+            <div className={`p-6 border-b border-pn-line`}>
               <div className="flex justify-between items-center">
-                <h3 className={`text-xl font-bold ${text}`}>Detalle del Libro</h3>
-                <button onClick={() => setModalDetalleLibro(false)} className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Detalle del Libro</h3>
+                <button onClick={() => setModalDetalleLibro(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <h4 className={`text-lg font-bold ${text}`}>{libroSeleccionado.titulo}</h4>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{libroSeleccionado.autor}</p>
+                <h4 className={`text-lg font-bold text-pn-ink`}>{libroSeleccionado.titulo}</h4>
+                <p className={`text-sm text-pn-ink-2`}>{libroSeleccionado.autor}</p>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>ISBN:</span>
-                  <span className={`text-sm ${text}`}>{libroSeleccionado.isbn}</span>
+                  <span className={`text-sm text-pn-ink-2`}>ISBN:</span>
+                  <span className={`text-sm text-pn-ink`}>{libroSeleccionado.isbn}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Editorial:</span>
-                  <span className={`text-sm ${text}`}>{libroSeleccionado.editorial}</span>
+                  <span className={`text-sm text-pn-ink-2`}>Editorial:</span>
+                  <span className={`text-sm text-pn-ink`}>{libroSeleccionado.editorial}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Categoría:</span>
-                  <span className={`text-sm ${text}`}>{libroSeleccionado.categoria}</span>
+                  <span className={`text-sm text-pn-ink-2`}>Categoría:</span>
+                  <span className={`text-sm text-pn-ink`}>{libroSeleccionado.categoria}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Copias:</span>
-                  <span className={`text-sm ${text}`}>{libroSeleccionado.cantidadTotal}</span>
+                  <span className={`text-sm text-pn-ink-2`}>Total Copias:</span>
+                  <span className={`text-sm text-pn-ink`}>{libroSeleccionado.cantidadTotal}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Copias Disponibles:</span>
-                  <span className={`text-sm font-bold ${libroSeleccionado.cantidadDisponible > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <span className={`text-sm text-pn-ink-2`}>Copias Disponibles:</span>
+                  <span className={`text-sm font-bold ${libroSeleccionado.cantidadDisponible > 0 ? 'text-pn-ok' : 'text-pn-danger'}`}>
                     {libroSeleccionado.cantidadDisponible}
                   </span>
                 </div>
               </div>
               {libroSeleccionado.descripcion && (
                 <div>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Descripción:</p>
-                  <p className={`text-sm ${text}`}>{libroSeleccionado.descripcion}</p>
+                  <p className={`text-sm text-pn-ink-2 mb-1`}>Descripción:</p>
+                  <p className={`text-sm text-pn-ink`}>{libroSeleccionado.descripcion}</p>
                 </div>
               )}
             </div>
-            <div className={`p-6 border-t ${border} flex justify-end`}>
+            <div className={`p-6 border-t border-pn-line flex justify-end`}>
               <button
                 onClick={() => setModalDetalleLibro(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg"
               >
                 Cerrar
               </button>
@@ -765,22 +759,22 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
       {/* Modal: Nuevo Préstamo */}
       {modalNuevoPrestamo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-lg`}>
-            <div className={`p-6 border-b ${border}`}>
+          <div role="dialog" aria-modal="true" aria-label="Nuevo Préstamo" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-lg`}>
+            <div className={`p-6 border-b border-pn-line`}>
               <div className="flex justify-between items-center">
-                <h3 className={`text-xl font-bold ${text}`}>Nuevo Préstamo</h3>
-                <button onClick={() => setModalNuevoPrestamo(false)} className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Nuevo Préstamo</h3>
+                <button onClick={() => setModalNuevoPrestamo(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Libro *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Libro *</label>
                 <select
                   value={nuevoPrestamoForm.libroId}
                   onChange={(e) => setNuevoPrestamoForm({...nuevoPrestamoForm, libroId: parseInt(e.target.value)})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 >
                   <option value={0}>Seleccionar libro...</option>
                   {libros.filter(l => l.cantidadDisponible > 0).map(libro => (
@@ -791,36 +785,36 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Usuario *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Usuario *</label>
                 <input
                   type="text"
                   value={nuevoPrestamoForm.usuarioNombre}
                   onChange={(e) => setNuevoPrestamoForm({...nuevoPrestamoForm, usuarioNombre: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                   placeholder="Nombre del estudiante"
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Fecha de Devolución *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Fecha de Devolución *</label>
                 <input
                   type="date"
                   value={nuevoPrestamoForm.fechaDevolucion}
                   onChange={(e) => setNuevoPrestamoForm({...nuevoPrestamoForm, fechaDevolucion: e.target.value})}
                   min={new Date().toISOString().split('T')[0]}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${input}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${input}`}
                 />
               </div>
             </div>
-            <div className={`p-6 border-t ${border} flex justify-end gap-3`}>
+            <div className={`p-6 border-t border-pn-line flex justify-end gap-3`}>
               <button
                 onClick={() => setModalNuevoPrestamo(false)}
-                className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'}`}
+                className={`px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCrearPrestamo}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Save size={20} />
                 Registrar Préstamo
@@ -833,39 +827,39 @@ export const BibliotecaSection: React.FC<BibliotecaSectionProps> = ({ darkMode =
       {/* Modal: Registrar Devolución */}
       {modalDevolucion && prestamoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-md`}>
-            <div className={`p-6 border-b ${border}`}>
+          <div role="dialog" aria-modal="true" aria-label="Registrar Devolución" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-md`}>
+            <div className={`p-6 border-b border-pn-line`}>
               <div className="flex justify-between items-center">
-                <h3 className={`text-xl font-bold ${text}`}>Registrar Devolución</h3>
-                <button onClick={() => setModalDevolucion(false)} className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Registrar Devolución</h3>
+                <button onClick={() => setModalDevolucion(false)} className={'text-pn-ink-2'}>
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6">
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+              <p className={`text-sm text-pn-ink-2 mb-4`}>
                 ¿Confirmar la devolución del siguiente libro?
               </p>
-              <div className={`p-4 border ${border} rounded-lg`}>
-                <h4 className={`font-bold ${text}`}>{prestamoSeleccionado.libroTitulo}</h4>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+              <div className={`p-4 border border-pn-line rounded-lg`}>
+                <h4 className={`font-bold text-pn-ink`}>{prestamoSeleccionado.libroTitulo}</h4>
+                <p className={`text-sm text-pn-ink-2 mt-1`}>
                   Usuario: {prestamoSeleccionado.usuarioNombre}
                 </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-sm text-pn-ink-2`}>
                   Fecha de préstamo: {prestamoSeleccionado.fechaPrestamo}
                 </p>
               </div>
             </div>
-            <div className={`p-6 border-t ${border} flex justify-end gap-3`}>
+            <div className={`p-6 border-t border-pn-line flex justify-end gap-3`}>
               <button
                 onClick={() => setModalDevolucion(false)}
-                className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'}`}
+                className={`px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleRegistrarDevolucion}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <CheckCircle size={20} />
                 Confirmar Devolución

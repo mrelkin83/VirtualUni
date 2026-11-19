@@ -8,6 +8,7 @@ import {
 } from '../../../../api/endpoints/homologacion';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from './errores';
+import { confirmar } from '../../../ui';
 
 /**
  * Equivalencias entre asignaturas: "aprobar X equivale a aprobar Y" cuando no
@@ -33,7 +34,7 @@ export function EquivalenciasTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-sm text-gray-600 max-w-2xl">
+        <p className="text-sm text-pn-ink-2 max-w-2xl">
           Una equivalencia sirve cuando la asignatura aprobada y la del pensum
           destino <strong>no son la misma</strong> (otro código, otro nombre).
           Si los dos programas comparten la misma asignatura, el reconocimiento
@@ -41,30 +42,30 @@ export function EquivalenciasTab() {
         </p>
         <button
           onClick={() => setModalAbierta(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover shrink-0"
         >
           <Plus size={16} />
           Nueva equivalencia
         </button>
       </div>
 
-      {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Cargando…</p>}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(error)}
         </div>
       )}
 
       {!isLoading && equivalencias.length === 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-pn-muted">
           Todavía no hay equivalencias declaradas.
         </p>
       )}
 
       {equivalencias.length > 0 && (
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <div className="overflow-x-auto border border-pn-line rounded-lg">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
+            <thead className="bg-pn-surface-2 text-pn-ink-2">
               <tr>
                 <th className="text-left px-4 py-2 font-medium">
                   Asignatura aprobada
@@ -77,18 +78,18 @@ export function EquivalenciasTab() {
                 <th className="px-4 py-2" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-pn-line">
               {equivalencias.map((e) => (
-                <tr key={e.id} className="hover:bg-gray-50">
+                <tr key={e.id} className="hover:bg-pn-surface-2">
                   <td className="px-4 py-2">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-pn-ink">
                       {e.sourceSubject.name}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-pn-muted">
                       {e.sourceSubject.code}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-center text-gray-400">
+                  <td className="px-4 py-2 text-center text-pn-muted">
                     {e.bidirectional ? (
                       <span title="Vale en los dos sentidos">
                         <ArrowLeftRight size={16} />
@@ -98,26 +99,26 @@ export function EquivalenciasTab() {
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-pn-ink">
                       {e.targetSubject.name}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-pn-muted">
                       {e.targetSubject.code}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-gray-600">{e.notes ?? '—'}</td>
+                  <td className="px-4 py-2 text-pn-ink-2">{e.notes ?? '—'}</td>
                   <td className="px-4 py-2 text-right">
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (
-                          window.confirm(
+                          await confirmar(
                             `¿Eliminar la equivalencia ${e.sourceSubject.code} → ${e.targetSubject.code}?`,
                           )
                         ) {
                           eliminar.mutate(e.id);
                         }
                       }}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                      className="p-1.5 text-pn-danger hover:bg-pn-danger-soft rounded"
                       aria-label={`Eliminar equivalencia ${e.sourceSubject.code} a ${e.targetSubject.code}`}
                     >
                       <Trash2 size={16} />
@@ -131,7 +132,7 @@ export function EquivalenciasTab() {
       )}
 
       {eliminar.error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(eliminar.error)}
         </div>
       )}
@@ -177,7 +178,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-equivalencia"
-        className="bg-white rounded-xl w-full max-w-lg p-6 space-y-4"
+        className="bg-pn-surface rounded-xl w-full max-w-lg p-6 space-y-4"
       >
         <div className="flex items-center justify-between">
           <h3 id="titulo-equivalencia" className="text-lg font-semibold">
@@ -191,7 +192,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         <div>
           <label
             htmlFor="equiv-origen"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-pn-ink-2 mb-1"
           >
             Asignatura aprobada (origen)
           </label>
@@ -199,7 +200,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
             id="equiv-origen"
             value={form.sourceSubjectId}
             onChange={(e) => setForm({ ...form, sourceSubjectId: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            className="w-full border border-pn-line rounded-lg px-3 py-2"
           >
             <option value="">Seleccione…</option>
             {lista.map((a) => (
@@ -213,7 +214,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         <div>
           <label
             htmlFor="equiv-destino"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-pn-ink-2 mb-1"
           >
             Se da por aprobada (destino)
           </label>
@@ -221,7 +222,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
             id="equiv-destino"
             value={form.targetSubjectId}
             onChange={(e) => setForm({ ...form, targetSubjectId: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            className="w-full border border-pn-line rounded-lg px-3 py-2"
           >
             <option value="">Seleccione…</option>
             {lista.map((a) => (
@@ -232,7 +233,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
           </select>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-pn-ink-2">
           <input
             type="checkbox"
             checked={form.bidirectional ?? false}
@@ -244,7 +245,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         <div>
           <label
             htmlFor="equiv-notas"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-pn-ink-2 mb-1"
           >
             Notas (opcional)
           </label>
@@ -254,18 +255,18 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
             value={form.notes ?? ''}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             placeholder="Acta o criterio que sustenta la equivalencia"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            className="w-full border border-pn-line rounded-lg px-3 py-2"
           />
         </div>
 
         {form.sourceSubjectId && form.sourceSubjectId === form.targetSubjectId && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-pn-danger">
             Una asignatura no puede ser equivalente a sí misma.
           </p>
         )}
 
         {crear.error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
             {mensajeDeError(crear.error)}
           </div>
         )}
@@ -273,7 +274,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
         <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onCerrar}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
           >
             Cancelar
           </button>
@@ -287,7 +288,7 @@ function ModalEquivalencia({ onCerrar }: { onCerrar: () => void }) {
               })
             }
             disabled={!puedeGuardar || crear.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover disabled:opacity-50"
           >
             {crear.isPending ? 'Guardando…' : 'Guardar'}
           </button>

@@ -13,6 +13,7 @@ import {
 import { idCardsApi, IDCardCreateDto } from '../../../api/endpoints/idcards';
 import type { IDCard } from '../../../types/admin.types';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { confirmar } from '../../ui';
 
 export const CarnetizacionSection: React.FC = () => {
   const [idCards, setIdCards] = useState<IDCard[]>([]);
@@ -117,7 +118,7 @@ export const CarnetizacionSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este carné?')) return;
+    if (!await confirmar('¿Estás seguro de que deseas eliminar este carné?')) return;
 
     try {
       await idCardsApi.delete(id);
@@ -159,21 +160,21 @@ export const CarnetizacionSection: React.FC = () => {
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      estudiante: 'bg-blue-100 text-blue-800',
-      docente: 'bg-purple-100 text-purple-800',
-      administrativo: 'bg-green-100 text-green-800',
+      estudiante: 'bg-pn-accent-soft text-pn-accent-text',
+      docente: 'bg-pn-accent-2-soft text-pn-accent-2-text',
+      administrativo: 'bg-pn-ok-soft text-pn-ok',
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type] || 'bg-pn-surface-3 text-pn-ink';
   };
 
   const getStateColor = (state: string) => {
     const colors: Record<string, string> = {
-      activo: 'bg-green-100 text-green-800',
-      vencido: 'bg-red-100 text-red-800',
-      bloqueado: 'bg-orange-100 text-orange-800',
-      perdido: 'bg-gray-100 text-gray-800',
+      activo: 'bg-pn-ok-soft text-pn-ok',
+      vencido: 'bg-pn-danger-soft text-pn-danger',
+      bloqueado: 'bg-pn-warn-soft text-pn-warn',
+      perdido: 'bg-pn-surface-3 text-pn-ink',
     };
-    return colors[state] || 'bg-gray-100 text-gray-800';
+    return colors[state] || 'bg-pn-surface-3 text-pn-ink';
   };
 
   const isExpired = (fecha: string) => {
@@ -194,10 +195,10 @@ export const CarnetizacionSection: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-900">Carnetización</h2>
+        <h2 className="text-3xl font-bold text-pn-ink">Carnetización</h2>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
         >
           <Plus className="w-5 h-5" />
           Nuevo Carné
@@ -206,44 +207,44 @@ export const CarnetizacionSection: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Total de Carnés</div>
-          <div className="text-3xl font-bold text-gray-900 mt-2">{idCards.length}</div>
+        <div className="bg-pn-surface rounded-lg shadow p-4">
+          <div className="text-sm text-pn-ink-2">Total de Carnés</div>
+          <div className="text-3xl font-bold text-pn-ink mt-2">{idCards.length}</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
-          <div className="text-sm text-gray-600">Vencidos</div>
-          <div className="text-3xl font-bold text-red-600 mt-2">{expiredCount}</div>
+        <div className="bg-pn-surface rounded-lg shadow p-4 border-l-4 border-pn-danger">
+          <div className="text-sm text-pn-ink-2">Vencidos</div>
+          <div className="text-3xl font-bold text-pn-danger mt-2">{expiredCount}</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
-          <div className="text-sm text-gray-600">Por Vencer (30 días)</div>
-          <div className="text-3xl font-bold text-yellow-600 mt-2">{expiringCount}</div>
+        <div className="bg-pn-surface rounded-lg shadow p-4 border-l-4 border-pn-warn">
+          <div className="text-sm text-pn-ink-2">Por Vencer (30 días)</div>
+          <div className="text-3xl font-bold text-pn-warn mt-2">{expiringCount}</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
-          <div className="text-sm text-gray-600">Bloqueados</div>
-          <div className="text-3xl font-bold text-orange-600 mt-2">{blockedCount}</div>
+        <div className="bg-pn-surface rounded-lg shadow p-4 border-l-4 border-pn-warn">
+          <div className="text-sm text-pn-ink-2">Bloqueados</div>
+          <div className="text-3xl font-bold text-pn-warn mt-2">{blockedCount}</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative">
-          <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-3 w-5 h-5 text-pn-muted" />
           <input
             type="text"
             placeholder="Buscar por nombre o ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
           />
         </div>
 
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
         >
           <option value="">Todos los tipos</option>
           <option value="estudiante">Estudiante</option>
@@ -254,7 +255,7 @@ export const CarnetizacionSection: React.FC = () => {
         <select
           value={stateFilter}
           onChange={(e) => setStateFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
         >
           <option value="">Todos los estados</option>
           <option value="activo">Activo</option>
@@ -266,45 +267,45 @@ export const CarnetizacionSection: React.FC = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="flex items-center gap-3 p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-pn-danger">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-pn-surface rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-pn-surface-2 border-b border-pn-line">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Nombre
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Carné
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Tipo
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Emisión
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Vencimiento
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-right text-sm font-semibold text-pn-ink">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-pn-line">
               {idCards.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-pn-muted">
                     No hay carnés registrados
                   </td>
                 </tr>
@@ -316,14 +317,14 @@ export const CarnetizacionSection: React.FC = () => {
                   return (
                     <tr
                       key={card.id}
-                      className={`hover:bg-gray-50 transition ${
-                        expired || expiringSoon ? 'bg-yellow-50' : ''
+                      className={`hover:bg-pn-surface-2 transition ${
+                        expired || expiringSoon ? 'bg-pn-warn-soft' : ''
                       }`}
                     >
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-sm font-medium text-pn-ink">
                         {card.nombre}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-pn-ink-2">
                         {card.numeroCarnet || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm">
@@ -331,17 +332,17 @@ export const CarnetizacionSection: React.FC = () => {
                           {getTypeLabel(card.tipoUsuario)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-pn-ink-2">
                         {new Date(card.fechaEmision).toLocaleDateString('es-ES')}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium">
                         <div className="flex items-center gap-2">
                           {new Date(card.fechaVencimiento).toLocaleDateString('es-ES')}
                           {expiringSoon && !expired && (
-                            <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                            <AlertTriangle className="w-4 h-4 text-pn-warn" />
                           )}
                           {expired && (
-                            <AlertTriangle className="w-4 h-4 text-red-600" />
+                            <AlertTriangle className="w-4 h-4 text-pn-danger" />
                           )}
                         </div>
                       </td>
@@ -354,7 +355,7 @@ export const CarnetizacionSection: React.FC = () => {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleOpenModal(card)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded-lg transition"
                             title="Editar"
                           >
                             <Edit2 className="w-5 h-5" />
@@ -362,7 +363,7 @@ export const CarnetizacionSection: React.FC = () => {
                           {expired && (
                             <button
                               onClick={() => handleRenew(card.id as any)}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                              className="p-2 text-pn-ok hover:bg-pn-ok-soft rounded-lg transition"
                               title="Renovar"
                             >
                               <RefreshCw className="w-5 h-5" />
@@ -371,7 +372,7 @@ export const CarnetizacionSection: React.FC = () => {
                           {card.estado !== 'bloqueado' && (
                             <button
                               onClick={() => handleBlock(card.id as any)}
-                              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                              className="p-2 text-pn-warn hover:bg-pn-warn-soft rounded-lg transition"
                               title="Bloquear"
                             >
                               <Lock className="w-5 h-5" />
@@ -379,7 +380,7 @@ export const CarnetizacionSection: React.FC = () => {
                           )}
                           <button
                             onClick={() => handleDelete(card.id as any)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded-lg transition"
                             title="Eliminar"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -398,15 +399,15 @@ export const CarnetizacionSection: React.FC = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Carné' : 'Nuevo Carné'}" className="bg-pn-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h3 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Carné' : 'Nuevo Carné'}
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700 transition"
+                className="text-pn-muted hover:text-pn-ink-2 transition"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -416,7 +417,7 @@ export const CarnetizacionSection: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     ID Usuario *
                   </label>
                   <input
@@ -426,12 +427,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, usuarioId: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Nombre *
                   </label>
                   <input
@@ -441,12 +442,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, nombre: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Identificación *
                   </label>
                   <input
@@ -456,12 +457,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, identificacion: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Tipo de Usuario *
                   </label>
                   <select
@@ -473,7 +474,7 @@ export const CarnetizacionSection: React.FC = () => {
                         tipoUsuario: e.target.value as any,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   >
                     <option value="estudiante">Estudiante</option>
                     <option value="docente">Docente</option>
@@ -482,7 +483,7 @@ export const CarnetizacionSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Número de Carné
                   </label>
                   <input
@@ -491,12 +492,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, numeroCarnet: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Estado *
                   </label>
                   <select
@@ -505,7 +506,7 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, estado: e.target.value as any })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   >
                     <option value="activo">Activo</option>
                     <option value="vencido">Vencido</option>
@@ -515,7 +516,7 @@ export const CarnetizacionSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Fecha de Emisión *
                   </label>
                   <input
@@ -525,12 +526,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, fechaEmision: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Fecha de Vencimiento *
                   </label>
                   <input
@@ -540,12 +541,12 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, fechaVencimiento: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     URL de Foto *
                   </label>
                   <input
@@ -555,23 +556,23 @@ export const CarnetizacionSection: React.FC = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, fotoUrl: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                   />
                 </div>
               </div>
 
               {/* Modal Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t border-pn-line">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="px-4 py-2 text-pn-ink-2 border border-pn-line rounded-lg hover:bg-pn-surface-2 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
                 >
                   {editingId ? 'Actualizar' : 'Crear'}
                 </button>

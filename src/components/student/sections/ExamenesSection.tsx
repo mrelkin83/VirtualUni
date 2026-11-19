@@ -16,10 +16,6 @@ import { StudentExam } from '../../../types/student.types';
 
 interface ExamenesSectionProps {
   examenes: StudentExam[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   iniciarExamen: (examenId: number | string) => void;
   verResultados: (examenId: number | string) => void;
 }
@@ -27,42 +23,38 @@ interface ExamenesSectionProps {
 // Componente de tarjeta de examen
 const ExamenCard: React.FC<{
   examen: StudentExam;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   iniciarExamen: (id: number | string) => void;
   verResultados: (id: number | string) => void;
-}> = ({ examen, darkMode, card, text, border, iniciarExamen, verResultados }) => {
+}> = ({ examen, iniciarExamen, verResultados }) => {
   const getEstadoInfo = () => {
     switch (examen.estado) {
       case 'pendiente':
         return {
-          color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+          color: 'bg-pn-warn-soft text-pn-warn',
           icon: <AlertCircle size={20} />,
           text: 'Pendiente'
         };
       case 'en_curso':
         return {
-          color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+          color: 'bg-pn-accent-soft text-pn-accent-text',
           icon: <Play size={20} />,
           text: 'En curso'
         };
       case 'finalizado':
         return {
-          color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+          color: 'bg-pn-ok-soft text-pn-ok',
           icon: <CheckCircle size={20} />,
           text: 'Finalizado'
         };
       case 'calificado':
         return {
-          color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+          color: 'bg-pn-accent-2-soft text-pn-accent-2-text',
           icon: <Award size={20} />,
           text: 'Calificado'
         };
       default:
         return {
-          color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+          color: 'bg-pn-surface-3 text-pn-ink-2',
           icon: <FileText size={20} />,
           text: examen.estado
         };
@@ -76,14 +68,14 @@ const ExamenCard: React.FC<{
 
   return (
     <div
-      className={`${card} rounded-lg shadow-md p-5 border ${border} hover:shadow-lg transition-shadow ${
+      className={`bg-pn-surface rounded-lg shadow-md p-5 border border-pn-line hover:shadow-lg transition-shadow ${
         esProximo ? 'border-l-4 border-l-yellow-500' : ''
       }`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h3 className={`font-bold ${text} text-lg mb-1`}>{examen.titulo}</h3>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{examen.curso}</p>
+          <h3 className={`font-bold text-pn-ink text-lg mb-1`}>{examen.titulo}</h3>
+          <p className={`text-sm text-pn-ink-2`}>{examen.curso}</p>
         </div>
         <span className={`text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 ${estadoInfo.color}`}>
           {estadoInfo.icon}
@@ -91,7 +83,7 @@ const ExamenCard: React.FC<{
         </span>
       </div>
 
-      <div className={`grid grid-cols-2 gap-3 mb-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`grid grid-cols-2 gap-3 mb-4 text-sm text-pn-ink-2`}>
         <div className="flex items-center gap-2">
           <Calendar size={16} />
           <span>{examen.fecha}</span>
@@ -109,14 +101,14 @@ const ExamenCard: React.FC<{
         {examen.calificacion !== undefined && (
           <div className="flex items-center gap-2">
             <Award size={16} />
-                        <span className="font-semibold text-blue-500">{examen.calificacion}/100</span>
+                        <span className="font-semibold text-pn-accent-text">{examen.calificacion}/100</span>
           </div>
         )}
       </div>
 
       {esProximo && examen.estado === 'pendiente' && (
-        <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-2">
-          <p className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+        <div className="mb-4 bg-pn-warn-soft border border-pn-warn rounded p-2">
+          <p className="text-xs text-pn-warn flex items-center gap-1">
             <AlertCircle size={14} />
             Próximamente - Prepárate para este examen
           </p>
@@ -127,7 +119,7 @@ const ExamenCard: React.FC<{
         {examen.estado === 'pendiente' && fechaExamen <= hoy && (
           <button
             onClick={() => iniciarExamen(examen.id)}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
+            className="flex-1 bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
           >
             <Play size={18} />
             Iniciar examen
@@ -137,7 +129,7 @@ const ExamenCard: React.FC<{
         {examen.estado === 'en_curso' && (
           <button
             onClick={() => iniciarExamen(examen.id)}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
+            className="flex-1 bg-pn-ok hover:bg-pn-ok text-pn-surface px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition"
           >
             <Play size={18} />
             Continuar examen
@@ -147,11 +139,7 @@ const ExamenCard: React.FC<{
         {(examen.estado === 'finalizado' || examen.estado === 'calificado') && (
           <button
             onClick={() => verResultados(examen.id)}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-              darkMode
-                ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-            }`}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition bg-pn-surface-3 hover:bg-pn-line text-pn-ink`}
           >
             <ChevronRight size={18} />
             Ver resultados
@@ -162,7 +150,7 @@ const ExamenCard: React.FC<{
           <button
             disabled
             className={`flex-1 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 opacity-50 cursor-not-allowed ${
-              darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+              'bg-pn-surface-3 text-pn-muted'
             }`}
           >
             <Clock size={18} />
@@ -177,10 +165,6 @@ const ExamenCard: React.FC<{
 // Componente Principal
 export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
   examenes,
-  darkMode,
-  card,
-  text,
-  border,
   iniciarExamen,
   verResultados
 }) => {
@@ -220,43 +204,43 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className={`text-2xl font-bold ${text}`}>Mis Exámenes</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Exámenes</h2>
       </div>
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <FileText className="text-blue-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Exámenes</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.total}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <FileText className="text-pn-accent-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Total Exámenes</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.total}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <AlertCircle className="text-yellow-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pendientes</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.pendientes}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <AlertCircle className="text-pn-warn mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Pendientes</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.pendientes}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <CheckCircle className="text-green-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Finalizados</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.finalizados}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <CheckCircle className="text-pn-ok mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Finalizados</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.finalizados}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <TrendingUp className="text-purple-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Promedio</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.promedio.toFixed(1)}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <TrendingUp className="text-pn-accent-2-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Promedio</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.promedio.toFixed(1)}</p>
         </div>
       </div>
 
       {/* Alerta de exámenes en curso */}
       {examenesEnCurso.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="bg-pn-accent-soft border border-pn-accent-line rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <Play className="text-blue-500" size={24} />
+            <Play className="text-pn-accent-text" size={24} />
             <div className="flex-1">
-              <h3 className={`font-bold ${text}`}>
+              <h3 className={`font-bold text-pn-ink`}>
                 Tienes {examenesEnCurso.length} examen{examenesEnCurso.length > 1 ? 'es' : ''} en curso
               </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 Continúa donde lo dejaste
               </p>
             </div>
@@ -266,14 +250,14 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
       {/* Alerta de exámenes próximos */}
       {examenesProximos.length > 0 && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="bg-pn-warn-soft border border-pn-warn rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <AlertCircle className="text-yellow-500" size={24} />
+            <AlertCircle className="text-pn-warn" size={24} />
             <div className="flex-1">
-              <h3 className={`font-bold ${text}`}>
+              <h3 className={`font-bold text-pn-ink`}>
                 {examenesProximos.length} examen{examenesProximos.length > 1 ? 'es' : ''} próximo{examenesProximos.length > 1 ? 's' : ''}
               </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm text-pn-ink-2`}>
                 En los próximos 7 días - Prepárate adecuadamente
               </p>
             </div>
@@ -285,27 +269,27 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       <div className="flex gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted" size={20} />
             <input
               type="text"
               placeholder="Buscar exámenes..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${border} ${
-                darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border border-pn-line ${
+                'bg-pn-surface text-pn-ink'
+              } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter size={20} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+          <Filter size={20} className={'text-pn-ink-2'} />
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value as any)}
-            className={`px-4 py-2 rounded-lg border ${border} ${
-              darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            className={`px-4 py-2 rounded-lg border border-pn-line ${
+              'bg-pn-surface text-pn-ink'
+            } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
           >
             <option value="todos">Todos los estados</option>
             <option value="pendiente">Pendientes</option>
@@ -323,20 +307,16 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             <ExamenCard
               key={examen.id}
               examen={examen}
-              darkMode={darkMode}
-              card={card}
-              text={text}
-              border={border}
               iniciarExamen={iniciarExamen}
               verResultados={verResultados}
             />
           ))}
         </div>
       ) : (
-        <div className={`${card} rounded-lg shadow p-12 text-center border ${border}`}>
-          <FileText size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-          <p className={`${text} font-bold mb-2`}>No se encontraron exámenes</p>
-          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+        <div className={`bg-pn-surface rounded-lg shadow p-12 text-center border border-pn-line`}>
+          <FileText size={64} className={`mx-auto mb-4 text-pn-muted`} />
+          <p className={`text-pn-ink font-bold mb-2`}>No se encontraron exámenes</p>
+          <p className={'text-pn-ink-2'}>
             Intenta ajustar los filtros de búsqueda
           </p>
         </div>

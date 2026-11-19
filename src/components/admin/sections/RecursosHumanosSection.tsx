@@ -13,6 +13,7 @@ import {
 import { hrApi, EmployeeCreateDto } from '../../../api/endpoints/hr';
 import type { Employee } from '../../../types/admin.types';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { confirmar } from '../../ui';
 
 export const RecursosHumanosSection: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -137,7 +138,7 @@ export const RecursosHumanosSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este empleado?')) return;
+    if (!await confirmar('¿Estás seguro de que deseas eliminar este empleado?')) return;
 
     try {
       await hrApi.employees.delete(id);
@@ -150,12 +151,12 @@ export const RecursosHumanosSection: React.FC = () => {
 
   const getStateColor = (state: string) => {
     const colors: Record<string, string> = {
-      activo: 'bg-green-100 text-green-800',
-      inactivo: 'bg-gray-100 text-gray-800',
-      vacaciones: 'bg-blue-100 text-blue-800',
-      incapacidad: 'bg-yellow-100 text-yellow-800',
+      activo: 'bg-pn-ok-soft text-pn-ok',
+      inactivo: 'bg-pn-surface-3 text-pn-ink',
+      vacaciones: 'bg-pn-accent-soft text-pn-accent-text',
+      incapacidad: 'bg-pn-warn-soft text-pn-warn',
     };
-    return colors[state] || 'bg-gray-100 text-gray-800';
+    return colors[state] || 'bg-pn-surface-3 text-pn-ink';
   };
 
   const getContractTypeLabel = (type: string) => {
@@ -172,10 +173,10 @@ export const RecursosHumanosSection: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-900">Recursos Humanos</h2>
+        <h2 className="text-3xl font-bold text-pn-ink">Recursos Humanos</h2>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
         >
           <Plus className="w-5 h-5" />
           Nuevo Empleado
@@ -184,35 +185,35 @@ export const RecursosHumanosSection: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-pn-surface rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-600">Total de Empleados</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
+              <div className="text-sm text-pn-ink-2">Total de Empleados</div>
+              <div className="text-3xl font-bold text-pn-ink mt-2">
                 {employees.length}
               </div>
             </div>
-            <Users className="w-8 h-8 text-blue-600 opacity-20" />
+            <Users className="w-8 h-8 text-pn-accent-text opacity-20" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Empleados Activos</div>
-          <div className="text-3xl font-bold text-green-600 mt-2">
+        <div className="bg-pn-surface rounded-lg shadow p-4">
+          <div className="text-sm text-pn-ink-2">Empleados Activos</div>
+          <div className="text-3xl font-bold text-pn-ok mt-2">
             {employees.filter((e) => e.estado === 'activo').length}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">De Vacaciones</div>
-          <div className="text-3xl font-bold text-blue-600 mt-2">
+        <div className="bg-pn-surface rounded-lg shadow p-4">
+          <div className="text-sm text-pn-ink-2">De Vacaciones</div>
+          <div className="text-3xl font-bold text-pn-accent-text mt-2">
             {employees.filter((e) => e.estado === 'vacaciones').length}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">En Incapacidad</div>
-          <div className="text-3xl font-bold text-yellow-600 mt-2">
+        <div className="bg-pn-surface rounded-lg shadow p-4">
+          <div className="text-sm text-pn-ink-2">En Incapacidad</div>
+          <div className="text-3xl font-bold text-pn-warn mt-2">
             {employees.filter((e) => e.estado === 'incapacidad').length}
           </div>
         </div>
@@ -221,13 +222,13 @@ export const RecursosHumanosSection: React.FC = () => {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="relative">
-          <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-3 w-5 h-5 text-pn-muted" />
           <input
             type="text"
             placeholder="Buscar empleados..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
           />
         </div>
 
@@ -236,77 +237,77 @@ export const RecursosHumanosSection: React.FC = () => {
           placeholder="Filtrar por departamento..."
           value={departmentFilter}
           onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
         />
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="flex items-center gap-3 p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-pn-danger">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-pn-surface rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-pn-surface-2 border-b border-pn-line">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Nombre
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Teléfono
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Cargo
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Departamento
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Tipo Contrato
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-pn-ink">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <th className="px-6 py-3 text-right text-sm font-semibold text-pn-ink">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-pn-line">
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-8 text-center text-pn-muted">
                     No hay empleados registrados
                   </td>
                 </tr>
               ) : (
                 employees.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <tr key={employee.id} className="hover:bg-pn-surface-2 transition">
+                    <td className="px-6 py-4 text-sm font-medium text-pn-ink">
                       {employee.nombre}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
+                    <td className="px-6 py-4 text-sm text-pn-ink-2 flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       {employee.email}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
+                    <td className="px-6 py-4 text-sm text-pn-ink-2 flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       {employee.telefono}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{employee.cargo}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-pn-ink-2">{employee.cargo}</td>
+                    <td className="px-6 py-4 text-sm text-pn-ink-2">
                       {employee.departamento}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                      <span className="px-2 py-1 bg-pn-accent-2-soft text-pn-accent-2-text rounded text-xs font-medium">
                         {getContractTypeLabel(employee.tipoContrato)}
                       </span>
                     </td>
@@ -319,14 +320,14 @@ export const RecursosHumanosSection: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleOpenModal(employee)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded-lg transition"
                           title="Editar"
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(employee.id as any)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded-lg transition"
                           title="Eliminar"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -344,15 +345,15 @@ export const RecursosHumanosSection: React.FC = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Empleado' : 'Nuevo Empleado'}" className="bg-pn-surface rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h3 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Empleado' : 'Nuevo Empleado'}
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700 transition"
+                className="text-pn-muted hover:text-pn-ink-2 transition"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -362,12 +363,12 @@ export const RecursosHumanosSection: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Información Personal */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                <h4 className="text-lg font-semibold text-pn-ink mb-4">
                   Información Personal
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Nombre *
                     </label>
                     <input
@@ -377,12 +378,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, nombre: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Identificación *
                     </label>
                     <input
@@ -392,12 +393,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, identificacion: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Fecha de Nacimiento *
                     </label>
                     <input
@@ -407,12 +408,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, fechaNacimiento: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Email *
                     </label>
                     <input
@@ -422,12 +423,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Teléfono *
                     </label>
                     <input
@@ -437,12 +438,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, telefono: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Género *
                     </label>
                     <select
@@ -451,7 +452,7 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, genero: e.target.value as any })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="masculino">Masculino</option>
                       <option value="femenino">Femenino</option>
@@ -460,7 +461,7 @@ export const RecursosHumanosSection: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Estado Civil *
                     </label>
                     <select
@@ -469,7 +470,7 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, estadoCivil: e.target.value as any })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="soltero">Soltero</option>
                       <option value="casado">Casado</option>
@@ -480,7 +481,7 @@ export const RecursosHumanosSection: React.FC = () => {
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Dirección *
                     </label>
                     <input
@@ -490,7 +491,7 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, direccion: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
                 </div>
@@ -498,12 +499,12 @@ export const RecursosHumanosSection: React.FC = () => {
 
               {/* Información Laboral */}
               <div className="border-t pt-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                <h4 className="text-lg font-semibold text-pn-ink mb-4">
                   Información Laboral
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Cargo *
                     </label>
                     <input
@@ -513,12 +514,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, cargo: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Departamento *
                     </label>
                     <input
@@ -528,12 +529,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, departamento: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Salario *
                     </label>
                     <input
@@ -543,12 +544,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, salario: Number(e.target.value) })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Fecha de Ingreso *
                     </label>
                     <input
@@ -558,12 +559,12 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, fechaIngreso: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Tipo de Contrato *
                     </label>
                     <select
@@ -572,7 +573,7 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, tipoContrato: e.target.value as any })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="indefinido">Indefinido</option>
                       <option value="fijo">Fijo</option>
@@ -582,7 +583,7 @@ export const RecursosHumanosSection: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Estado *
                     </label>
                     <select
@@ -591,7 +592,7 @@ export const RecursosHumanosSection: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, estado: e.target.value as any })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="activo">Activo</option>
                       <option value="inactivo">Inactivo</option>
@@ -604,12 +605,12 @@ export const RecursosHumanosSection: React.FC = () => {
 
               {/* Contacto de Emergencia */}
               <div className="border-t pt-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                <h4 className="text-lg font-semibold text-pn-ink mb-4">
                   Contacto de Emergencia
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Nombre *
                     </label>
                     <input
@@ -622,12 +623,12 @@ export const RecursosHumanosSection: React.FC = () => {
                           contactoEmergenciaNombre: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Teléfono *
                     </label>
                     <input
@@ -640,12 +641,12 @@ export const RecursosHumanosSection: React.FC = () => {
                           contactoEmergenciaTelefono: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                       Relación *
                     </label>
                     <input
@@ -658,24 +659,24 @@ export const RecursosHumanosSection: React.FC = () => {
                           contactoEmergenciaRelacion: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Modal Actions */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-6 border-t border-pn-line">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="px-4 py-2 text-pn-ink-2 border border-pn-line rounded-lg hover:bg-pn-surface-2 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
                 >
                   {editingId ? 'Actualizar' : 'Crear'}
                 </button>

@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useModalA11y } from '../../../hooks/useModalA11y';
+import { avisar, confirmar } from '../../ui';
 
 interface Mensaje {
   id: number;
@@ -46,10 +47,6 @@ interface MensajeDetalleModalProps {
   onAnterior?: () => void;
   hayMensajesAnteriores?: boolean;
   hayMensajesSiguientes?: boolean;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
@@ -64,10 +61,6 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
   onAnterior,
   hayMensajesAnteriores = false,
   hayMensajesSiguientes = false,
-  darkMode,
-  card,
-  text,
-  border,
 }) => {
   const [mostrarRespuesta, setMostrarRespuesta] = useState(false);
   const [respuesta, setRespuesta] = useState('');
@@ -79,7 +72,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
 
   const handleEnviarRespuesta = () => {
     if (!respuesta.trim()) {
-      alert('Por favor escribe una respuesta');
+      avisar.info('Por favor escribe una respuesta');
       return;
     }
 
@@ -87,11 +80,11 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
     setRespuesta('');
     setAdjuntosRespuesta([]);
     setMostrarRespuesta(false);
-    alert('Respuesta enviada exitosamente');
+    avisar.ok('Respuesta enviada exitosamente');
   };
 
-  const handleEliminar = () => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este mensaje?')) {
+  const handleEliminar = async () => {
+    if (await confirmar('¿Estás seguro de que deseas eliminar este mensaje?')) {
       onEliminar(mensaje.id);
       onClose();
     }
@@ -121,20 +114,20 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
         aria-modal="true"
         aria-labelledby="titulo-mensaje-detalle"
         tabIndex={-1}
-        className={`${card} rounded-lg w-full max-w-4xl h-[90vh] flex flex-col`}
+        className={`bg-pn-surface rounded-lg w-full max-w-4xl h-[90vh] flex flex-col`}
       >
         {/* Header */}
-        <div className={`p-6 ${border} border-b`}>
+        <div className={`p-6 border-pn-line border-b`}>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
                 title="Cerrar"
               >
                 <X size={24} />
               </button>
-              <h3 id="titulo-mensaje-detalle" className={`text-xl font-bold ${text}`}>
+              <h3 id="titulo-mensaje-detalle" className={`text-xl font-bold text-pn-ink`}>
                 {mensaje.tipo === 'recibido' ? 'Mensaje Recibido' : 'Mensaje Enviado'}
               </h3>
             </div>
@@ -146,8 +139,8 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                 disabled={!hayMensajesAnteriores}
                 className={`p-2 rounded-lg transition ${
                   hayMensajesAnteriores
-                    ? `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
-                    : 'text-gray-400 cursor-not-allowed'
+                    ? `text-pn-ink hover:bg-pn-surface-3`
+                    : 'text-pn-muted cursor-not-allowed'
                 }`}
                 title="Mensaje anterior"
               >
@@ -158,8 +151,8 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                 disabled={!hayMensajesSiguientes}
                 className={`p-2 rounded-lg transition ${
                   hayMensajesSiguientes
-                    ? `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
-                    : 'text-gray-400 cursor-not-allowed'
+                    ? `text-pn-ink hover:bg-pn-surface-3`
+                    : 'text-pn-muted cursor-not-allowed'
                 }`}
                 title="Mensaje siguiente"
               >
@@ -174,14 +167,14 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
               <>
                 <button
                   onClick={() => setMostrarRespuesta(!mostrarRespuesta)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition"
                 >
                   <Reply size={18} />
                   Responder
                 </button>
                 <button
                   onClick={handleMarcarLeido}
-                  className={`flex items-center gap-2 px-4 py-2 ${border} border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition ${text}`}
+                  className={`flex items-center gap-2 px-4 py-2 border-pn-line border rounded-lg hover:bg-pn-surface-3 transition text-pn-ink`}
                 >
                   {mensaje.leido ? <Mail size={18} /> : <MailOpen size={18} />}
                   {mensaje.leido ? 'Marcar como no leído' : 'Marcar como leído'}
@@ -191,7 +184,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
             {onArchivar && (
               <button
                 onClick={() => onArchivar(mensaje.id)}
-                className={`flex items-center gap-2 px-4 py-2 ${border} border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition ${text}`}
+                className={`flex items-center gap-2 px-4 py-2 border-pn-line border rounded-lg hover:bg-pn-surface-3 transition text-pn-ink`}
               >
                 <Archive size={18} />
                 Archivar
@@ -199,7 +192,7 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
             )}
             <button
               onClick={handleEliminar}
-              className="flex items-center gap-2 px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition ml-auto"
+              className="flex items-center gap-2 px-4 py-2 border border-pn-danger text-pn-danger rounded-lg hover:bg-pn-danger-soft transition ml-auto"
             >
               <Trash2 size={18} />
               Eliminar
@@ -210,23 +203,23 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
         {/* Contenido */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* Información del mensaje */}
-          <div className={`${card} p-4 rounded-lg ${border} border`}>
+          <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                  <User className="text-blue-600" size={24} />
+                <div className="p-3 bg-pn-accent-soft rounded-full">
+                  <User className="text-pn-accent-text" size={24} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`font-bold ${text}`}>
+                      <p className={`font-bold text-pn-ink`}>
                         {mensaje.tipo === 'recibido' ? mensaje.de : `Para: ${mensaje.para}`}
                       </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p className={`text-sm text-pn-ink-2`}>
                         {mensaje.tipo === 'recibido' ? 'Remitente' : 'Destinatario'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm text-pn-muted">
                       <Calendar size={16} />
                       {mensaje.fecha}
                     </div>
@@ -234,25 +227,25 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                 </div>
               </div>
 
-              <div className={`pt-3 ${border} border-t`}>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+              <div className={`pt-3 border-pn-line border-t`}>
+                <p className={`text-sm text-pn-ink-2 mb-1`}>
                   Asunto:
                 </p>
-                <p className={`font-semibold ${text}`}>{mensaje.asunto}</p>
+                <p className={`font-semibold text-pn-ink`}>{mensaje.asunto}</p>
               </div>
             </div>
           </div>
 
           {/* Contenido del mensaje */}
-          <div className={`${card} p-6 rounded-lg ${border} border`}>
-            <h4 className={`font-bold ${text} mb-3`}>Mensaje</h4>
-            <p className={`${text} whitespace-pre-wrap leading-relaxed`}>{mensaje.mensaje}</p>
+          <div className={`bg-pn-surface p-6 rounded-lg border-pn-line border`}>
+            <h4 className={`font-bold text-pn-ink mb-3`}>Mensaje</h4>
+            <p className={`text-pn-ink whitespace-pre-wrap leading-relaxed`}>{mensaje.mensaje}</p>
           </div>
 
           {/* Archivos adjuntos */}
           {mensaje.adjuntos && mensaje.adjuntos.length > 0 && (
-            <div className={`${card} p-4 rounded-lg ${border} border`}>
-              <h4 className={`font-bold ${text} mb-3 flex items-center gap-2`}>
+            <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
+              <h4 className={`font-bold text-pn-ink mb-3 flex items-center gap-2`}>
                 <Paperclip size={18} />
                 Archivos Adjuntos ({mensaje.adjuntos.length})
               </h4>
@@ -261,14 +254,14 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                   <div
                     key={index}
                     className={`flex items-center justify-between p-3 rounded-lg ${
-                      darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                      'bg-pn-surface-3'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <FileText className="text-blue-600" size={20} />
-                      <span className={`text-sm ${text}`}>{adjunto}</span>
+                      <FileText className="text-pn-accent-text" size={20} />
+                      <span className={`text-sm text-pn-ink`}>{adjunto}</span>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    <button className="text-pn-accent-text hover:text-pn-accent-text text-sm font-medium">
                       Descargar
                     </button>
                   </div>
@@ -279,19 +272,19 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
 
           {/* Respuestas previas */}
           {mensaje.respuestas && mensaje.respuestas.length > 0 && (
-            <div className={`${card} p-4 rounded-lg ${border} border`}>
-              <h4 className={`font-bold ${text} mb-3`}>Conversación ({mensaje.respuestas.length})</h4>
+            <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
+              <h4 className={`font-bold text-pn-ink mb-3`}>Conversación ({mensaje.respuestas.length})</h4>
               <div className="space-y-3">
                 {mensaje.respuestas.map((resp) => (
                   <div
                     key={resp.id}
-                    className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
+                    className={`p-3 rounded-lg bg-pn-surface-3`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <p className={`font-semibold ${text} text-sm`}>{resp.de}</p>
-                      <p className="text-xs text-gray-500">{resp.fecha}</p>
+                      <p className={`font-semibold text-pn-ink text-sm`}>{resp.de}</p>
+                      <p className="text-xs text-pn-muted">{resp.fecha}</p>
                     </div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <p className={`text-sm text-pn-ink-2`}>
                       {resp.mensaje}
                     </p>
                   </div>
@@ -302,28 +295,28 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
 
           {/* Formulario de respuesta */}
           {mostrarRespuesta && mensaje.tipo === 'recibido' && (
-            <div className={`${card} p-4 rounded-lg ${border} border bg-blue-50 dark:bg-blue-900/20`}>
-              <h4 className={`font-bold ${text} mb-3 flex items-center gap-2`}>
-                <Reply size={18} className="text-blue-600" />
+            <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border bg-pn-accent-soft`}>
+              <h4 className={`font-bold text-pn-ink mb-3 flex items-center gap-2`}>
+                <Reply size={18} className="text-pn-accent-text" />
                 Escribir Respuesta
               </h4>
               <textarea
                 value={respuesta}
                 onChange={(e) => setRespuesta(e.target.value)}
                 rows={6}
-                className={`w-full px-4 py-3 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-3 rounded-lg border-pn-line border bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                 placeholder="Escribe tu respuesta aquí..."
               />
 
               <div className="mt-3">
-                <label className={`block text-sm font-medium ${text} mb-2`}>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                   Adjuntar Archivos
                 </label>
                 <input
                   type="file"
                   multiple
                   onChange={handleAdjuntarArchivo}
-                  className={`w-full px-4 py-2 border ${border} rounded-lg ${card} ${text}`}
+                  className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                 />
                 {adjuntosRespuesta.length > 0 && (
                   <div className="mt-3 space-y-2">
@@ -331,19 +324,19 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                       <div
                         key={index}
                         className={`flex items-center justify-between p-2 ${
-                          darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                          'bg-pn-surface-3'
                         } rounded`}
                       >
                         <div className="flex items-center gap-2">
                           <Paperclip size={16} />
                           <span className="text-sm">{file.name}</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-pn-muted">
                             ({(file.size / 1024).toFixed(2)} KB)
                           </span>
                         </div>
                         <button
                           onClick={() => handleEliminarAdjunto(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-pn-danger hover:text-pn-danger"
                         >
                           <X size={16} />
                         </button>
@@ -360,13 +353,13 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
                     setRespuesta('');
                     setAdjuntosRespuesta([]);
                   }}
-                  className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                  className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleEnviarRespuesta}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                  className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition flex items-center gap-2"
                 >
                   <Send size={18} />
                   Enviar Respuesta
@@ -377,13 +370,13 @@ export const MensajeDetalleModal: React.FC<MensajeDetalleModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className={`p-4 ${border} border-t flex justify-between items-center`}>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`p-4 border-pn-line border-t flex justify-between items-center`}>
+          <div className={`text-sm text-pn-ink-2`}>
             Mensaje #{mensaje.id}
           </div>
           <button
             onClick={onClose}
-            className={`px-6 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+            className={`px-6 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
           >
             Cerrar
           </button>

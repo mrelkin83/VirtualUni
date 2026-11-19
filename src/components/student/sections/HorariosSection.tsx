@@ -5,20 +5,14 @@ import { ScheduleClass, ScheduleEvent } from '../../../types/student.types';
 interface HorariosSectionProps {
   clases: ScheduleClass[];
   eventos: ScheduleEvent[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 // Componente de celda de horario
 const ScheduleCell: React.FC<{
   clase?: ScheduleClass;
-  darkMode: boolean;
-  text: string;
-}> = ({ clase, darkMode, text }) => {
+}> = ({ clase }) => {
   if (!clase) {
-    return <div className={`p-2 min-h-[80px] border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}></div>;
+    return <div className={`p-2 min-h-[80px] border border-pn-line`}></div>;
   }
 
   const getTipoIcon = () => {
@@ -33,9 +27,9 @@ const ScheduleCell: React.FC<{
   };
 
   return (
-    <div className={`p-2 min-h-[80px] border ${darkMode ? 'border-gray-700' : 'border-gray-200'} ${clase.color} bg-opacity-20 rounded`}>
-      <div className={`text-xs font-bold ${text} mb-1 line-clamp-2`}>{clase.curso}</div>
-      <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} space-y-1`}>
+    <div className={`p-2 min-h-[80px] border border-pn-line ${clase.color} bg-opacity-20 rounded`}>
+      <div className={`text-xs font-bold text-pn-ink mb-1 line-clamp-2`}>{clase.curso}</div>
+      <div className={`text-xs text-pn-ink-2 space-y-1`}>
         <div className="flex items-center gap-1">
           <Clock size={10} />
           {clase.horaInicio} - {clase.horaFin}
@@ -53,38 +47,34 @@ const ScheduleCell: React.FC<{
 // Componente de tarjeta de evento
 const EventCard: React.FC<{
   evento: ScheduleEvent;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
-}> = ({ evento, darkMode, card, text, border }) => {
+}> = ({ evento }) => {
   const getTipoColor = () => {
     const colors = {
-      examen: 'border-red-500 bg-red-50 dark:bg-red-900/10',
-      entrega: 'border-orange-500 bg-orange-50 dark:bg-orange-900/10',
-      evento: 'border-blue-500 bg-blue-50 dark:bg-blue-900/10',
-      reunion: 'border-purple-500 bg-purple-50 dark:bg-purple-900/10'
+      examen: 'border-pn-danger bg-pn-danger-soft',
+      entrega: 'border-pn-warn bg-pn-warn-soft',
+      evento: 'border-pn-accent-line bg-pn-accent-soft',
+      reunion: 'border-pn-accent-2 bg-pn-accent-2-soft'
     };
     return colors[evento.tipo];
   };
 
   const getPrioridadIcon = () => {
     if (evento.prioridad === 'alta') {
-      return <AlertCircle className="text-red-500" size={20} />;
+      return <AlertCircle className="text-pn-danger" size={20} />;
     }
-    return <CheckCircle className="text-blue-500" size={20} />;
+    return <CheckCircle className="text-pn-accent-text" size={20} />;
   };
 
   return (
-    <div className={`${card} rounded-lg shadow p-4 border-l-4 ${getTipoColor()}`}>
+    <div className={`bg-pn-surface rounded-lg shadow p-4 border-l-4 ${getTipoColor()}`}>
       <div className="flex items-start gap-3">
         {getPrioridadIcon()}
         <div className="flex-1">
-          <h4 className={`font-bold ${text} mb-1`}>{evento.titulo}</h4>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
+          <h4 className={`font-bold text-pn-ink mb-1`}>{evento.titulo}</h4>
+          <p className={`text-sm text-pn-ink-2 mb-2`}>
             {evento.descripcion}
           </p>
-          <div className={`flex flex-wrap gap-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`flex flex-wrap gap-3 text-sm text-pn-ink-2`}>
             <span className="flex items-center gap-1">
               <Calendar size={14} />
               {new Date(evento.fecha).toLocaleDateString()}
@@ -94,7 +84,7 @@ const EventCard: React.FC<{
               {evento.hora}
             </span>
             {evento.curso && (
-              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+              <span className="text-xs px-2 py-1 bg-pn-accent-soft text-pn-accent-text rounded">
                 {evento.curso}
               </span>
             )}
@@ -102,10 +92,10 @@ const EventCard: React.FC<{
         </div>
         <span className={`text-xs px-2 py-1 rounded-full ${
           evento.prioridad === 'alta'
-            ? 'bg-red-100 text-red-700'
+            ? 'bg-pn-danger-soft text-pn-danger'
             : evento.prioridad === 'media'
-            ? 'bg-orange-100 text-orange-700'
-            : 'bg-green-100 text-green-700'
+            ? 'bg-pn-warn-soft text-pn-warn'
+            : 'bg-pn-ok-soft text-pn-ok'
         }`}>
           {evento.prioridad}
         </span>
@@ -118,10 +108,6 @@ const EventCard: React.FC<{
 export const HorariosSection: React.FC<HorariosSectionProps> = ({
   clases,
   eventos,
-  darkMode,
-  card,
-  text,
-  border
 }) => {
   const [vistaActual, setVistaActual] = useState<'semanal' | 'lista' | 'eventos'>('semanal');
 
@@ -190,16 +176,14 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className={`text-2xl font-bold ${text}`}>Mi Horario</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Mi Horario</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setVistaActual('semanal')}
             className={`px-4 py-2 rounded-lg transition ${
               vistaActual === 'semanal'
-                ? 'bg-blue-500 text-white'
-                : darkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-pn-accent text-pn-accent-ink'
+                : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
             }`}
           >
             Vista Semanal
@@ -208,10 +192,8 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
             onClick={() => setVistaActual('lista')}
             className={`px-4 py-2 rounded-lg transition ${
               vistaActual === 'lista'
-                ? 'bg-blue-500 text-white'
-                : darkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-pn-accent text-pn-accent-ink'
+                : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
             }`}
           >
             Lista
@@ -220,15 +202,13 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
             onClick={() => setVistaActual('eventos')}
             className={`px-4 py-2 rounded-lg transition relative ${
               vistaActual === 'eventos'
-                ? 'bg-blue-500 text-white'
-                : darkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-pn-accent text-pn-accent-ink'
+                : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
             }`}
           >
             Eventos
             {eventosProximos.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-pn-danger text-pn-surface text-xs w-5 h-5 rounded-full flex items-center justify-center">
                 {eventosProximos.length}
               </span>
             )}
@@ -238,58 +218,58 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Calendar className="text-blue-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Clases</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.totalClases}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Calendar className="text-pn-accent-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Total Clases</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalClases}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Video className="text-purple-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Virtuales</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.clasesVirtuales}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Video className="text-pn-accent-2-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Virtuales</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.clasesVirtuales}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <MapPin className="text-green-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Presenciales</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.clasesPresenciales}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <MapPin className="text-pn-ok mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Presenciales</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.clasesPresenciales}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <AlertCircle className="text-orange-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Eventos Próximos</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.eventosProximos}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <AlertCircle className="text-pn-warn mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Eventos Próximos</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.eventosProximos}</p>
         </div>
       </div>
 
       {/* Vista Semanal */}
       {vistaActual === 'semanal' && (
-        <div className={`${card} rounded-lg shadow overflow-x-auto`}>
+        <div className={`bg-pn-surface rounded-lg shadow overflow-x-auto`}>
           <div className="p-4">
-            <h3 className={`text-lg font-bold ${text} mb-4`}>Horario Semanal</h3>
+            <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Horario Semanal</h3>
             <div className="min-w-[800px]">
-              <div className="grid grid-cols-7 gap-1">
-                <div className={`p-2 font-bold text-center ${text}`}>Hora</div>
+              <div className="pn-scroll -mx-2 overflow-x-auto px-2">
+              <div className="grid min-w-[640px] grid-cols-7 gap-1">
+                <div className={`p-2 font-bold text-center text-pn-ink`}>Hora</div>
                 {dias.map(dia => (
-                  <div key={dia} className={`p-2 font-bold text-center ${text}`}>
+                  <div key={dia} className={`p-2 font-bold text-center text-pn-ink`}>
                     {dia}
                   </div>
                 ))}
 
                 {horasRango.map(hora => (
                   <React.Fragment key={hora}>
-                    <div className={`p-2 text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'} flex items-center justify-center border ${border}`}>
+                    <div className={`p-2 text-sm text-center text-pn-ink-2 flex items-center justify-center border border-pn-line`}>
                       {hora}
                     </div>
                     {dias.map(dia => (
                       <ScheduleCell
                         key={`${dia}-${hora}`}
                         clase={clasesOrganizadas[dia]?.[hora]}
-                        darkMode={darkMode}
-                        text={text}
                       />
                     ))}
                   </React.Fragment>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -303,30 +283,30 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
             if (clasesDelDia.length === 0) return null;
 
             return (
-              <div key={dia} className={`${card} rounded-lg shadow p-4 border ${border}`}>
-                <h3 className={`text-lg font-bold ${text} mb-3`}>{dia}</h3>
+              <div key={dia} className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+                <h3 className={`text-lg font-bold text-pn-ink mb-3`}>{dia}</h3>
                 <div className="space-y-2">
                   {clasesDelDia.map(clase => (
                     <div
                       key={clase.id}
-                      className={`p-3 border ${border} rounded-lg flex items-center justify-between`}
+                      className={`p-3 border border-pn-line rounded-lg flex items-center justify-between`}
                     >
                       <div className="flex items-center gap-4 flex-1">
                         <div className={`w-2 h-12 ${clase.color} rounded`}></div>
                         <div>
-                          <h4 className={`font-bold ${text}`}>{clase.curso}</h4>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <h4 className={`font-bold text-pn-ink`}>{clase.curso}</h4>
+                          <p className={`text-sm text-pn-ink-2`}>
                             {clase.profesor}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`font-semibold ${text}`}>
+                        <p className={`font-semibold text-pn-ink`}>
                           {clase.horaInicio} - {clase.horaFin}
                         </p>
                         <div className="flex items-center gap-2 text-sm">
                           {clase.tipo === 'virtual' ? <Video size={14} /> : <MapPin size={14} />}
-                          <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                          <span className={'text-pn-ink-2'}>
                             {clase.aula}
                           </span>
                           {clase.enlaceVirtual && (
@@ -334,7 +314,7 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
                               href={clase.enlaceVirtual}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:text-blue-600"
+                              className="text-pn-accent-text hover:text-pn-accent-text"
                             >
                               <ExternalLink size={14} />
                             </a>
@@ -353,23 +333,19 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
       {/* Vista de Eventos */}
       {vistaActual === 'eventos' && (
         <div className="space-y-4">
-          <h3 className={`text-lg font-bold ${text}`}>Eventos Próximos</h3>
+          <h3 className={`text-lg font-bold text-pn-ink`}>Eventos Próximos</h3>
           {eventosProximos.length > 0 ? (
             eventosProximos.map(evento => (
               <EventCard
                 key={evento.id}
                 evento={evento}
-                darkMode={darkMode}
-                card={card}
-                text={text}
-                border={border}
               />
             ))
           ) : (
-            <div className={`${card} rounded-lg shadow p-12 text-center border ${border}`}>
-              <Calendar size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-              <p className={`${text} font-bold mb-2`}>No hay eventos próximos</p>
-              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            <div className={`bg-pn-surface rounded-lg shadow p-12 text-center border border-pn-line`}>
+              <Calendar size={64} className={`mx-auto mb-4 text-pn-muted`} />
+              <p className={`text-pn-ink font-bold mb-2`}>No hay eventos próximos</p>
+              <p className={'text-pn-ink-2'}>
                 No tienes eventos programados para los próximos 7 días
               </p>
             </div>
@@ -377,16 +353,12 @@ export const HorariosSection: React.FC<HorariosSectionProps> = ({
 
           {/* Todos los Eventos */}
           <div className="pt-6">
-            <h3 className={`text-lg font-bold ${text} mb-4`}>Todos los Eventos</h3>
+            <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Todos los Eventos</h3>
             <div className="space-y-3">
               {eventos.map(evento => (
                 <EventCard
                   key={evento.id}
                   evento={evento}
-                  darkMode={darkMode}
-                  card={card}
-                  text={text}
-                  border={border}
                 />
               ))}
             </div>

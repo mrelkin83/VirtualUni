@@ -1,8 +1,19 @@
 import React from 'react';
+import { Bell, Mail, Moon, Sun } from 'lucide-react';
 import { useTeacherDashboard } from '../hooks/useTeacherDashboard';
+import { useSeccionEnUrl } from '../hooks/useSeccionEnUrl';
+import { AppShell } from '../components/layout/AppShell';
+import { NAV_DOCENTE, esSeccionDocente } from '../components/layout/navegacion';
+import { IconButton } from '../components/ui/Button';
+import { NotificacionesDropdown } from '../components/teacher/dropdowns/NotificacionesDropdown';
+import { MensajesDropdown } from '../components/teacher/dropdowns/MensajesDropdown';
+import { useTheme } from '../theme';
+import type { SectionType } from '../types/teacher.types';
 import { useAuthStore } from '../store/authStore';
-import { TeacherSidebar } from '../components/teacher/layout/TeacherSidebar';
-import { TeacherHeader } from '../components/teacher/layout/TeacherHeader';
+import { useTenantStore } from '../store/tenantStore';
+// TeacherSidebar y TeacherHeader quedan sin usar: los sustituye AppShell, que
+// es común a los tres roles. Los archivos siguen ahí hasta que el
+// administrador también haya migrado.
 import { InicioSection } from '../components/teacher/sections/InicioSection';
 import { CursosSection } from '../components/teacher/sections/CursosSection';
 import { EstudiantesSection } from '../components/teacher/sections/EstudiantesSection';
@@ -23,31 +34,31 @@ import { PerfilEstudianteModal } from '../components/teacher/modals/PerfilEstudi
 import { MensajeDetalleModal } from '../components/teacher/modals/MensajeDetalleModal';
 import { NuevoMensajeModal } from '../components/teacher/modals/NuevoMensajeModal';
 import { coursesAdminApi } from '../api/endpoints/courses';
+import { avisar } from '../components/ui';
 
 export default function TeacherDashboard() {
   const { logout } = useAuthStore();
+  const tenant = useTenantStore((s) => s.tenant);
+  const { resuelto, establecerTema } = useTheme();
+  // Vivía dentro de TeacherHeader; al pasar las acciones a la cabecera de
+  // AppShell, el estado sube aquí.
+  const [mensajesAbiertas, setMensajesAbiertas] = React.useState(false);
   const state = useTeacherDashboard();
 
   const {
     activeSection,
-    sidebarOpen,
-    darkMode,
     cursos,
     estudiantes,
     tareas,
     examenes,
     modulosCurso,
     mensajes,
-    bg,
-    card,
-    text,
-    border,
+    // `bg` y sidebarOpen/setSidebarOpen ya no hacen falta: el fondo lo pone
+    // AppShell con los tokens y el cajón móvil lo gestiona él.
     cursoDetalle,
     tareaEnRevision,
     estudianteDetalle,
-    setSidebarOpen,
     setActiveSection,
-    setDarkMode,
     setNotificacionesAbiertas,
     setNuevoMensajeModal,
     setCursoDetalle,
@@ -71,6 +82,15 @@ export default function TeacherDashboard() {
     enviarMensajeIndividual,
   } = state;
 
+  // Mantiene /docente/<seccion> en la barra de direcciones. Ver el hook: la
+  // sección sigue siendo useState, aquí solo se refleja.
+  useSeccionEnUrl<SectionType>({
+    base: '/docente',
+    seccion: activeSection,
+    setSeccion: setActiveSection,
+    esValida: esSeccionDocente,
+  });
+
   const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
@@ -83,10 +103,6 @@ export default function TeacherDashboard() {
             setEstudianteDetalle={setEstudianteDetalle}
             setTareaEnRevision={abrirRevisionTarea}
             setActiveSection={setActiveSection}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       case 'cursos':
@@ -97,10 +113,6 @@ export default function TeacherDashboard() {
             setCursoDetalle={setCursoDetalle}
             modulosCurso={modulosCurso}
             setModalConfigCurso={setModalConfigCurso}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             crearModulo={state.crearModulo}
             editarModulo={state.editarModulo}
             eliminarModulo={state.eliminarModulo}
@@ -117,10 +129,6 @@ export default function TeacherDashboard() {
             verPerfilEstudiante={verPerfilEstudiante}
             enviarMensajeEstudiante={enviarMensajeEstudiante}
             exportarDatosEstudiante={exportarDatosEstudiante}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       case 'tareas':
@@ -129,10 +137,6 @@ export default function TeacherDashboard() {
             tareas={tareas}
             setTareaEnRevision={abrirRevisionTarea}
             setCrearTareaModal={setCrearTareaModal}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             crearTarea={state.crearTarea}
             cursos={cursos}
             estudiantes={estudiantes}
@@ -144,10 +148,6 @@ export default function TeacherDashboard() {
             grupos={state.grupos || []}
             estudiantes={estudiantes}
             cursos={cursos}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             crearGrupo={state.crearGrupo}
             editarGrupo={state.editarGrupo}
             eliminarGrupo={state.eliminarGrupo}
@@ -163,10 +163,6 @@ export default function TeacherDashboard() {
           <ExamenesSection
             examenes={examenes}
             bancoPreguntas={state.bancoPreguntas}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             crearExamen={state.crearExamen}
             editarExamen={state.editarExamen}
             eliminarExamen={state.eliminarExamen}
@@ -184,10 +180,6 @@ export default function TeacherDashboard() {
           <CalificacionesSection
             estudiantes={estudiantes}
             cursos={cursos}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       case 'asistencia':
@@ -195,10 +187,6 @@ export default function TeacherDashboard() {
           <AsistenciaSection
             estudiantes={estudiantes}
             cursos={cursos}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       case 'mensajes':
@@ -208,10 +196,6 @@ export default function TeacherDashboard() {
             cursos={cursos}
             setConversacionActiva={setConversacionActiva}
             setNuevoMensajeModal={setNuevoMensajeModal}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             enviarMensajeMasivo={state.enviarMensajeMasivo}
             crearAnuncio={state.crearAnuncio}
             guardarPlantilla={state.guardarPlantilla}
@@ -224,10 +208,6 @@ export default function TeacherDashboard() {
           <MaterialesSection
             materiales={state.materiales || []}
             carpetas={state.carpetas || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             subirMaterial={state.subirMaterial}
             eliminarMaterial={state.eliminarMaterial}
             editarMaterial={state.editarMaterial}
@@ -244,10 +224,6 @@ export default function TeacherDashboard() {
         return (
           <ClasesSection
             clasesVivo={state.clasesVivo || []}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             programarClase={state.programarClase}
             subirClasePregrabada={state.subirClasePregrabada}
             iniciarClaseEnVivo={state.iniciarClaseEnVivo}
@@ -261,10 +237,6 @@ export default function TeacherDashboard() {
       case 'calendario':
         return (
           <CalendarioSection
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             cursos={cursos}
           />
         );
@@ -275,19 +247,11 @@ export default function TeacherDashboard() {
             estudiantes={estudiantes}
             tareas={tareas}
             examenes={examenes}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       case 'configuracion':
         return (
           <ConfiguracionSection
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
       default:
@@ -300,10 +264,6 @@ export default function TeacherDashboard() {
             setEstudianteDetalle={setEstudianteDetalle}
             setTareaEnRevision={abrirRevisionTarea}
             setActiveSection={setActiveSection}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         );
     }
@@ -363,39 +323,95 @@ export default function TeacherDashboard() {
 
   const { hayAnteriores, haySiguientes } = getMensajesNavegacion();
 
+  const mensajesNoLeidos = (mensajes || []).filter((m: any) => !m.leido).length;
+  const notificacionesNoLeidas = (state.notificaciones || []).filter(
+    (n: any) => !n.leida,
+  ).length;
+
+  const alternarTema = () => establecerTema(resuelto === 'dark' ? 'light' : 'dark');
+
   return (
-    <div className={`flex h-screen ${bg}`}>
-      <TeacherSidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        onLogout={logout}
-      />
+    <>
+      <AppShell<SectionType>
+        grupos={NAV_DOCENTE}
+        seccionActiva={activeSection}
+        onCambiarSeccion={setActiveSection}
+        titulo={getSectionTitle()}
+        marca={tenant?.name ?? 'VirtualUni'}
+        subtitulo="Panel docente"
+        logo={tenant?.logo}
+        contadores={{ mensajes: mensajesNoLeidos }}
+        onSalir={logout}
+        accionesCabecera={
+          <>
+            <IconButton
+              icono={resuelto === 'dark' ? Sun : Moon}
+              etiqueta={resuelto === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
+              onClick={alternarTema}
+            />
 
-      <div className="flex-1 overflow-y-auto">
-        <TeacherHeader
-          title={getSectionTitle()}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          notificacionesAbiertas={state.notificacionesAbiertas}
-          setNotificacionesAbiertas={setNotificacionesAbiertas}
-          setNuevoMensajeModal={setNuevoMensajeModal}
-          notificaciones={state.notificaciones || []}
-          mensajes={mensajes}
-          marcarComoLeida={state.marcarComoLeida}
-          marcarTodasComoLeidas={state.marcarTodasComoLeidas}
-          eliminarNotificacion={state.eliminarNotificacion}
-          marcarMensajeLeido={marcarMensajeLeido}
-          eliminarMensaje={eliminarMensaje}
-          setConversacionActiva={setConversacionActiva}
-          card={card}
-          text={text}
-          border={border}
-        />
+            {/* `relative` ancla el desplegable justo debajo de su botón. */}
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Mail}
+                etiqueta="Mensajes"
+                onClick={() => setMensajesAbiertas(!mensajesAbiertas)}
+              />
+              {mensajesNoLeidos > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-accent-2 px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-accent-2-ink">
+                  {mensajesNoLeidos > 99 ? '99+' : mensajesNoLeidos}
+                  <span className="sr-only"> mensajes sin leer</span>
+                </span>
+              )}
+              {/* Los dos `as` no son pereza: TeacherHeader declaraba estas
+                  props como `any[]` y `(id, leido?) => void`, así que pasaba
+                  exactamente los mismos datos al desplegable sin que el
+                  compilador pudiera verlo. Al sacar las acciones de ahí el
+                  desajuste queda a la vista: los mensajes de ejemplo no traen
+                  `remitente` y marcarMensajeLeido pide dos argumentos. Es
+                  deuda previa, de datos, no de presentación; se arregla al
+                  unificar la forma de Mensaje, no aquí. */}
+              <MensajesDropdown
+                isOpen={mensajesAbiertas}
+                onClose={() => setMensajesAbiertas(false)}
+                mensajes={mensajes as unknown as React.ComponentProps<typeof MensajesDropdown>['mensajes']}
+                marcarComoLeido={(id: number) => marcarMensajeLeido(id, true)}
+                eliminarMensaje={eliminarMensaje}
+                onVerMensaje={(mensaje: any) => {
+                  setMensajesAbiertas(false);
+                  setConversacionActiva(mensaje);
+                }}
+              />
+            </span>
 
-        <div className="p-6">{renderContent()}</div>
-      </div>
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Bell}
+                etiqueta="Notificaciones"
+                onClick={() =>
+                  setNotificacionesAbiertas(!state.notificacionesAbiertas)
+                }
+              />
+              {notificacionesNoLeidas > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-danger px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-surface">
+                  {notificacionesNoLeidas > 99 ? '99+' : notificacionesNoLeidas}
+                  <span className="sr-only"> notificaciones sin leer</span>
+                </span>
+              )}
+              <NotificacionesDropdown
+                isOpen={state.notificacionesAbiertas}
+                onClose={() => setNotificacionesAbiertas(false)}
+                notificaciones={state.notificaciones || []}
+                marcarComoLeida={state.marcarComoLeida}
+                marcarTodasComoLeidas={state.marcarTodasComoLeidas}
+                eliminarNotificacion={state.eliminarNotificacion}
+              />
+            </span>
+          </>
+        }
+      >
+        {renderContent()}
+      </AppShell>
 
       {/* Modales Globales */}
       {state.modalConfigCurso && (
@@ -422,13 +438,9 @@ export default function TeacherDashboard() {
                 credits: config.creditos,
               });
             } catch (err: any) {
-              alert('La configuración se guardó localmente pero no se pudo sincronizar con el servidor: ' + (err?.message || 'error de conexión'));
+              avisar.error('La configuración se guardó localmente pero no se pudo sincronizar con el servidor: ' + (err?.message || 'error de conexión'));
             }
           }}
-          darkMode={darkMode}
-          card={card}
-          text={text}
-          border={border}
         />
       )}
 
@@ -437,10 +449,6 @@ export default function TeacherDashboard() {
         isOpen={!!tareaEnRevision}
         onClose={() => setTareaEnRevision(null)}
         onSaveGrade={calificarEntrega}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
       />
 
       <PerfilEstudianteModal
@@ -454,10 +462,6 @@ export default function TeacherDashboard() {
         onExportarDatos={(id) => {
           exportarDatosEstudiante(id);
         }}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
       />
 
       <MensajeDetalleModal
@@ -472,10 +476,6 @@ export default function TeacherDashboard() {
         onAnterior={() => navegarMensaje('anterior')}
         hayMensajesAnteriores={hayAnteriores}
         hayMensajesSiguientes={haySiguientes}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
       />
 
       <NuevoMensajeModal
@@ -486,11 +486,7 @@ export default function TeacherDashboard() {
           setNuevoMensajeModal(false);
         }}
         estudiantes={estudiantes}
-        darkMode={darkMode}
-        card={card}
-        text={text}
-        border={border}
       />
-    </div>
+    </>
   );
 }

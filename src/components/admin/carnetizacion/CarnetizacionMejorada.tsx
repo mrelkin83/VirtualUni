@@ -34,22 +34,22 @@ export const CarnetizacionMejorada: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-pn-ink">
             Sistema de Carnetización
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-pn-ink-2 mt-1">
             Gestión completa de carnets, plantillas y expediciones
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
+        <div className="flex items-center gap-2 px-4 py-2 bg-pn-accent-soft text-pn-accent-text rounded-lg">
           <BarChart3 className="w-5 h-5" />
           <span className="text-sm font-medium">Sistema Completo</span>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
+      <div className="bg-pn-surface rounded-lg shadow-sm border border-pn-line">
+        <div className="border-b border-pn-line">
           <nav className="flex -mb-px">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -64,20 +64,20 @@ export const CarnetizacionMejorada: React.FC = () => {
                     transition-colors duration-200
                     ${
                       isActive
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-pn-accent-line text-pn-accent-text'
+                        : 'border-transparent text-pn-muted hover:text-pn-ink-2 hover:border-pn-line'
                     }
                   `}
                 >
                   <Icon
                     className={`
                       w-5 h-5 mr-2
-                      ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}
+                      ${isActive ? 'text-pn-accent-text' : 'text-pn-muted group-hover:text-pn-muted'}
                     `}
                   />
                   <div className="text-left">
                     <div className="font-semibold">{tab.label}</div>
-                    <div className="text-xs text-gray-500">{tab.description}</div>
+                    <div className="text-xs text-pn-muted">{tab.description}</div>
                   </div>
                 </button>
               );

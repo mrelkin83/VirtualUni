@@ -5,20 +5,12 @@ import { useModalA11y } from '../../../hooks/useModalA11y';
 interface NuevoMensajeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   enviarMensaje: (destinatario: string, asunto: string, mensaje: string) => void;
 }
 
 export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
   isOpen,
   onClose,
-  darkMode,
-  card,
-  text,
-  border,
   enviarMensaje
 }) => {
   const [destinatario, setDestinatario] = useState('');
@@ -73,30 +65,30 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
         aria-modal="true"
         aria-labelledby="titulo-nuevo-mensaje-estudiante"
         tabIndex={-1}
-        className={`${card} rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto`}
+        className={`bg-pn-surface rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Mail className="text-blue-600" size={24} />
+            <div className="p-2 bg-pn-accent-soft rounded-lg">
+              <Mail className="text-pn-accent-text" size={24} />
             </div>
             <div>
-              <h3 id="titulo-nuevo-mensaje-estudiante" className={`text-xl font-bold ${text}`}>Nuevo Mensaje</h3>
-              <p className="text-sm text-gray-500">Envía un mensaje a tu profesor o administrador</p>
+              <h3 id="titulo-nuevo-mensaje-estudiante" className={`text-xl font-bold text-pn-ink`}>Nuevo Mensaje</h3>
+              <p className="text-sm text-pn-muted">Envía un mensaje a tu profesor o administrador</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="text-pn-muted hover:text-pn-ink-2 p-2 rounded-lg hover:bg-pn-surface-3"
           >
             <X size={24} />
           </button>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-pn-danger-soft border border-pn-danger text-pn-danger text-sm">
             <AlertCircle size={18} className="flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -106,7 +98,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Tipo de destinatario */}
           <div>
-            <label className={`block text-sm font-semibold ${text} mb-2`}>
+            <label className={`block text-sm font-semibold text-pn-ink mb-2`}>
               Enviar a *
             </label>
             <div className="flex gap-4">
@@ -116,9 +108,9 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                   value="profesor"
                   checked={tipoDestinatario === 'profesor'}
                   onChange={(e) => setTipoDestinatario(e.target.value as 'profesor')}
-                  className="w-4 h-4 text-blue-600"
+                  className="w-4 h-4 text-pn-accent-text"
                 />
-                <span className={text}>Profesor</span>
+                <span className="text-pn-ink">Profesor</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -126,28 +118,28 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                   value="administrador"
                   checked={tipoDestinatario === 'administrador'}
                   onChange={(e) => setTipoDestinatario(e.target.value as 'administrador')}
-                  className="w-4 h-4 text-blue-600"
+                  className="w-4 h-4 text-pn-accent-text"
                 />
-                <span className={text}>Administrador</span>
+                <span className="text-pn-ink">Administrador</span>
               </label>
             </div>
           </div>
 
           {/* Destinatario */}
           <div>
-            <label htmlFor="nm-estudiante-destinatario" className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-destinatario" className={`block text-sm font-semibold text-pn-ink mb-2`}>
               {tipoDestinatario === 'profesor' ? 'Nombre del Profesor' : 'Nombre del Administrador'} *
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted" size={20} />
               <input
                 id="nm-estudiante-destinatario"
                 type="text"
                 value={destinatario}
                 onChange={(e) => setDestinatario(e.target.value)}
                 placeholder={`Escribe el nombre del ${tipoDestinatario}...`}
-                className={`w-full pl-10 pr-4 py-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                  darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+                className={`w-full pl-10 pr-4 py-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${
+                  'bg-pn-surface text-pn-ink'
                 }`}
               />
             </div>
@@ -155,7 +147,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
           {/* Asunto */}
           <div>
-            <label htmlFor="nm-estudiante-asunto" className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-asunto" className={`block text-sm font-semibold text-pn-ink mb-2`}>
               Asunto *
             </label>
             <input
@@ -165,16 +157,16 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
               onChange={(e) => setAsunto(e.target.value)}
               placeholder="Escribe el asunto del mensaje..."
               maxLength={100}
-              className={`w-full px-4 py-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+              className={`w-full px-4 py-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none ${
+                'bg-pn-surface text-pn-ink'
               }`}
             />
-            <p className="text-xs text-gray-500 mt-1">{asunto.length}/100 caracteres</p>
+            <p className="text-xs text-pn-muted mt-1">{asunto.length}/100 caracteres</p>
           </div>
 
           {/* Mensaje */}
           <div>
-            <label htmlFor="nm-estudiante-mensaje" className={`block text-sm font-semibold ${text} mb-2`}>
+            <label htmlFor="nm-estudiante-mensaje" className={`block text-sm font-semibold text-pn-ink mb-2`}>
               Mensaje *
             </label>
             <textarea
@@ -187,21 +179,21 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
               }}
               placeholder="Escribe tu mensaje..."
               rows={6}
-              className={`w-full px-4 py-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none ${
-                darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+              className={`w-full px-4 py-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none resize-none ${
+                'bg-pn-surface text-pn-ink'
               }`}
             />
             <div className="flex justify-between items-center mt-1">
-              <p className="text-xs text-gray-500">Máximo 1000 caracteres</p>
-              <p className={`text-xs ${mensaje.length > 900 ? 'text-orange-600 font-semibold' : 'text-gray-500'}`}>
+              <p className="text-xs text-pn-muted">Máximo 1000 caracteres</p>
+              <p className={`text-xs ${mensaje.length > 900 ? 'text-pn-warn font-semibold' : 'text-pn-muted'}`}>
                 {mensaje.length}/1000
               </p>
             </div>
           </div>
 
           {/* Información adicional */}
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'} border ${darkMode ? 'border-blue-800' : 'border-blue-200'}`}>
-            <p className="text-sm text-blue-700 dark:text-blue-400">
+          <div className={`p-4 rounded-lg bg-pn-accent-soft border border-pn-accent-line`}>
+            <p className="text-sm text-pn-accent-text">
               <strong>Nota:</strong> Tu mensaje será enviado al {tipoDestinatario} seleccionado.
               Recibirás una respuesta en tu bandeja de entrada del sistema.
             </p>
@@ -211,7 +203,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold flex items-center justify-center gap-2"
+              className="flex-1 bg-pn-accent text-pn-accent-ink px-6 py-3 rounded-lg hover:bg-pn-accent-hover transition font-semibold flex items-center justify-center gap-2"
             >
               <Send size={20} />
               Enviar Mensaje
@@ -219,11 +211,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className={`px-6 py-3 rounded-lg transition font-semibold ${
-                darkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-6 py-3 rounded-lg transition font-semibold bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line`}
             >
               Cancelar
             </button>

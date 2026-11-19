@@ -17,22 +17,21 @@ import { mensajeDeError } from '../../admin/sections/academico/errores';
  * Es autónomo: trae sus propios datos con react-query en vez de pasar por el
  * hook gigante del panel docente.
  */
-export function MisGruposPanel({ darkMode = false }: { darkMode?: boolean }) {
+export function MisGruposPanel() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['mis-grupos-docente'],
     queryFn: () => gruposDocenteApi.mios(),
   });
 
-  const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100';
-  const texto = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const texto = 'text-pn-ink';
+  const suave = 'text-pn-ink-2';
 
   if (isLoading) {
     return <p className={`text-sm ${suave}`}>Cargando el contexto académico de tus grupos...</p>;
   }
 
   if (error != null) {
-    return <p className="text-sm text-red-600">{mensajeDeError(error)}</p>;
+    return <p className="text-sm text-pn-danger">{mensajeDeError(error)}</p>;
   }
 
   const grupos = data ?? [];
@@ -44,7 +43,7 @@ export function MisGruposPanel({ darkMode = false }: { darkMode?: boolean }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {grupos.map((grupo) => (
-          <article key={grupo.id} className={`${card} border rounded-lg p-4 shadow-sm`}>
+          <article key={grupo.id} className={`bg-pn-surface border rounded-lg p-4 shadow-sm`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h4 className={`font-semibold ${texto}`}>
@@ -58,7 +57,7 @@ export function MisGruposPanel({ darkMode = false }: { darkMode?: boolean }) {
                     </>
                   ) : (
                     // Grupo legado: sin asignatura de catálogo todavía
-                    <span className="text-amber-600">
+                    <span className="text-pn-warn">
                       Sin asignatura de catálogo ({grupo.code})
                     </span>
                   )}
@@ -68,8 +67,8 @@ export function MisGruposPanel({ darkMode = false }: { darkMode?: boolean }) {
               <span
                 className={`shrink-0 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
                   grupo.academicPeriod?.status === 'EN_CURSO'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-pn-ok-soft text-pn-ok'
+                    : 'bg-pn-surface-3 text-pn-ink-2'
                 }`}
               >
                 <CalendarDays size={13} />
@@ -96,7 +95,7 @@ export function MisGruposPanel({ darkMode = false }: { darkMode?: boolean }) {
                   {grupo.programasDeOrigen.map((programa) => (
                     <li
                       key={programa.id}
-                      className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
+                      className="text-xs px-2 py-0.5 rounded-full bg-pn-accent-soft text-pn-accent-text"
                       title={programa.code}
                     >
                       {programa.name} · {programa.estudiantes}

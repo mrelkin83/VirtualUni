@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { EJE, LEYENDA, REJILLA, TOOLTIP } from './tema';
 
 interface FinancialTrendsChartProps {
   data: any;
@@ -19,8 +20,8 @@ interface FinancialTrendsChartProps {
 export function FinancialTrendsChart({ data }: FinancialTrendsChartProps) {
   if (!data) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">No hay datos disponibles</p>
+      <div className="flex h-64 items-center justify-center rounded-pn-md border border-pn-line bg-pn-surface-2">
+        <p className="font-body text-sm text-pn-muted">No hay datos disponibles</p>
       </div>
     );
   }
@@ -35,52 +36,40 @@ export function FinancialTrendsChart({ data }: FinancialTrendsChartProps) {
 
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="rounded-pn-md border border-pn-line bg-pn-surface p-4">
+      <h3 className="mb-4 font-display text-base font-bold text-pn-ink">
         Tendencias Financieras Mensuales
       </h3>
       <ResponsiveContainer width="100%" height={350}>
         <ComposedChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-          <XAxis
-            dataKey="month"
-            stroke="#6B7280"
-            style={{ fontSize: '12px' }}
-          />
+          <CartesianGrid {...REJILLA} />
+          <XAxis dataKey="month" {...EJE} />
           <YAxis
-            stroke="#6B7280"
+            stroke="var(--pn-muted)"
             style={{ fontSize: '12px' }}
             tickFormatter={(v: number) => formatearCop(v)}
           />
           <Tooltip
+            {...TOOLTIP}
             formatter={(value: any) => formatearCop(Number(value))}
-            contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-            }}
           />
-          <Legend
-            wrapperStyle={{ paddingTop: '20px' }}
-            iconType="circle"
-          />
+          <Legend {...LEYENDA} />
           <Bar
             dataKey="ingresos"
-            fill="#10B981"
+            fill="var(--pn-ok)"
             name="Ingresos"
             radius={[8, 8, 0, 0]}
           />
           <Bar
             dataKey="egresos"
-            fill="#EF4444"
+            fill="var(--pn-danger)"
             name="Egresos"
             radius={[8, 8, 0, 0]}
           />
           <Line
             type="monotone"
             dataKey="balance"
-            stroke="#3B82F6"
+            stroke="var(--pn-accent)"
             strokeWidth={3}
             name="Balance"
             dot={{ r: 5 }}

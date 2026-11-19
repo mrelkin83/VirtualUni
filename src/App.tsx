@@ -16,10 +16,10 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 function PantallaCarga() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-pn-surface-3">
       <div className="text-center">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
-        <p className="text-gray-600 mt-4">Cargando...</p>
+        <Loader2 className="w-12 h-12 text-pn-accent-text animate-spin mx-auto" />
+        <p className="text-pn-ink-2 mt-4">Cargando...</p>
       </div>
     </div>
   );

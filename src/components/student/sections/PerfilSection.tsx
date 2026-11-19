@@ -1,14 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { User, Save, X, Camera, Upload } from 'lucide-react';
 import { StudentProfile } from '../../../types/student.types';
+import { avisar } from '../../ui';
 
 interface PerfilSectionProps {
   datosPerfil: StudentProfile;
   editandoPerfil: boolean;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   fotoPerfil: string | null;
   setDatosPerfil: (datos: StudentProfile) => void;
   setEditandoPerfil: (editando: boolean) => void;
@@ -19,10 +16,6 @@ interface PerfilSectionProps {
 export const PerfilSection: React.FC<PerfilSectionProps> = ({
   datosPerfil,
   editandoPerfil,
-  darkMode,
-  card,
-  text,
-  border,
   fotoPerfil,
   setDatosPerfil,
   setEditandoPerfil,
@@ -43,14 +36,14 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
     // Validar tipo de archivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(file.type)) {
-      alert('Solo se permiten archivos JPG y PNG');
+      avisar.error('Solo se permiten archivos JPG y PNG');
       return;
     }
 
     // Validar tamaño (2MB = 2 * 1024 * 1024 bytes)
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('El archivo no debe superar los 2MB');
+      avisar.info('El archivo no debe superar los 2MB');
       return;
     }
 
@@ -65,23 +58,23 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
     subirFotoPerfil(file);
   };
 
-  const inputClass = `w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'}`;
+  const inputClass = `w-full p-2 border border-pn-line rounded bg-pn-surface text-pn-ink`;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Mi Perfil</h2>
-        <div className="text-sm text-gray-500">Última actualización: 12/07/2025</div>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Mi Perfil</h2>
+        <div className="text-sm text-pn-muted">Última actualización: 12/07/2025</div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {/* Foto de Perfil */}
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold ${text} mb-6`}>Foto de Perfil</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold text-pn-ink mb-6`}>Foto de Perfil</h3>
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar actual */}
             <div className="relative">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-blue-500 to-purple-600">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-pn-line bg-gradient-to-br from-pn-accent to-pn-accent-hover">
                 {previewFoto ? (
                   <img
                     src={previewFoto}
@@ -89,7 +82,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white">
+                  <div className="w-full h-full flex items-center justify-center text-pn-accent-ink">
                     <User size={64} />
                   </div>
                 )}
@@ -97,7 +90,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
               {/* Botón de cámara superpuesto */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
+                className="absolute bottom-0 right-0 bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink p-3 rounded-full shadow-lg transition"
                 title="Cambiar foto"
               >
                 <Camera size={20} />
@@ -106,8 +99,8 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
 
             {/* Información y controles */}
             <div className="flex-1">
-              <h4 className={`font-semibold ${text} mb-2`}>Actualizar foto de perfil</h4>
-              <p className="text-sm text-gray-500 mb-4">
+              <h4 className={`font-semibold text-pn-ink mb-2`}>Actualizar foto de perfil</h4>
+              <p className="text-sm text-pn-muted mb-4">
                 Formatos permitidos: JPG, PNG. Tamaño máximo: 2MB.
                 La imagen se redimensionará automáticamente a 300x300 píxeles.
               </p>
@@ -122,7 +115,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition font-semibold flex items-center gap-2"
+                className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-6 py-3 rounded-lg transition font-semibold flex items-center gap-2"
               >
                 <Upload size={20} />
                 Seleccionar Archivo
@@ -132,13 +125,13 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
         </div>
 
         {/* Información Personal */}
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className={`text-xl font-bold ${text}`}>Información Personal</h3>
+            <h3 className={`text-xl font-bold text-pn-ink`}>Información Personal</h3>
             {!editandoPerfil && (
               <button
                 onClick={() => setEditandoPerfil(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2"
               >
                 <User size={18} />
                 Editar Perfil
@@ -149,7 +142,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
           {editandoPerfil ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Primer nombre *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Primer nombre *</label>
                 <input
                   type="text"
                   value={datosPerfil.primerNombre}
@@ -158,7 +151,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Segundo nombre</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Segundo nombre</label>
                 <input
                   type="text"
                   value={datosPerfil.segundoNombre}
@@ -167,7 +160,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Primer apellido *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Primer apellido *</label>
                 <input
                   type="text"
                   value={datosPerfil.primerApellido}
@@ -176,7 +169,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Segundo apellido</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Segundo apellido</label>
                 <input
                   type="text"
                   value={datosPerfil.segundoApellido}
@@ -185,7 +178,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Tipo de identificación *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Tipo de identificación *</label>
                 <select
                   value={datosPerfil.tipoIdentificacion}
                   onChange={(e) => handleInputChange('tipoIdentificacion', e.target.value)}
@@ -198,7 +191,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Número de identificación *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Número de identificación *</label>
                 <input
                   type="text"
                   value={datosPerfil.numeroIdentificacion}
@@ -207,7 +200,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Sexo *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Sexo *</label>
                 <select
                   value={datosPerfil.sexo}
                   onChange={(e) => handleInputChange('sexo', e.target.value)}
@@ -218,7 +211,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Correo electrónico *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Correo electrónico *</label>
                 <input
                   type="email"
                   value={datosPerfil.email}
@@ -227,7 +220,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Teléfono *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Teléfono *</label>
                 <input
                   type="tel"
                   value={datosPerfil.telefono}
@@ -236,7 +229,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Celular *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Celular *</label>
                 <input
                   type="tel"
                   value={datosPerfil.celular}
@@ -245,7 +238,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Fecha de nacimiento *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Fecha de nacimiento *</label>
                 <input
                   type="date"
                   value={datosPerfil.fechaNacimiento}
@@ -254,7 +247,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Lugar de nacimiento</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Lugar de nacimiento</label>
                 <input
                   type="text"
                   value={datosPerfil.lugarNacimiento}
@@ -263,7 +256,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Dirección</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Dirección</label>
                 <input
                   type="text"
                   value={datosPerfil.direccion}
@@ -272,7 +265,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Lugar de residencia</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Lugar de residencia</label>
                 <input
                   type="text"
                   value={datosPerfil.lugarResidencia}
@@ -281,7 +274,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Barrio</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Barrio</label>
                 <input
                   type="text"
                   value={datosPerfil.barrio}
@@ -292,46 +285,46 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div><p className="text-sm text-gray-500 mb-1">Primer nombre *</p><p className={`font-semibold ${text}`}>{datosPerfil.primerNombre}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Segundo nombre</p><p className={`font-semibold ${text}`}>{datosPerfil.segundoNombre}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Primer apellido *</p><p className={`font-semibold ${text}`}>{datosPerfil.primerApellido}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Segundo apellido</p><p className={`font-semibold ${text}`}>{datosPerfil.segundoApellido}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Tipo de identificación *</p><p className={`font-semibold ${text}`}>{datosPerfil.tipoIdentificacion}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Número de identificación *</p><p className={`font-semibold ${text}`}>{datosPerfil.numeroIdentificacion}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Sexo *</p><p className={`font-semibold ${text}`}>{datosPerfil.sexo}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Correo electrónico *</p><p className={`font-semibold ${text}`}>{datosPerfil.email}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Teléfono *</p><p className={`font-semibold ${text}`}>{datosPerfil.telefono}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Celular *</p><p className={`font-semibold ${text}`}>{datosPerfil.celular}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Fecha de nacimiento *</p><p className={`font-semibold ${text}`}>{datosPerfil.fechaNacimiento}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Lugar de nacimiento</p><p className={`font-semibold ${text}`}>{datosPerfil.lugarNacimiento}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Dirección</p><p className={`font-semibold ${text}`}>{datosPerfil.direccion}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Lugar de residencia</p><p className={`font-semibold ${text}`}>{datosPerfil.lugarResidencia}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Barrio</p><p className={`font-semibold ${text}`}>{datosPerfil.barrio}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Primer nombre *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.primerNombre}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Segundo nombre</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.segundoNombre}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Primer apellido *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.primerApellido}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Segundo apellido</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.segundoApellido}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Tipo de identificación *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.tipoIdentificacion}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Número de identificación *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.numeroIdentificacion}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Sexo *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.sexo}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Correo electrónico *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.email}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Teléfono *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.telefono}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Celular *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.celular}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Fecha de nacimiento *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.fechaNacimiento}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Lugar de nacimiento</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.lugarNacimiento}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Dirección</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.direccion}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Lugar de residencia</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.lugarResidencia}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Barrio</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.barrio}</p></div>
             </div>
           )}
         </div>
 
         {/* Información Adicional SNIES */}
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-6 ${text}`}>Información Adicional (SNIES)</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-6 text-pn-ink`}>Información Adicional (SNIES)</h3>
 
           {editandoPerfil ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Zona</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Zona</label>
                 <select value={datosPerfil.zona} onChange={(e) => handleInputChange('zona', e.target.value)} className={inputClass}>
                   <option>Urbana</option>
                   <option>Rural</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Estrato</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Estrato</label>
                 <select value={datosPerfil.estrato} onChange={(e) => handleInputChange('estrato', e.target.value)} className={inputClass}>
                   <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Medio de transporte</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Medio de transporte</label>
                 <select value={datosPerfil.medioTransporte} onChange={(e) => handleInputChange('medioTransporte', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                   <option>Transporte público</option>
@@ -341,7 +334,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Grupo Sisbén</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Grupo Sisbén</label>
                 <select value={datosPerfil.grupoSisben} onChange={(e) => handleInputChange('grupoSisben', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                   <option>A</option>
@@ -351,7 +344,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Subgrupo Sisbén</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Subgrupo Sisbén</label>
                 <select value={datosPerfil.subgrupoSisben} onChange={(e) => handleInputChange('subgrupoSisben', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                   <option>A1</option>
@@ -363,7 +356,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Fecha de expedición de documento *</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Fecha de expedición de documento *</label>
                 <input
                   type="date"
                   value={datosPerfil.fechaExpedicionDoc}
@@ -372,7 +365,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Expedición documento</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Expedición documento</label>
                 <input
                   type="text"
                   value={datosPerfil.expedicionDocumento}
@@ -381,13 +374,13 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Tipo de sangre</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Tipo de sangre</label>
                 <select value={datosPerfil.tipoSangre} onChange={(e) => handleInputChange('tipoSangre', e.target.value)} className={inputClass}>
                   <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Estado civil</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Estado civil</label>
                 <select value={datosPerfil.estadoCivil} onChange={(e) => handleInputChange('estadoCivil', e.target.value)} className={inputClass}>
                   <option>Unión libre</option>
                   <option>Soltero(a)</option>
@@ -397,7 +390,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Número de hijos</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Número de hijos</label>
                 <input
                   type="number"
                   value={datosPerfil.numeroHijos}
@@ -406,7 +399,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>EPS</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>EPS</label>
                 <select value={datosPerfil.eps} onChange={(e) => handleInputChange('eps', e.target.value)} className={inputClass}>
                   <option>36) Sanitas EPS</option>
                   <option>Sura</option>
@@ -416,19 +409,19 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>ARS</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>ARS</label>
                 <select value={datosPerfil.ars} onChange={(e) => handleInputChange('ars', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Aseguradora</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Aseguradora</label>
                 <select value={datosPerfil.aseguradora} onChange={(e) => handleInputChange('aseguradora', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Número libreta militar</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Número libreta militar</label>
                 <input
                   type="text"
                   value={datosPerfil.numeroLibretaMilitar}
@@ -437,7 +430,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Nivel de formación</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Nivel de formación</label>
                 <select value={datosPerfil.nivelFormacion} onChange={(e) => handleInputChange('nivelFormacion', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                   <option>Pregrado</option>
@@ -447,7 +440,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Ocupación</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Ocupación</label>
                 <select value={datosPerfil.ocupacion} onChange={(e) => handleInputChange('ocupacion', e.target.value)} className={inputClass}>
                   <option>Seleccione</option>
                   <option>Estudiante</option>
@@ -457,7 +450,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Discapacidad</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Discapacidad</label>
                 <select value={datosPerfil.discapacidad} onChange={(e) => handleInputChange('discapacidad', e.target.value)} className={inputClass}>
                   <option>No Aplica</option>
                   <option>Visual</option>
@@ -467,14 +460,14 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Capacidad excepcional</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Capacidad excepcional</label>
                 <select value={datosPerfil.capacidadExcepcional} onChange={(e) => handleInputChange('capacidadExcepcional', e.target.value)} className={inputClass}>
                   <option>No aplica</option>
                   <option>Sí aplica</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Grupo étnico</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Grupo étnico</label>
                 <select value={datosPerfil.grupoEtnico} onChange={(e) => handleInputChange('grupoEtnico', e.target.value)} className={inputClass}>
                   <option>No Informa</option>
                   <option>Indígena</option>
@@ -484,7 +477,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Pueblo indígena</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Pueblo indígena</label>
                 <select value={datosPerfil.puebloIndigena} onChange={(e) => handleInputChange('puebloIndigena', e.target.value)} className={inputClass}>
                   <option>No informa</option>
                   <option>Wayúu</option>
@@ -494,14 +487,14 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Comunidad negra</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Comunidad negra</label>
                 <select value={datosPerfil.comunidadNegra} onChange={(e) => handleInputChange('comunidadNegra', e.target.value)} className={inputClass}>
                   <option>No Aplica</option>
                   <option>Sí Aplica</option>
                 </select>
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Código PRUEBA SABER 11</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Código PRUEBA SABER 11</label>
                 <input
                   type="text"
                   value={datosPerfil.codigoPruebaSaber}
@@ -510,7 +503,7 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
                 />
               </div>
               <div>
-                <label className={`block mb-2 text-sm font-semibold ${text}`}>Colegio</label>
+                <label className={`block mb-2 text-sm font-semibold text-pn-ink`}>Colegio</label>
                 <input
                   type="text"
                   value={datosPerfil.colegio}
@@ -522,40 +515,40 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div><p className="text-sm text-gray-500 mb-1">Zona</p><p className={`font-semibold ${text}`}>{datosPerfil.zona}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Estrato</p><p className={`font-semibold ${text}`}>{datosPerfil.estrato}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Medio de transporte</p><p className={`font-semibold ${text}`}>{datosPerfil.medioTransporte}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Grupo Sisbén</p><p className={`font-semibold ${text}`}>{datosPerfil.grupoSisben}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Subgrupo Sisbén</p><p className={`font-semibold ${text}`}>{datosPerfil.subgrupoSisben}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Fecha de expedición de documento *</p><p className={`font-semibold ${text}`}>{datosPerfil.fechaExpedicionDoc}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Expedición documento</p><p className={`font-semibold ${text}`}>{datosPerfil.expedicionDocumento}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Tipo de sangre</p><p className={`font-semibold ${text}`}>{datosPerfil.tipoSangre}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Estado civil</p><p className={`font-semibold ${text}`}>{datosPerfil.estadoCivil}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Número de hijos</p><p className={`font-semibold ${text}`}>{datosPerfil.numeroHijos}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">EPS</p><p className={`font-semibold ${text}`}>{datosPerfil.eps}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">ARS</p><p className={`font-semibold ${text}`}>{datosPerfil.ars}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Aseguradora</p><p className={`font-semibold ${text}`}>{datosPerfil.aseguradora}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Número libreta militar</p><p className={`font-semibold ${text}`}>{datosPerfil.numeroLibretaMilitar || 'N/A'}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Nivel de formación</p><p className={`font-semibold ${text}`}>{datosPerfil.nivelFormacion}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Ocupación</p><p className={`font-semibold ${text}`}>{datosPerfil.ocupacion}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Discapacidad</p><p className={`font-semibold ${text}`}>{datosPerfil.discapacidad}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Capacidad excepcional</p><p className={`font-semibold ${text}`}>{datosPerfil.capacidadExcepcional}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Grupo étnico</p><p className={`font-semibold ${text}`}>{datosPerfil.grupoEtnico}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Pueblo indígena</p><p className={`font-semibold ${text}`}>{datosPerfil.puebloIndigena}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Comunidad negra</p><p className={`font-semibold ${text}`}>{datosPerfil.comunidadNegra}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Código PRUEBA SABER 11</p><p className={`font-semibold ${text}`}>{datosPerfil.codigoPruebaSaber}</p></div>
-              <div><p className="text-sm text-gray-500 mb-1">Colegio</p><p className={`font-semibold ${text}`}>{datosPerfil.colegio || 'No especificado'}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Zona</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.zona}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Estrato</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.estrato}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Medio de transporte</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.medioTransporte}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Grupo Sisbén</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.grupoSisben}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Subgrupo Sisbén</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.subgrupoSisben}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Fecha de expedición de documento *</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.fechaExpedicionDoc}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Expedición documento</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.expedicionDocumento}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Tipo de sangre</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.tipoSangre}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Estado civil</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.estadoCivil}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Número de hijos</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.numeroHijos}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">EPS</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.eps}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">ARS</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.ars}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Aseguradora</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.aseguradora}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Número libreta militar</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.numeroLibretaMilitar || 'N/A'}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Nivel de formación</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.nivelFormacion}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Ocupación</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.ocupacion}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Discapacidad</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.discapacidad}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Capacidad excepcional</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.capacidadExcepcional}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Grupo étnico</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.grupoEtnico}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Pueblo indígena</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.puebloIndigena}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Comunidad negra</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.comunidadNegra}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Código PRUEBA SABER 11</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.codigoPruebaSaber}</p></div>
+              <div><p className="text-sm text-pn-muted mb-1">Colegio</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.colegio || 'No especificado'}</p></div>
             </div>
           )}
         </div>
 
         {/* Información Académica */}
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-6 ${text}`}>Información Académica</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-6 text-pn-ink`}>Información Académica</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><p className="text-sm text-gray-500 mb-1">Programa</p><p className={`font-semibold ${text}`}>{datosPerfil.programa}</p></div>
-            <div><p className="text-sm text-gray-500 mb-1">Semestre</p><p className={`font-semibold ${text}`}>{datosPerfil.semestre}</p></div>
-            <div><p className="text-sm text-gray-500 mb-1">Código estudiante</p><p className={`font-semibold ${text}`}>{datosPerfil.codigo}</p></div>
+            <div><p className="text-sm text-pn-muted mb-1">Programa</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.programa}</p></div>
+            <div><p className="text-sm text-pn-muted mb-1">Semestre</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.semestre}</p></div>
+            <div><p className="text-sm text-pn-muted mb-1">Código estudiante</p><p className={`font-semibold text-pn-ink`}>{datosPerfil.codigo}</p></div>
           </div>
         </div>
 
@@ -564,14 +557,14 @@ export const PerfilSection: React.FC<PerfilSectionProps> = ({
           <div className="flex gap-3">
             <button
               onClick={actualizarPerfil}
-              className="flex-1 bg-blue-600 text-white py-3 rounded hover:bg-blue-700 font-semibold flex items-center justify-center gap-2"
+              className="flex-1 bg-pn-accent text-pn-accent-ink py-3 rounded hover:bg-pn-accent-hover font-semibold flex items-center justify-center gap-2"
             >
               <Save size={20} />
               Guardar Cambios
             </button>
             <button
               onClick={() => setEditandoPerfil(false)}
-              className={`flex-1 border ${border} py-3 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} font-semibold flex items-center justify-center gap-2`}
+              className={`flex-1 border border-pn-line py-3 rounded hover:bg-pn-surface-2 hover:bg-pn-surface-2 font-semibold flex items-center justify-center gap-2`}
             >
               <X size={20} />
               Cancelar

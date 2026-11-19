@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, MapPin, Edit3, Trash2, X } from 'lucide-react';
+import { avisar, confirmar } from '../../ui';
+import { pulsable } from '../../../utils/pulsable';
 
 interface Evento {
   id: number;
@@ -14,18 +16,10 @@ interface Evento {
 }
 
 interface CalendarioSectionProps {
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   cursos?: any[];
 }
 
 export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
-  darkMode,
-  card,
-  text,
-  border,
   cursos = []
 }) => {
   const [vistaActual, setVistaActual] = useState<'mes' | 'semana' | 'dia'>('mes');
@@ -114,17 +108,17 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'clase': return 'bg-blue-100 text-blue-800 border-blue-500';
-      case 'examen': return 'bg-red-100 text-red-800 border-red-500';
-      case 'entrega': return 'bg-orange-100 text-orange-800 border-orange-500';
-      case 'reunion': return 'bg-purple-100 text-purple-800 border-purple-500';
-      default: return 'bg-gray-100 text-gray-800 border-gray-500';
+      case 'clase': return 'bg-pn-accent-soft text-pn-accent-text border-pn-accent-line';
+      case 'examen': return 'bg-pn-danger-soft text-pn-danger border-pn-danger';
+      case 'entrega': return 'bg-pn-warn-soft text-pn-warn border-pn-warn';
+      case 'reunion': return 'bg-pn-accent-2-soft text-pn-accent-2-text border-pn-accent-2';
+      default: return 'bg-pn-surface-3 text-pn-ink border-pn-line-strong';
     }
   };
 
   const handleCrearEvento = () => {
     if (!nuevoEvento.titulo || !nuevoEvento.fecha) {
-      alert('Por favor completa los campos obligatorios');
+      avisar.error('Por favor completa los campos obligatorios');
       return;
     }
 
@@ -154,8 +148,8 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
     });
   };
 
-  const handleEliminarEvento = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este evento?')) {
+  const handleEliminarEvento = async (id: number) => {
+    if (await confirmar('¿Estás seguro de eliminar este evento?')) {
       setEventos(eventos.filter(e => e.id !== id));
     }
   };
@@ -179,12 +173,12 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Calendario Académico</h2>
-          <p className="text-gray-500 mt-1">Planifica clases, exámenes y actividades</p>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Calendario Académico</h2>
+          <p className="text-pn-muted mt-1">Planifica clases, exámenes y actividades</p>
         </div>
         <button
           onClick={() => setModalEvento(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Plus size={18} />
           Nuevo Evento
@@ -192,27 +186,27 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       </div>
 
       {/* Controles del Calendario */}
-      <div className={`${card} rounded-lg shadow p-4`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-4`}>
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={mesAnterior}
-              className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded`}
+              className={`p-2 hover:bg-pn-surface-3 rounded`}
             >
               <ChevronLeft size={20} />
             </button>
-            <h3 className={`text-lg font-bold ${text} capitalize min-w-[200px] text-center`}>
+            <h3 className={`text-lg font-bold text-pn-ink capitalize min-w-[200px] text-center`}>
               {nombreMes}
             </h3>
             <button
               onClick={mesSiguiente}
-              className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded`}
+              className={`p-2 hover:bg-pn-surface-3 rounded`}
             >
               <ChevronRight size={20} />
             </button>
             <button
               onClick={hoy}
-              className="ml-2 px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg text-sm font-semibold hover:bg-blue-200 dark:hover:bg-blue-800"
+              className="ml-2 px-4 py-2 bg-pn-accent-soft text-pn-accent-text rounded-lg text-sm font-semibold hover:bg-pn-accent-soft"
             >
               Hoy
             </button>
@@ -221,19 +215,19 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
           <div className="flex gap-2">
             <button
               onClick={() => setVistaActual('dia')}
-              className={`px-4 py-2 rounded ${vistaActual === 'dia' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}`}
+              className={`px-4 py-2 rounded ${vistaActual === 'dia' ? 'bg-pn-accent text-pn-accent-ink' : `bg-pn-surface-3`}`}
             >
               Día
             </button>
             <button
               onClick={() => setVistaActual('semana')}
-              className={`px-4 py-2 rounded ${vistaActual === 'semana' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}`}
+              className={`px-4 py-2 rounded ${vistaActual === 'semana' ? 'bg-pn-accent text-pn-accent-ink' : `bg-pn-surface-3`}`}
             >
               Semana
             </button>
             <button
               onClick={() => setVistaActual('mes')}
-              className={`px-4 py-2 rounded ${vistaActual === 'mes' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}`}
+              className={`px-4 py-2 rounded ${vistaActual === 'mes' ? 'bg-pn-accent text-pn-accent-ink' : `bg-pn-surface-3`}`}
             >
               Mes
             </button>
@@ -243,18 +237,19 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
 
       {/* Vista de Calendario */}
       {vistaActual === 'mes' && (
-        <div className={`${card} rounded-lg shadow overflow-hidden`}>
+        <div className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
           {/* Días de la semana */}
-          <div className={`grid grid-cols-7 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+          <div className={`grid grid-cols-7 bg-pn-surface-3`}>
             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((dia) => (
-              <div key={dia} className="p-3 text-center font-semibold border-r border-b ${border}">
+              <div key={dia} className="p-3 text-center font-semibold border-r border-b border-pn-line">
                 {dia}
               </div>
             ))}
           </div>
 
           {/* Días del mes */}
-          <div className="grid grid-cols-7">
+          <div className="pn-scroll -mx-2 overflow-x-auto px-2">
+          <div className="grid min-w-[640px] grid-cols-7">
             {getDiasDelMes().map((dia, index) => {
               const eventosDelDia = getEventosPorFecha(dia.fecha);
               const esHoy = dia.fecha.toDateString() === new Date().toDateString();
@@ -262,11 +257,11 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
               return (
                 <div
                   key={index}
-                  className={`min-h-[120px] p-2 border-r border-b ${border} ${
+                  className={`min-h-[120px] p-2 border-r border-b border-pn-line ${
                     dia.esOtroMes ? 'opacity-40' : ''
-                  } ${esHoy ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                  } ${esHoy ? 'bg-pn-accent-soft' : ''}`}
                 >
-                  <div className={`text-sm mb-1 ${esHoy ? 'font-bold text-blue-600' : text}`}>
+                  <div className={`text-sm mb-1 ${esHoy ? 'font-bold text-pn-accent-text' : 'text-pn-ink'}`}>
                     {dia.fecha.getDate()}
                   </div>
                   <div className="space-y-1">
@@ -274,7 +269,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                       <div
                         key={evento.id}
                         className={`text-xs p-1 rounded border-l-2 ${getTipoColor(evento.tipo)} cursor-pointer hover:opacity-80`}
-                        onClick={() => setEventoSeleccionado(evento)}
+                        {...pulsable(() => setEventoSeleccionado(evento))}
                         title={evento.titulo}
                       >
                         <div className="font-semibold truncate">{evento.horaInicio}</div>
@@ -282,7 +277,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                       </div>
                     ))}
                     {eventosDelDia.length > 3 && (
-                      <div className="text-xs text-gray-500 text-center">
+                      <div className="text-xs text-pn-muted text-center">
                         +{eventosDelDia.length - 3} más
                       </div>
                     )}
@@ -292,20 +287,21 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
             })}
           </div>
         </div>
+        </div>
       )}
 
       {/* Lista de Eventos Próximos */}
-      <div className={`${card} rounded-lg shadow`}>
-        <div className="p-6 border-b ${border}">
-          <h3 className={`text-lg font-bold ${text}`}>Próximos Eventos</h3>
+      <div className={`bg-pn-surface rounded-lg shadow`}>
+        <div className="p-6 border-b border-pn-line">
+          <h3 className={`text-lg font-bold text-pn-ink`}>Próximos Eventos</h3>
         </div>
-        <div className="divide-y ${border}">
+        <div className="divide-y border-pn-line">
           {eventos
             .filter(e => new Date(e.fecha) >= new Date())
             .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
             .slice(0, 10)
             .map((evento) => (
-              <div key={evento.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div key={evento.id} className="p-4 hover:bg-pn-surface-2">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-start gap-3">
@@ -313,8 +309,8 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                         {evento.tipo}
                       </div>
                       <div className="flex-1">
-                        <h4 className={`font-semibold ${text}`}>{evento.titulo}</h4>
-                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
+                        <h4 className={`font-semibold text-pn-ink`}>{evento.titulo}</h4>
+                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-pn-muted">
                           <span className="flex items-center gap-1">
                             <Calendar size={14} />
                             {new Date(evento.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -331,7 +327,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                           )}
                         </div>
                         {evento.curso && (
-                          <p className="text-sm text-gray-600 mt-1">{evento.curso}</p>
+                          <p className="text-sm text-pn-ink-2 mt-1">{evento.curso}</p>
                         )}
                       </div>
                     </div>
@@ -342,13 +338,13 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                         setNuevoEvento(evento);
                         setModalEvento(true);
                       }}
-                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                      className="p-2 hover:bg-pn-surface-3 rounded"
                     >
                       <Edit3 size={16} />
                     </button>
                     <button
                       onClick={() => handleEliminarEvento(evento.id)}
-                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-red-600"
+                      className="p-2 hover:bg-pn-surface-3 rounded text-pn-danger"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -362,9 +358,9 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
       {/* Modal Crear/Editar Evento */}
       {modalEvento && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl`}>
-            <div className="p-6 border-b ${border} flex justify-between items-center">
-              <h2 className={`text-xl font-bold ${text}`}>
+          <div role="dialog" aria-modal="true" aria-label="{nuevoEvento.id ? 'Editar Evento' : 'Nuevo Evento'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl`}>
+            <div className="p-6 border-b border-pn-line flex justify-between items-center">
+              <h2 className={`text-xl font-bold text-pn-ink`}>
                 {nuevoEvento.id ? 'Editar Evento' : 'Nuevo Evento'}
               </h2>
               <button
@@ -381,7 +377,7 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                     ubicacion: ''
                   });
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X size={24} />
               </button>
@@ -389,23 +385,23 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
 
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Título *</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Título *</label>
                 <input
                   type="text"
                   value={nuevoEvento.titulo}
                   onChange={(e) => setNuevoEvento({ ...nuevoEvento, titulo: e.target.value })}
-                  className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   placeholder="Ej: Clase de Patrones de Diseño"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Tipo *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Tipo *</label>
                   <select
                     value={nuevoEvento.tipo}
                     onChange={(e) => setNuevoEvento({ ...nuevoEvento, tipo: e.target.value as any })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   >
                     <option value="clase">Clase</option>
                     <option value="examen">Examen</option>
@@ -416,44 +412,44 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Fecha *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Fecha *</label>
                   <input
                     type="date"
                     value={nuevoEvento.fecha}
                     onChange={(e) => setNuevoEvento({ ...nuevoEvento, fecha: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Hora Inicio *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Hora Inicio *</label>
                   <input
                     type="time"
                     value={nuevoEvento.horaInicio}
                     onChange={(e) => setNuevoEvento({ ...nuevoEvento, horaInicio: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Hora Fin *</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Hora Fin *</label>
                   <input
                     type="time"
                     value={nuevoEvento.horaFin}
                     onChange={(e) => setNuevoEvento({ ...nuevoEvento, horaFin: e.target.value })}
-                    className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Curso</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Curso</label>
                 <select
                   value={nuevoEvento.curso}
                   onChange={(e) => setNuevoEvento({ ...nuevoEvento, curso: e.target.value })}
-                  className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                 >
                   <option value="">Seleccionar curso</option>
                   {cursos.map((curso) => (
@@ -465,29 +461,29 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Ubicación</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Ubicación</label>
                 <input
                   type="text"
                   value={nuevoEvento.ubicacion}
                   onChange={(e) => setNuevoEvento({ ...nuevoEvento, ubicacion: e.target.value })}
-                  className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   placeholder="Ej: Aula 302"
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Descripción</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Descripción</label>
                 <textarea
                   value={nuevoEvento.descripcion}
                   onChange={(e) => setNuevoEvento({ ...nuevoEvento, descripcion: e.target.value })}
                   rows={3}
-                  className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                   placeholder="Detalles adicionales..."
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t ${border} flex justify-end gap-3">
+            <div className="p-6 border-t border-pn-line flex justify-end gap-3">
               <button
                 onClick={() => {
                   setModalEvento(false);
@@ -502,13 +498,13 @@ export const CalendarioSection: React.FC<CalendarioSectionProps> = ({
                     ubicacion: ''
                   });
                 }}
-                className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCrearEvento}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-6 py-2 rounded-lg"
               >
                 {nuevoEvento.id ? 'Actualizar' : 'Crear Evento'}
               </button>

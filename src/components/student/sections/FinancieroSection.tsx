@@ -16,15 +16,12 @@ import {
   Info
 } from 'lucide-react';
 import { Pago, Deuda, ResumenFinanciero } from '../../../types/student.types';
+import { avisar } from '../../ui';
 
 interface FinancieroSectionProps {
   historialPagos: Pago[];
   deudasPendientes: Deuda[];
   resumen: ResumenFinanciero;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   realizarPago?: (deudaId: number, metodoPago: string, datosPago: any) => void;
 }
 
@@ -46,10 +43,6 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
   historialPagos,
   deudasPendientes,
   resumen,
-  darkMode,
-  card,
-  text,
-  border,
   realizarPago
 }) => {
   const [detalleModal, setDetalleModal] = useState<Pago | null>(null);
@@ -91,7 +84,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
     : historialPagos.filter(p => p.estado === filtroEstado);
 
   const descargarComprobante = (pago: Pago) => {
-    alert(`Descargando comprobante: ${pago.comprobante}`);
+    avisar.info(`Descargando comprobante: ${pago.comprobante}`);
   };
 
   const abrirModalPago = (deuda: Deuda) => {
@@ -128,7 +121,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
   const procesarPagoTarjeta = async () => {
     if (!datosTarjeta.numero || !datosTarjeta.nombreTitular || !datosTarjeta.fechaExpiracion || !datosTarjeta.cvv) {
-      alert('Por favor completa todos los campos de la tarjeta');
+      avisar.error('Por favor completa todos los campos de la tarjeta');
       return;
     }
 
@@ -151,7 +144,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
   const procesarPagoPSE = async () => {
     if (!datosPSE.banco || !datosPSE.numeroDocumento || !datosPSE.email) {
-      alert('Por favor completa todos los campos requeridos');
+      avisar.error('Por favor completa todos los campos requeridos');
       return;
     }
 
@@ -161,7 +154,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
     setTimeout(() => {
       const bancoSeleccionado = bancosPSE.find(b => b.id === datosPSE.banco);
 
-      alert(`Redirigiendo a ${bancoSeleccionado?.nombre}...\n\nEn un entorno real, serías redirigido a la página del banco para completar el pago.`);
+      avisar.error(`Redirigiendo a ${bancoSeleccionado?.nombre}...\n\nEn un entorno real, serías redirigido a la página del banco para completar el pago.`);
 
       // Simular confirmación del banco
       setTimeout(() => {
@@ -181,7 +174,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
   const procesarPagoEfectivo = () => {
     if (!puntoEfectivo) {
-      alert('Por favor selecciona un punto de pago');
+      avisar.info('Por favor selecciona un punto de pago');
       return;
     }
 
@@ -189,7 +182,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
     setTimeout(() => {
       setProcesandoPago(false);
-      alert(`Código de pago generado exitosamente.\n\nPresenta este código en ${puntoEfectivo}:\n\nCódigo: ${Math.random().toString(36).substring(2, 15).toUpperCase()}\n\nVálido por 3 días`);
+      avisar.ok(`Código de pago generado exitosamente.\n\nPresenta este código en ${puntoEfectivo}:\n\nCódigo: ${Math.random().toString(36).substring(2, 15).toUpperCase()}\n\nVálido por 3 días`);
       cerrarModalPago();
     }, 1000);
   };
@@ -218,54 +211,54 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <h2 className={`text-2xl font-bold ${text}`}>Estado de Cuenta</h2>
+      <h2 className={`text-2xl font-bold text-pn-ink`}>Estado de Cuenta</h2>
 
       {/* Resumen Financiero */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-6 border-l-4 border-green-500`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6 border-l-4 border-pn-ok`}>
           <div className="flex items-center gap-3">
-            <div className="bg-green-100 p-3 rounded-full">
-              <CheckCircle className="text-green-600" size={24} />
+            <div className="bg-pn-ok-soft p-3 rounded-full">
+              <CheckCircle className="text-pn-ok" size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Pagado</p>
-              <p className={`text-2xl font-bold text-green-600`}>{formatearCop(resumen.totalPagado)}</p>
+              <p className="text-sm text-pn-muted">Total Pagado</p>
+              <p className={`text-2xl font-bold text-pn-ok`}>{formatearCop(resumen.totalPagado)}</p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6 border-l-4 border-orange-500`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6 border-l-4 border-pn-warn`}>
           <div className="flex items-center gap-3">
-            <div className="bg-orange-100 p-3 rounded-full">
-              <AlertCircle className="text-orange-600" size={24} />
+            <div className="bg-pn-warn-soft p-3 rounded-full">
+              <AlertCircle className="text-pn-warn" size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Saldo Pendiente</p>
-              <p className={`text-2xl font-bold text-orange-600`}>{formatearCop(resumen.saldoPendiente)}</p>
+              <p className="text-sm text-pn-muted">Saldo Pendiente</p>
+              <p className={`text-2xl font-bold text-pn-warn`}>{formatearCop(resumen.saldoPendiente)}</p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6 border-l-4 border-blue-500`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6 border-l-4 border-pn-accent-line`}>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Calendar className="text-blue-600" size={24} />
+            <div className="bg-pn-accent-soft p-3 rounded-full">
+              <Calendar className="text-pn-accent-text" size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Próximo Vencimiento</p>
-              <p className={`text-lg font-bold text-blue-600`}>{resumen.proximoVencimiento}</p>
+              <p className="text-sm text-pn-muted">Próximo Vencimiento</p>
+              <p className={`text-lg font-bold text-pn-accent-text`}>{resumen.proximoVencimiento}</p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6 border-l-4 border-purple-500`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6 border-l-4 border-pn-accent-2`}>
           <div className="flex items-center gap-3">
-            <div className="bg-purple-100 p-3 rounded-full">
-              <DollarSign className="text-purple-600" size={24} />
+            <div className="bg-pn-accent-2-soft p-3 rounded-full">
+              <DollarSign className="text-pn-accent-2-text" size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Último Pago</p>
-              <p className={`text-2xl font-bold text-purple-600`}>{formatearCop(resumen.ultimoPago)}</p>
+              <p className="text-sm text-pn-muted">Último Pago</p>
+              <p className={`text-2xl font-bold text-pn-accent-2-text`}>{formatearCop(resumen.ultimoPago)}</p>
             </div>
           </div>
         </div>
@@ -273,39 +266,39 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
       {/* Deudas Pendientes */}
       {deudasPendientes.length > 0 && (
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-lg font-bold ${text} mb-4 flex items-center gap-2`}>
-            <AlertCircle className="text-orange-600" size={20} />
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-bold text-pn-ink mb-4 flex items-center gap-2`}>
+            <AlertCircle className="text-pn-warn" size={20} />
             Pagos Pendientes
           </h3>
           <div className="space-y-3">
             {deudasPendientes.map(deuda => (
               <div
                 key={deuda.id}
-                className={`border ${border} rounded-lg p-4 ${
+                className={`border border-pn-line rounded-lg p-4 ${
                   deuda.estado === 'vencido'
-                    ? 'border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10'
-                    : 'border-l-4 border-orange-500'
+                    ? 'border-l-4 border-pn-danger bg-pn-danger-soft'
+                    : 'border-l-4 border-pn-warn'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className={`font-bold ${text}`}>{deuda.concepto}</h4>
+                  <h4 className={`font-bold text-pn-ink`}>{deuda.concepto}</h4>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                     deuda.estado === 'vencido'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-orange-100 text-orange-700'
+                      ? 'bg-pn-danger-soft text-pn-danger'
+                      : 'bg-pn-warn-soft text-pn-warn'
                   }`}>
                     {deuda.estado === 'vencido' ? 'Vencido' : 'Pendiente'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-2xl font-bold ${text}`}>{formatearCop(deuda.monto)}</p>
-                    <p className="text-sm text-gray-500">Vence: {deuda.fechaVencimiento}</p>
+                    <p className={`text-2xl font-bold text-pn-ink`}>{formatearCop(deuda.monto)}</p>
+                    <p className="text-sm text-pn-muted">Vence: {deuda.fechaVencimiento}</p>
                   </div>
                   <button
                     onClick={() => abrirModalPago(deuda)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2 transition"
+                    className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2 transition"
                   >
                     <CreditCard size={16} />
                     Pagar Ahora
@@ -318,17 +311,17 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
       )}
 
       {/* Historial de Pagos */}
-      <div className={`${card} rounded-lg shadow`}>
+      <div className={`bg-pn-surface rounded-lg shadow`}>
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className={`text-lg font-bold ${text}`}>Historial de Pagos</h3>
+            <h3 className={`text-lg font-bold text-pn-ink`}>Historial de Pagos</h3>
             <div className="flex gap-2">
               <button
                 onClick={() => setFiltroEstado('todos')}
                 className={`px-3 py-1 rounded text-sm ${
                   filtroEstado === 'todos'
-                    ? 'bg-blue-600 text-white'
-                    : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'} hover:bg-gray-300`
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : `bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-surface-3`
                 }`}
               >
                 Todos
@@ -337,8 +330,8 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                 onClick={() => setFiltroEstado('completado')}
                 className={`px-3 py-1 rounded text-sm ${
                   filtroEstado === 'completado'
-                    ? 'bg-blue-600 text-white'
-                    : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'} hover:bg-gray-300`
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : `bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-surface-3`
                 }`}
               >
                 Completados
@@ -348,33 +341,33 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
           <div className="space-y-3">
             {pagosFiltrados.map(pago => (
-              <div key={pago.id} className={`border ${border} rounded-lg p-4`}>
+              <div key={pago.id} className={`border border-pn-line rounded-lg p-4`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3 flex-1">
                     <div className={`p-2 rounded-full ${
                       pago.estado === 'completado'
-                        ? 'bg-green-100'
-                        : 'bg-orange-100'
+                        ? 'bg-pn-ok-soft'
+                        : 'bg-pn-warn-soft'
                     }`}>
                       {pago.estado === 'completado' ? (
-                        <CheckCircle className="text-green-600" size={20} />
+                        <CheckCircle className="text-pn-ok" size={20} />
                       ) : (
-                        <AlertCircle className="text-orange-600" size={20} />
+                        <AlertCircle className="text-pn-warn" size={20} />
                       )}
                     </div>
                     <div className="flex-1">
-                      <h4 className={`font-bold ${text}`}>{pago.concepto}</h4>
-                      <p className="text-sm text-gray-500">
+                      <h4 className={`font-bold text-pn-ink`}>{pago.concepto}</h4>
+                      <p className="text-sm text-pn-muted">
                         {pago.fecha} • {pago.metodoPago}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-bold ${text}`}>{formatearCop(pago.monto)}</p>
+                    <p className={`text-xl font-bold text-pn-ink`}>{formatearCop(pago.monto)}</p>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       pago.estado === 'completado'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-orange-100 text-orange-700'
+                        ? 'bg-pn-ok-soft text-pn-ok'
+                        : 'bg-pn-warn-soft text-pn-warn'
                     }`}>
                       {pago.estado === 'completado' ? 'Pagado' : 'Pendiente'}
                     </span>
@@ -384,14 +377,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => setDetalleModal(pago)}
-                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
+                      className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1"
                     >
                       <Eye size={16} />
                       Ver detalle
                     </button>
                     <button
                       onClick={() => descargarComprobante(pago)}
-                      className="text-green-600 hover:text-green-700 text-sm flex items-center gap-1"
+                      className="text-pn-ok hover:text-pn-ok text-sm flex items-center gap-1"
                     >
                       <Download size={16} />
                       Descargar comprobante
@@ -404,41 +397,41 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
           {pagosFiltrados.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500">No hay pagos en esta categoría</p>
+              <p className="text-pn-muted">No hay pagos en esta categoría</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Métodos de Pago Disponibles */}
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-lg font-bold ${text} mb-4 flex items-center gap-2`}>
-          <Info size={20} className="text-blue-500" />
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-lg font-bold text-pn-ink mb-4 flex items-center gap-2`}>
+          <Info size={20} className="text-pn-accent-text" />
           Métodos de Pago Disponibles
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`border ${border} rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
-            <CreditCard className="mx-auto text-blue-600 mb-2" size={32} />
-            <p className={`font-semibold ${text}`}>Tarjeta de Crédito/Débito</p>
-            <p className="text-sm text-gray-500">Visa, Mastercard, Amex</p>
+          <div className={`border border-pn-line rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
+            <CreditCard className="mx-auto text-pn-accent-text mb-2" size={32} />
+            <p className={`font-semibold text-pn-ink`}>Tarjeta de Crédito/Débito</p>
+            <p className="text-sm text-pn-muted">Visa, Mastercard, Amex</p>
           </div>
-          <div className={`border ${border} rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer bg-green-50 dark:bg-green-900/10 border-green-500`}>
-            <Building2 className="mx-auto text-green-600 mb-2" size={32} />
-            <p className={`font-semibold ${text}`}>PSE</p>
-            <p className="text-sm text-gray-500">Pago en línea seguro</p>
-            <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+          <div className={`border border-pn-line rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer bg-pn-ok-soft border-pn-ok`}>
+            <Building2 className="mx-auto text-pn-ok mb-2" size={32} />
+            <p className={`font-semibold text-pn-ink`}>PSE</p>
+            <p className="text-sm text-pn-muted">Pago en línea seguro</p>
+            <span className="inline-block mt-2 px-2 py-1 bg-pn-ok-soft text-pn-ok text-xs rounded-full">
               Recomendado
             </span>
           </div>
-          <div className={`border ${border} rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
-            <Wallet className="mx-auto text-purple-600 mb-2" size={32} />
-            <p className={`font-semibold ${text}`}>Efectivo</p>
-            <p className="text-sm text-gray-500">Puntos autorizados</p>
+          <div className={`border border-pn-line rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
+            <Wallet className="mx-auto text-pn-accent-2-text mb-2" size={32} />
+            <p className={`font-semibold text-pn-ink`}>Efectivo</p>
+            <p className="text-sm text-pn-muted">Puntos autorizados</p>
           </div>
-          <div className={`border ${border} rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
-            <DollarSign className="mx-auto text-orange-600 mb-2" size={32} />
-            <p className={`font-semibold ${text}`}>Transferencia</p>
-            <p className="text-sm text-gray-500">Consignación bancaria</p>
+          <div className={`border border-pn-line rounded-lg p-4 text-center hover:shadow-md transition cursor-pointer`}>
+            <DollarSign className="mx-auto text-pn-warn mb-2" size={32} />
+            <p className={`font-semibold text-pn-ink`}>Transferencia</p>
+            <p className="text-sm text-pn-muted">Consignación bancaria</p>
           </div>
         </div>
       </div>
@@ -450,14 +443,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
           onClick={() => setDetalleModal(null)}
         >
           <div
-            className={`${card} rounded-lg max-w-md w-full p-6`}
+            className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Detalle del Pago</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Detalle del Pago</h3>
               <button
                 onClick={() => setDetalleModal(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X size={24} />
               </button>
@@ -465,37 +458,37 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500">Concepto</p>
-                <p className={`font-semibold ${text}`}>{detalleModal.concepto}</p>
+                <p className="text-sm text-pn-muted">Concepto</p>
+                <p className={`font-semibold text-pn-ink`}>{detalleModal.concepto}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Monto</p>
-                <p className={`text-2xl font-bold text-green-600`}>{formatearCop(detalleModal.monto)}</p>
+                <p className="text-sm text-pn-muted">Monto</p>
+                <p className={`text-2xl font-bold text-pn-ok`}>{formatearCop(detalleModal.monto)}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Fecha</p>
-                  <p className={`font-semibold ${text}`}>{detalleModal.fecha}</p>
+                  <p className="text-sm text-pn-muted">Fecha</p>
+                  <p className={`font-semibold text-pn-ink`}>{detalleModal.fecha}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Método de Pago</p>
-                  <p className={`font-semibold ${text}`}>{detalleModal.metodoPago}</p>
+                  <p className="text-sm text-pn-muted">Método de Pago</p>
+                  <p className={`font-semibold text-pn-ink`}>{detalleModal.metodoPago}</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Comprobante</p>
-                <p className={`font-semibold ${text}`}>{detalleModal.comprobante}</p>
+                <p className="text-sm text-pn-muted">Comprobante</p>
+                <p className={`font-semibold text-pn-ink`}>{detalleModal.comprobante}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Estado</p>
-                <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                <p className="text-sm text-pn-muted">Estado</p>
+                <span className="inline-block px-3 py-1 bg-pn-ok-soft text-pn-ok rounded-full text-sm font-semibold">
                   Completado
                 </span>
               </div>
 
               <button
                 onClick={() => descargarComprobante(detalleModal)}
-                className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-pn-accent text-pn-accent-ink py-3 rounded hover:bg-pn-accent-hover font-semibold flex items-center justify-center gap-2"
               >
                 <Download size={20} />
                 Descargar Comprobante
@@ -508,22 +501,21 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
       {/* Modal de Pago */}
       {modalPago && deudaSeleccionada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div
-            className={`${card} rounded-lg max-w-2xl w-full p-6 my-8`}
+          <div role="dialog" aria-modal="true" aria-label="Realizar Pago" className={`bg-pn-surface rounded-lg max-w-2xl w-full p-6 my-8`}
             onClick={(e) => e.stopPropagation()}
           >
             {!pagoExitoso ? (
               <>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className={`text-xl font-bold ${text}`}>Realizar Pago</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className={`text-xl font-bold text-pn-ink`}>Realizar Pago</h3>
+                    <p className="text-sm text-pn-muted mt-1">
                       {deudaSeleccionada.concepto} - {formatearCop(deudaSeleccionada.monto)}
                     </p>
                   </div>
                   <button
                     onClick={cerrarModalPago}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-pn-muted hover:text-pn-ink-2"
                   >
                     <X size={24} />
                   </button>
@@ -531,66 +523,66 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
                 {!metodoPagoSeleccionado ? (
                   <div className="space-y-4">
-                    <p className={`font-medium ${text}`}>Selecciona un método de pago:</p>
+                    <p className={`font-medium text-pn-ink`}>Selecciona un método de pago:</p>
 
                     <button
                       onClick={() => setMetodoPagoSeleccionado('tarjeta')}
-                      className={`w-full border ${border} rounded-lg p-4 hover:shadow-md transition text-left`}
+                      className={`w-full border border-pn-line rounded-lg p-4 hover:shadow-md transition text-left`}
                     >
                       <div className="flex items-center gap-3">
-                        <CreditCard className="text-blue-600" size={32} />
+                        <CreditCard className="text-pn-accent-text" size={32} />
                         <div className="flex-1">
-                          <p className={`font-semibold ${text}`}>Tarjeta de Crédito/Débito</p>
-                          <p className="text-sm text-gray-500">Pago inmediato con tarjeta</p>
+                          <p className={`font-semibold text-pn-ink`}>Tarjeta de Crédito/Débito</p>
+                          <p className="text-sm text-pn-muted">Pago inmediato con tarjeta</p>
                         </div>
-                        <ArrowRight size={20} className="text-gray-400" />
+                        <ArrowRight size={20} className="text-pn-muted" />
                       </div>
                     </button>
 
                     <button
                       onClick={() => setMetodoPagoSeleccionado('pse')}
-                      className={`w-full border-2 border-green-500 rounded-lg p-4 hover:shadow-md transition text-left bg-green-50 dark:bg-green-900/10`}
+                      className={`w-full border-2 border-pn-ok rounded-lg p-4 hover:shadow-md transition text-left bg-pn-ok-soft`}
                     >
                       <div className="flex items-center gap-3">
-                        <Building2 className="text-green-600" size={32} />
+                        <Building2 className="text-pn-ok" size={32} />
                         <div className="flex-1">
-                          <p className={`font-semibold ${text} flex items-center gap-2`}>
+                          <p className={`font-semibold text-pn-ink flex items-center gap-2`}>
                             PSE - Pago Seguro en Línea
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                            <span className="px-2 py-0.5 bg-pn-ok-soft text-pn-ok text-xs rounded-full">
                               Recomendado
                             </span>
                           </p>
-                          <p className="text-sm text-gray-500">Débito directo desde tu banco</p>
+                          <p className="text-sm text-pn-muted">Débito directo desde tu banco</p>
                         </div>
-                        <ArrowRight size={20} className="text-gray-400" />
+                        <ArrowRight size={20} className="text-pn-muted" />
                       </div>
                     </button>
 
                     <button
                       onClick={() => setMetodoPagoSeleccionado('efectivo')}
-                      className={`w-full border ${border} rounded-lg p-4 hover:shadow-md transition text-left`}
+                      className={`w-full border border-pn-line rounded-lg p-4 hover:shadow-md transition text-left`}
                     >
                       <div className="flex items-center gap-3">
-                        <Wallet className="text-purple-600" size={32} />
+                        <Wallet className="text-pn-accent-2-text" size={32} />
                         <div className="flex-1">
-                          <p className={`font-semibold ${text}`}>Pago en Efectivo</p>
-                          <p className="text-sm text-gray-500">Genera código para puntos autorizados</p>
+                          <p className={`font-semibold text-pn-ink`}>Pago en Efectivo</p>
+                          <p className="text-sm text-pn-muted">Genera código para puntos autorizados</p>
                         </div>
-                        <ArrowRight size={20} className="text-gray-400" />
+                        <ArrowRight size={20} className="text-pn-muted" />
                       </div>
                     </button>
 
                     <button
                       onClick={() => setMetodoPagoSeleccionado('transferencia')}
-                      className={`w-full border ${border} rounded-lg p-4 hover:shadow-md transition text-left`}
+                      className={`w-full border border-pn-line rounded-lg p-4 hover:shadow-md transition text-left`}
                     >
                       <div className="flex items-center gap-3">
-                        <DollarSign className="text-orange-600" size={32} />
+                        <DollarSign className="text-pn-warn" size={32} />
                         <div className="flex-1">
-                          <p className={`font-semibold ${text}`}>Transferencia Bancaria</p>
-                          <p className="text-sm text-gray-500">Consignación directa</p>
+                          <p className={`font-semibold text-pn-ink`}>Transferencia Bancaria</p>
+                          <p className="text-sm text-pn-muted">Consignación directa</p>
                         </div>
-                        <ArrowRight size={20} className="text-gray-400" />
+                        <ArrowRight size={20} className="text-pn-muted" />
                       </div>
                     </button>
                   </div>
@@ -598,21 +590,21 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div className="space-y-4">
                     <button
                       onClick={() => setMetodoPagoSeleccionado(null)}
-                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mb-2"
+                      className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 mb-2"
                     >
                       ← Volver a métodos de pago
                     </button>
 
-                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'} flex items-start gap-2`}>
-                      <Lock size={16} className="text-blue-600 mt-0.5" />
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <div className={`p-4 rounded-lg bg-pn-accent-soft flex items-start gap-2`}>
+                      <Lock size={16} className="text-pn-accent-text mt-0.5" />
+                      <p className="text-sm text-pn-accent-text">
                         Tus datos están protegidos con encriptación SSL
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Número de Tarjeta *
                         </label>
                         <input
@@ -621,14 +613,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           onChange={handleCardNumberChange}
                           maxLength={19}
                           placeholder="1234 5678 9012 3456"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Nombre del Titular *
                         </label>
                         <input
@@ -636,14 +628,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosTarjeta.nombreTitular}
                           onChange={(e) => setDatosTarjeta({ ...datosTarjeta, nombreTitular: e.target.value.toUpperCase() })}
                           placeholder="NOMBRE COMO APARECE EN LA TARJETA"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Fecha de Expiración *
                         </label>
                         <input
@@ -658,14 +650,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           }}
                           maxLength={5}
                           placeholder="MM/AA"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           CVV *
                         </label>
                         <input
@@ -677,22 +669,22 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           }}
                           maxLength={4}
                           placeholder="123"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Tipo de Documento *
                         </label>
                         <select
                           value={datosTarjeta.tipoDocumento}
                           onChange={(e) => setDatosTarjeta({ ...datosTarjeta, tipoDocumento: e.target.value })}
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         >
                           <option value="CC">Cédula de Ciudadanía</option>
                           <option value="CE">Cédula de Extranjería</option>
@@ -702,7 +694,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Número de Documento *
                         </label>
                         <input
@@ -710,14 +702,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosTarjeta.numeroDocumento}
                           onChange={(e) => setDatosTarjeta({ ...datosTarjeta, numeroDocumento: e.target.value })}
                           placeholder="1234567890"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Email *
                         </label>
                         <input
@@ -725,14 +717,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosTarjeta.email}
                           onChange={(e) => setDatosTarjeta({ ...datosTarjeta, email: e.target.value })}
                           placeholder="correo@ejemplo.com"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Teléfono *
                         </label>
                         <input
@@ -740,9 +732,9 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosTarjeta.telefono}
                           onChange={(e) => setDatosTarjeta({ ...datosTarjeta, telefono: e.target.value })}
                           placeholder="3001234567"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                         />
                       </div>
                     </div>
@@ -750,8 +742,8 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     <div className="flex gap-3 mt-6">
                       <button
                         onClick={() => setMetodoPagoSeleccionado(null)}
-                        className={`flex-1 px-4 py-3 rounded-lg border ${border} ${
-                          darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                        className={`flex-1 px-4 py-3 rounded-lg border border-pn-line ${
+                          'hover:bg-pn-surface-3'
                         } transition font-semibold`}
                         disabled={procesandoPago}
                       >
@@ -760,7 +752,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                       <button
                         onClick={procesarPagoTarjeta}
                         disabled={procesandoPago}
-                        className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-pn-accent text-pn-accent-ink px-4 py-3 rounded-lg font-semibold hover:bg-pn-accent-hover transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {procesandoPago ? (
                           <>
@@ -780,18 +772,18 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div className="space-y-4">
                     <button
                       onClick={() => setMetodoPagoSeleccionado(null)}
-                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mb-2"
+                      className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 mb-2"
                     >
                       ← Volver a métodos de pago
                     </button>
 
-                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900/20' : 'bg-green-50'} flex items-start gap-2`}>
-                      <Lock size={16} className="text-green-600 mt-0.5" />
+                    <div className={`p-4 rounded-lg bg-pn-ok-soft flex items-start gap-2`}>
+                      <Lock size={16} className="text-pn-ok mt-0.5" />
                       <div>
-                        <p className="text-sm text-green-700 dark:text-green-300 font-semibold">
+                        <p className="text-sm text-pn-ok font-semibold">
                           PSE - Pago Seguro en Línea
                         </p>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        <p className="text-xs text-pn-ok mt-1">
                           Serás redirigido al portal de tu banco para completar el pago de forma segura
                         </p>
                       </div>
@@ -799,15 +791,15 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
 
                     <div className="space-y-4">
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Selecciona tu Banco *
                         </label>
                         <select
                           value={datosPSE.banco}
                           onChange={(e) => setDatosPSE({ ...datosPSE, banco: e.target.value })}
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-ok`}
                         >
                           <option value="">Seleccionar banco...</option>
                           {bancosPSE.map(banco => (
@@ -817,7 +809,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Tipo de Persona *
                         </label>
                         <div className="flex gap-4">
@@ -829,7 +821,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                               onChange={(e) => setDatosPSE({ ...datosPSE, tipoPersona: e.target.value })}
                               className="w-4 h-4"
                             />
-                            <span className={text}>Persona Natural</span>
+                            <span className="text-pn-ink">Persona Natural</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -839,22 +831,22 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                               onChange={(e) => setDatosPSE({ ...datosPSE, tipoPersona: e.target.value })}
                               className="w-4 h-4"
                             />
-                            <span className={text}>Persona Jurídica</span>
+                            <span className="text-pn-ink">Persona Jurídica</span>
                           </label>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className={`block text-sm font-medium mb-2 ${text}`}>
+                          <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                             Tipo de Documento *
                           </label>
                           <select
                             value={datosPSE.tipoDocumento}
                             onChange={(e) => setDatosPSE({ ...datosPSE, tipoDocumento: e.target.value })}
-                            className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                              darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                            } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                            className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                              'bg-pn-surface text-pn-ink'
+                            } focus:outline-none focus:ring-2 focus:ring-pn-ok`}
                           >
                             <option value="CC">Cédula de Ciudadanía</option>
                             <option value="CE">Cédula de Extranjería</option>
@@ -865,7 +857,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                         </div>
 
                         <div>
-                          <label className={`block text-sm font-medium mb-2 ${text}`}>
+                          <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                             Número de Documento *
                           </label>
                           <input
@@ -873,15 +865,15 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                             value={datosPSE.numeroDocumento}
                             onChange={(e) => setDatosPSE({ ...datosPSE, numeroDocumento: e.target.value })}
                             placeholder="1234567890"
-                            className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                              darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                            } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                            className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                              'bg-pn-surface text-pn-ink'
+                            } focus:outline-none focus:ring-2 focus:ring-pn-ok`}
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Email *
                         </label>
                         <input
@@ -889,14 +881,14 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosPSE.email}
                           onChange={(e) => setDatosPSE({ ...datosPSE, email: e.target.value })}
                           placeholder="correo@ejemplo.com"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-ok`}
                         />
                       </div>
 
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${text}`}>
+                        <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                           Teléfono *
                         </label>
                         <input
@@ -904,9 +896,9 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                           value={datosPSE.telefono}
                           onChange={(e) => setDatosPSE({ ...datosPSE, telefono: e.target.value })}
                           placeholder="3001234567"
-                          className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                          } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                          className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                            'bg-pn-surface text-pn-ink'
+                          } focus:outline-none focus:ring-2 focus:ring-pn-ok`}
                         />
                       </div>
                     </div>
@@ -914,8 +906,8 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                     <div className="flex gap-3 mt-6">
                       <button
                         onClick={() => setMetodoPagoSeleccionado(null)}
-                        className={`flex-1 px-4 py-3 rounded-lg border ${border} ${
-                          darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                        className={`flex-1 px-4 py-3 rounded-lg border border-pn-line ${
+                          'hover:bg-pn-surface-3'
                         } transition font-semibold`}
                         disabled={procesandoPago}
                       >
@@ -924,7 +916,7 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                       <button
                         onClick={procesarPagoPSE}
                         disabled={procesandoPago}
-                        className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-pn-ok text-pn-surface px-4 py-3 rounded-lg font-semibold hover:bg-pn-ok transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {procesandoPago ? (
                           <>
@@ -944,27 +936,27 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div className="space-y-4">
                     <button
                       onClick={() => setMetodoPagoSeleccionado(null)}
-                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mb-2"
+                      className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 mb-2"
                     >
                       ← Volver a métodos de pago
                     </button>
 
-                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-900/20' : 'bg-purple-50'}`}>
-                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                    <div className={`p-4 rounded-lg bg-pn-info-soft`}>
+                      <p className="text-sm text-pn-accent-2-text">
                         Genera un código de pago para realizar el pago en efectivo en puntos autorizados
                       </p>
                     </div>
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${text}`}>
+                      <label className={`block text-sm font-medium mb-2 text-pn-ink`}>
                         Selecciona el Punto de Pago *
                       </label>
                       <select
                         value={puntoEfectivo}
                         onChange={(e) => setPuntoEfectivo(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${border} ${
-                          darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                        } focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                        className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+                          'bg-pn-surface text-pn-ink'
+                        } focus:outline-none focus:ring-2 focus:ring-pn-accent-2`}
                       >
                         <option value="">Seleccionar punto...</option>
                         <option value="Efecty">Efecty</option>
@@ -975,27 +967,27 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                       </select>
                     </div>
 
-                    <div className={`p-4 rounded-lg border ${border}`}>
-                      <p className={`font-semibold ${text} mb-2`}>Información del Pago:</p>
+                    <div className={`p-4 rounded-lg border border-pn-line`}>
+                      <p className={`font-semibold text-pn-ink mb-2`}>Información del Pago:</p>
                       <div className="space-y-1 text-sm">
-                        <p><span className="text-gray-500">Monto:</span> <span className="font-semibold">{formatearCop(deudaSeleccionada.monto)}</span></p>
-                        <p><span className="text-gray-500">Concepto:</span> {deudaSeleccionada.concepto}</p>
-                        <p><span className="text-gray-500">Vigencia del código:</span> 3 días</p>
+                        <p><span className="text-pn-muted">Monto:</span> <span className="font-semibold">{formatearCop(deudaSeleccionada.monto)}</span></p>
+                        <p><span className="text-pn-muted">Concepto:</span> {deudaSeleccionada.concepto}</p>
+                        <p><span className="text-pn-muted">Vigencia del código:</span> 3 días</p>
                       </div>
                     </div>
 
                     <div className="flex gap-3 mt-6">
                       <button
                         onClick={() => setMetodoPagoSeleccionado(null)}
-                        className={`flex-1 px-4 py-3 rounded-lg border ${border} ${
-                          darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                        className={`flex-1 px-4 py-3 rounded-lg border border-pn-line ${
+                          'hover:bg-pn-surface-3'
                         } transition font-semibold`}
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={procesarPagoEfectivo}
-                        className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 transition flex items-center justify-center gap-2"
+                        className="flex-1 bg-pn-accent-2 text-pn-accent-2-ink px-4 py-3 rounded-lg font-semibold hover:bg-pn-accent-2 transition flex items-center justify-center gap-2"
                       >
                         <Wallet size={16} />
                         Generar Código
@@ -1006,60 +998,60 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
                   <div className="space-y-4">
                     <button
                       onClick={() => setMetodoPagoSeleccionado(null)}
-                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mb-2"
+                      className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 mb-2"
                     >
                       ← Volver a métodos de pago
                     </button>
 
-                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
-                      <p className={`font-semibold ${text} mb-2`}>Datos Bancarios para Transferencia</p>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                    <div className={`p-4 rounded-lg bg-pn-warn-soft`}>
+                      <p className={`font-semibold text-pn-ink mb-2`}>Datos Bancarios para Transferencia</p>
+                      <p className="text-sm text-pn-warn">
                         Realiza la transferencia a la siguiente cuenta y envía el comprobante
                       </p>
                     </div>
 
-                    <div className={`border ${border} rounded-lg p-4 space-y-3`}>
+                    <div className={`border border-pn-line rounded-lg p-4 space-y-3`}>
                       <div>
-                        <p className="text-sm text-gray-500">Banco</p>
-                        <p className={`font-semibold ${text}`}>Bancolombia</p>
+                        <p className="text-sm text-pn-muted">Banco</p>
+                        <p className={`font-semibold text-pn-ink`}>Bancolombia</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Tipo de Cuenta</p>
-                        <p className={`font-semibold ${text}`}>Ahorros</p>
+                        <p className="text-sm text-pn-muted">Tipo de Cuenta</p>
+                        <p className={`font-semibold text-pn-ink`}>Ahorros</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Número de Cuenta</p>
-                        <p className={`font-semibold ${text} text-lg`}>1234-5678-9012</p>
+                        <p className="text-sm text-pn-muted">Número de Cuenta</p>
+                        <p className={`font-semibold text-pn-ink text-lg`}>1234-5678-9012</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Titular</p>
-                        <p className={`font-semibold ${text}`}>Universidad Virtual UniVirtual</p>
+                        <p className="text-sm text-pn-muted">Titular</p>
+                        <p className={`font-semibold text-pn-ink`}>Universidad Virtual UniVirtual</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">NIT</p>
-                        <p className={`font-semibold ${text}`}>900.123.456-7</p>
+                        <p className="text-sm text-pn-muted">NIT</p>
+                        <p className={`font-semibold text-pn-ink`}>900.123.456-7</p>
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-lg border ${border}`}>
-                      <p className={`font-semibold ${text} mb-2`}>Información del Pago:</p>
+                    <div className={`p-4 rounded-lg border border-pn-line`}>
+                      <p className={`font-semibold text-pn-ink mb-2`}>Información del Pago:</p>
                       <div className="space-y-1 text-sm">
-                        <p><span className="text-gray-500">Monto a transferir:</span> <span className="font-semibold text-lg">{formatearCop(deudaSeleccionada.monto)}</span></p>
-                        <p><span className="text-gray-500">Concepto:</span> {deudaSeleccionada.concepto}</p>
-                        <p><span className="text-gray-500">Referencia:</span> <span className="font-mono">REF-{deudaSeleccionada.id}</span></p>
+                        <p><span className="text-pn-muted">Monto a transferir:</span> <span className="font-semibold text-lg">{formatearCop(deudaSeleccionada.monto)}</span></p>
+                        <p><span className="text-pn-muted">Concepto:</span> {deudaSeleccionada.concepto}</p>
+                        <p><span className="text-pn-muted">Referencia:</span> <span className="font-mono">REF-{deudaSeleccionada.id}</span></p>
                       </div>
                     </div>
 
-                    <div className={`p-3 rounded-lg ${darkMode ? 'bg-yellow-900/20' : 'bg-yellow-50'} flex items-start gap-2`}>
-                      <AlertCircle size={16} className="text-yellow-600 mt-0.5" />
-                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    <div className={`p-3 rounded-lg bg-pn-warn-soft flex items-start gap-2`}>
+                      <AlertCircle size={16} className="text-pn-warn mt-0.5" />
+                      <p className="text-sm text-pn-warn">
                         Una vez realizada la transferencia, envía el comprobante al correo pagos@univirtual.edu.co o a través de la sección de trámites
                       </p>
                     </div>
 
                     <button
                       onClick={cerrarModalPago}
-                      className="w-full bg-orange-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+                      className="w-full bg-pn-warn text-pn-surface px-4 py-3 rounded-lg font-semibold hover:bg-pn-warn transition"
                     >
                       Entendido
                     </button>
@@ -1068,15 +1060,15 @@ export const FinancieroSection: React.FC<FinancieroSectionProps> = ({
               </>
             ) : (
               <div className="text-center py-8">
-                <div className="inline-block p-4 bg-green-100 rounded-full mb-4">
-                  <CheckCircle className="text-green-600" size={64} />
+                <div className="inline-block p-4 bg-pn-ok-soft rounded-full mb-4">
+                  <CheckCircle className="text-pn-ok" size={64} />
                 </div>
-                <h3 className={`text-2xl font-bold ${text} mb-2`}>¡Pago Exitoso!</h3>
-                <p className="text-gray-500 mb-4">
+                <h3 className={`text-2xl font-bold text-pn-ink mb-2`}>¡Pago Exitoso!</h3>
+                <p className="text-pn-muted mb-4">
                   Tu pago de {formatearCop(deudaSeleccionada.monto)} ha sido procesado correctamente
                 </p>
                 <div className="animate-pulse">
-                  <p className="text-sm text-gray-500">Cerrando...</p>
+                  <p className="text-sm text-pn-muted">Cerrando...</p>
                 </div>
               </div>
             )}

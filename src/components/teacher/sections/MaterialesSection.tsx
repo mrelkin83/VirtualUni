@@ -22,9 +22,11 @@ import {
   Clock
 } from 'lucide-react';
 import { Material, CarpetaMaterial } from '../../../types/teacher.types';
+import { useToast } from '../../ui';
 import { uploadsApi, TAMANIO_MAXIMO_MB } from '../../../api/endpoints/uploads';
 import { ACCEPT_MATERIALES, TIPO_UI_POR_API, tipoDeMaterialPorMime } from '../../../utils/materiales';
 import { ContenidoDelGrupoPanel } from './ContenidoDelGrupoPanel';
+import { pulsable } from '../../../utils/pulsable';
 
 /** Lo que el modal entrega: un archivo a subir o, si no, una URL externa. */
 export type MaterialNuevo = Omit<Material, 'id'> & { archivo?: File | null };
@@ -32,10 +34,6 @@ export type MaterialNuevo = Omit<Material, 'id'> & { archivo?: File | null };
 interface MaterialesSectionProps {
   materiales: Material[];
   carpetas: CarpetaMaterial[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   subirMaterial: (material: MaterialNuevo) => void;
   eliminarMaterial: (materialId: number) => void;
   editarMaterial: (materialId: number, material: Partial<Material>) => void;
@@ -51,10 +49,6 @@ interface MaterialesSectionProps {
 export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   materiales,
   carpetas,
-  darkMode,
-  card,
-  text,
-  border,
   subirMaterial,
   eliminarMaterial,
   crearCarpeta,
@@ -62,6 +56,10 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   editarCarpeta,
   cursosDisponibles = []
 }) => {
+  // Sustituye a los avisar.info() del navegador: no bloquean el hilo, se pueden
+  // diseñar y viven en una región aria-live, así que un lector de pantalla
+  // también se entera de que algo salió bien o mal.
+  const avisos = useToast();
   const [vista, setVista] = useState<'grid' | 'lista'>('grid');
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
@@ -114,7 +112,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
     if (!file) return;
 
     if (file.size > TAMANIO_MAXIMO_MB * 1024 * 1024) {
-      alert(
+      avisos.error(
         `"${file.name}" pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo es ` +
           `${TAMANIO_MAXIMO_MB} MB. Para un video grande, súbelo a un hosting y agrégalo como enlace.`
       );
@@ -151,54 +149,54 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case 'pdf':
-        return <FileText className="text-red-500" size={24} />;
+        return <FileText className="text-pn-danger" size={24} />;
       case 'video':
-        return <Video className="text-purple-500" size={24} />;
+        return <Video className="text-pn-accent-2-text" size={24} />;
       case 'documento':
-        return <File className="text-blue-500" size={24} />;
+        return <File className="text-pn-accent-text" size={24} />;
       case 'presentacion':
-        return <FileText className="text-orange-500" size={24} />;
+        return <FileText className="text-pn-warn" size={24} />;
       case 'imagen':
-        return <ImageIcon className="text-green-500" size={24} />;
+        return <ImageIcon className="text-pn-ok" size={24} />;
       case 'audio':
-        return <Music className="text-pink-500" size={24} />;
+        return <Music className="text-pn-accent-2-text" size={24} />;
       case 'enlace':
-        return <LinkIcon className="text-indigo-500" size={24} />;
+        return <LinkIcon className="text-pn-accent-2-text" size={24} />;
       default:
-        return <File className="text-gray-500" size={24} />;
+        return <File className="text-pn-muted" size={24} />;
     }
   };
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
       case 'pdf':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-pn-danger-soft text-pn-danger';
       case 'video':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+        return 'bg-pn-accent-2-soft text-pn-accent-2-text';
       case 'documento':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-pn-accent-soft text-pn-accent-text';
       case 'presentacion':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-pn-warn-soft text-pn-warn';
       case 'imagen':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-pn-ok-soft text-pn-ok';
       case 'audio':
-        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
+        return 'bg-pn-accent-2-soft text-pn-accent-2-text';
       case 'enlace':
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
+        return 'bg-pn-accent-2-soft text-pn-accent-2-text';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+        return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
   const handleSubirMaterial = () => {
     if (!nuevoMaterial.nombre || !nuevoMaterial.curso) {
-      alert('Por favor completa los campos obligatorios (nombre y curso)');
+      avisos.error('Completa el nombre y el curso para poder subir el material.');
       return;
     }
 
     // Un archivo o un enlace, cualquiera de los dos sirve; ninguno, no.
     if (!nuevoMaterial.archivo && !nuevoMaterial.url) {
-      alert('Elige un archivo para subir o indica el enlace del material.');
+      avisos.error('Elige un archivo para subir o indica el enlace del material.');
       return;
     }
 
@@ -223,7 +221,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
   const handleCrearCarpeta = () => {
     if (!nuevaCarpeta.nombre || !nuevaCarpeta.curso) {
-      alert('Por favor completa todos los campos obligatorios');
+      avisos.error('Completa todos los campos obligatorios.');
       return;
     }
 
@@ -246,9 +244,9 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(material.url);
-      alert(`Enlace copiado al portapapeles!\n\n${textoCompartir}`);
+      avisos.ok('Enlace copiado al portapapeles.');
     } else {
-      alert(`Información del material:\n\n${textoCompartir}`);
+      avisos.info(textoCompartir);
     }
   };
 
@@ -264,22 +262,22 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Gestión de Materiales</h2>
-          <p className={`${text} opacity-70 mt-1`}>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Materiales</h2>
+          <p className={`text-pn-ink opacity-70 mt-1`}>
             Sube, organiza y comparte recursos educativos
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setModalCarpeta(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition"
+            className="bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-ok transition"
           >
             <Folder size={20} />
             Nueva Carpeta
           </button>
           <button
             onClick={() => setModalSubir(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
+            className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-accent-hover transition"
           >
             <Upload size={20} />
             Subir Material
@@ -289,63 +287,63 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
       {/* Contenido maestro de la asignatura vs. propio del grupo, con las
           acciones de promover y copiar del grupo anterior. Autónomo. */}
-      <ContenidoDelGrupoPanel darkMode={darkMode} />
+      <ContenidoDelGrupoPanel />
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Total Materiales</p>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.total}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Total Materiales</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.total}</p>
             </div>
-            <File className="text-blue-500" size={32} />
+            <File className="text-pn-accent-text" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Videos</p>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.videos}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Videos</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.videos}</p>
             </div>
-            <Video className="text-purple-500" size={32} />
+            <Video className="text-pn-accent-2-text" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Documentos</p>
-              <p className={`text-2xl font-bold ${text}`}>{estadisticas.documentos}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Documentos</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{estadisticas.documentos}</p>
             </div>
-            <FileText className="text-red-500" size={32} />
+            <FileText className="text-pn-danger" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Carpetas</p>
-              <p className={`text-2xl font-bold ${text}`}>{carpetas.length}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Carpetas</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{carpetas.length}</p>
             </div>
-            <Folder className="text-yellow-500" size={32} />
+            <Folder className="text-pn-warn" size={32} />
           </div>
         </div>
       </div>
 
       {/* Barra de herramientas */}
-      <div className={`${card} p-4 rounded-lg ${border} border`}>
+      <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
         <div className="flex flex-col md:flex-row gap-4">
           {/* Búsqueda */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted" size={20} />
             <input
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar materiales..."
-              className={`w-full pl-10 pr-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
             />
           </div>
 
@@ -353,7 +351,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
           <select
             value={filtroTipo}
             onChange={(e) => setFiltroTipo(e.target.value)}
-            className={`px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+            className={`px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
           >
             <option value="todos">Todos los tipos</option>
             <option value="pdf">PDF</option>
@@ -367,7 +365,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
           <select
             value={filtroCurso}
             onChange={(e) => setFiltroCurso(e.target.value)}
-            className={`px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+            className={`px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
           >
             <option value="todos">Todos los cursos</option>
             {cursos.map(curso => (
@@ -381,8 +379,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               onClick={() => setVista('grid')}
               className={`p-2 rounded-lg transition ${
                 vista === 'grid'
-                  ? 'bg-blue-600 text-white'
-                  : `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+                  ? 'bg-pn-accent text-pn-accent-ink'
+                  : `text-pn-ink hover:bg-pn-surface-3`
               }`}
             >
               <Grid size={20} />
@@ -391,8 +389,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               onClick={() => setVista('lista')}
               className={`p-2 rounded-lg transition ${
                 vista === 'lista'
-                  ? 'bg-blue-600 text-white'
-                  : `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+                  ? 'bg-pn-accent text-pn-accent-ink'
+                  : `text-pn-ink hover:bg-pn-surface-3`
               }`}
             >
               <List size={20} />
@@ -404,19 +402,19 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Carpetas */}
       {carpetas.length > 0 && (
         <div>
-          <h3 className={`text-lg font-semibold ${text} mb-3`}>Carpetas</h3>
+          <h3 className={`text-lg font-semibold text-pn-ink mb-3`}>Carpetas</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {carpetas.map(carpeta => (
               <div
                 key={carpeta.id}
-                onClick={() => {
+                {...pulsable(() => {
                   setCarpetaAbierta(carpeta);
                   setModalVerCarpeta(true);
-                }}
-                className={`${card} p-4 rounded-lg ${border} border hover:shadow-lg transition cursor-pointer group`}
+                })}
+                className={`bg-pn-surface p-4 rounded-lg border-pn-line border hover:shadow-lg transition cursor-pointer group`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <Folder className="text-yellow-500" size={32} />
+                  <Folder className="text-pn-warn" size={32} />
                   <div className="flex gap-1">
                     <button
                       onClick={(e) => {
@@ -424,26 +422,26 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                         setCarpetaEnEdicion(carpeta);
                         setModalEditarCarpeta(true);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
+                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-pn-accent-soft rounded"
                     >
-                      <Edit size={16} className="text-blue-600" />
+                      <Edit size={16} className="text-pn-accent-text" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         eliminarCarpeta(carpeta.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded"
+                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-pn-danger-soft rounded"
                     >
-                      <Trash2 size={16} className="text-red-600" />
+                      <Trash2 size={16} className="text-pn-danger" />
                     </button>
                   </div>
                 </div>
-                <h4 className={`${text} font-medium mb-1`}>{carpeta.nombre}</h4>
-                <p className={`${text} opacity-70 text-sm`}>
+                <h4 className={`text-pn-ink font-medium mb-1`}>{carpeta.nombre}</h4>
+                <p className={`text-pn-ink opacity-70 text-sm`}>
                   {carpeta.materiales.length} {carpeta.materiales.length === 1 ? 'archivo' : 'archivos'}
                 </p>
-                <p className={`${text} opacity-60 text-xs mt-1`}>{carpeta.curso}</p>
+                <p className={`text-pn-ink opacity-60 text-xs mt-1`}>{carpeta.curso}</p>
               </div>
             ))}
           </div>
@@ -452,19 +450,19 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
       {/* Materiales */}
       <div>
-        <h3 className={`text-lg font-semibold ${text} mb-3`}>
+        <h3 className={`text-lg font-semibold text-pn-ink mb-3`}>
           Materiales ({materialesFiltrados.length})
         </h3>
 
         {materialesFiltrados.length === 0 ? (
-          <div className={`${card} p-12 rounded-lg ${border} border text-center`}>
-            <File size={64} className={`${text} opacity-20 mx-auto mb-4`} />
-            <p className={`${text} opacity-70 mb-4`}>
+          <div className={`bg-pn-surface p-12 rounded-lg border-pn-line border text-center`}>
+            <File size={64} className={`text-pn-ink opacity-20 mx-auto mb-4`} />
+            <p className={`text-pn-ink opacity-70 mb-4`}>
               No se encontraron materiales
             </p>
             <button
               onClick={() => setModalSubir(true)}
-              className="text-blue-600 hover:underline"
+              className="text-pn-accent-text hover:underline"
             >
               Subir tu primer material
             </button>
@@ -474,8 +472,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
             {materialesFiltrados.map(material => (
               <div
                 key={material.id}
-                className={`${card} p-4 rounded-lg ${border} border hover:shadow-lg transition group cursor-pointer`}
-                onClick={() => abrirDetalleMaterial(material)}
+                className={`bg-pn-surface p-4 rounded-lg border-pn-line border hover:shadow-lg transition group cursor-pointer`}
+                {...pulsable(() => abrirDetalleMaterial(material))}
               >
                 <div className="flex items-start justify-between mb-3">
                   {getTipoIcon(material.tipo)}
@@ -484,21 +482,21 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   </span>
                 </div>
 
-                <h4 className={`${text} font-medium mb-2 line-clamp-2`}>
+                <h4 className={`text-pn-ink font-medium mb-2 line-clamp-2`}>
                   {material.nombre}
                 </h4>
 
                 <div className="space-y-1 mb-3">
-                  <p className={`${text} opacity-70 text-xs`}>{material.curso}</p>
+                  <p className={`text-pn-ink opacity-70 text-xs`}>{material.curso}</p>
                   {material.modulo && (
-                    <p className={`${text} opacity-60 text-xs`}>Módulo: {material.modulo}</p>
+                    <p className={`text-pn-ink opacity-60 text-xs`}>Módulo: {material.modulo}</p>
                   )}
                   <div className="flex items-center gap-2 text-xs">
                     {material.tamaño && (
-                      <span className={`${text} opacity-60`}>{material.tamaño}</span>
+                      <span className={`text-pn-ink opacity-60`}>{material.tamaño}</span>
                     )}
                     {material.duracion && (
-                      <span className={`${text} opacity-60 flex items-center gap-1`}>
+                      <span className={`text-pn-ink opacity-60 flex items-center gap-1`}>
                         <Clock size={12} />
                         {material.duracion}
                       </span>
@@ -510,54 +508,55 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'));
+                      uploadsApi.abrir(material.url).catch(() => avisos.error('No se pudo abrir el material.'));
                     }}
-                    className="flex-1 p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+                    className="flex-1 p-2 hover:bg-pn-accent-soft rounded transition"
                     title="Ver"
                   >
-                    <Eye size={16} className="text-blue-600 mx-auto" />
+                    <Eye size={16} className="text-pn-accent-text mx-auto" />
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       compartirMaterial(material);
                     }}
-                    className="flex-1 p-2 hover:bg-green-100 dark:hover:bg-green-900 rounded transition"
+                    className="flex-1 p-2 hover:bg-pn-ok-soft rounded transition"
                     title="Compartir"
                   >
-                    <Share2 size={16} className="text-green-600 mx-auto" />
+                    <Share2 size={16} className="text-pn-ok mx-auto" />
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       eliminarMaterial(material.id);
                     }}
-                    className="flex-1 p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded transition"
+                    className="flex-1 p-2 hover:bg-pn-danger-soft rounded transition"
                     title="Eliminar"
                   >
-                    <Trash2 size={16} className="text-red-600 mx-auto" />
+                    <Trash2 size={16} className="text-pn-danger mx-auto" />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className={`${card} rounded-lg ${border} border overflow-hidden`}>
-            <table className="w-full">
-              <thead className={`${border} border-b`}>
+          <div className={`bg-pn-surface rounded-lg border-pn-line border overflow-hidden`}>
+            <div className="pn-scroll overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead className={`border-pn-line border-b`}>
                 <tr>
-                  <th className={`${text} text-left p-4 font-medium`}>Nombre</th>
-                  <th className={`${text} text-left p-4 font-medium`}>Tipo</th>
-                  <th className={`${text} text-left p-4 font-medium`}>Curso</th>
-                  <th className={`${text} text-left p-4 font-medium`}>Fecha</th>
-                  <th className={`${text} text-left p-4 font-medium`}>Estadísticas</th>
-                  <th className={`${text} text-left p-4 font-medium`}>Acciones</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Nombre</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Tipo</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Curso</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Fecha</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Estadísticas</th>
+                  <th className={`text-pn-ink text-left p-4 font-medium`}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {materialesFiltrados.map(material => (
-                  <tr key={material.id} className={`${border} border-b hover:bg-gray-50 dark:hover:bg-gray-800`}>
-                    <td className={`${text} p-4`}>
+                  <tr key={material.id} className={`border-pn-line border-b hover:bg-pn-surface-2`}>
+                    <td className={`text-pn-ink p-4`}>
                       <div className="flex items-center gap-2">
                         {getTipoIcon(material.tipo)}
                         <span>{material.nombre}</span>
@@ -568,33 +567,33 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                         {material.tipo}
                       </span>
                     </td>
-                    <td className={`${text} p-4`}>{material.curso}</td>
-                    <td className={`${text} opacity-70 p-4 text-sm`}>{material.fechaSubida}</td>
-                    <td className={`${text} opacity-70 p-4 text-sm`}>
+                    <td className={`text-pn-ink p-4`}>{material.curso}</td>
+                    <td className={`text-pn-ink opacity-70 p-4 text-sm`}>{material.fechaSubida}</td>
+                    <td className={`text-pn-ink opacity-70 p-4 text-sm`}>
                       {material.vistas || 0} vistas · {material.descargas || 0} descargas
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'))}
-                          className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
+                          onClick={() => uploadsApi.abrir(material.url).catch(() => avisos.error('No se pudo abrir el material.'))}
+                          className="p-1 hover:bg-pn-accent-soft rounded"
                           title="Ver"
                         >
-                          <Eye size={16} className="text-blue-600" />
+                          <Eye size={16} className="text-pn-accent-text" />
                         </button>
                         <button
                           onClick={() => compartirMaterial(material)}
-                          className="p-1 hover:bg-green-100 dark:hover:bg-green-900 rounded"
+                          className="p-1 hover:bg-pn-ok-soft rounded"
                           title="Compartir"
                         >
-                          <Share2 size={16} className="text-green-600" />
+                          <Share2 size={16} className="text-pn-ok" />
                         </button>
                         <button
                           onClick={() => eliminarMaterial(material.id)}
-                          className="p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded"
+                          className="p-1 hover:bg-pn-danger-soft rounded"
                           title="Eliminar"
                         >
-                          <Trash2 size={16} className="text-red-600" />
+                          <Trash2 size={16} className="text-pn-danger" />
                         </button>
                       </div>
                     </td>
@@ -602,6 +601,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>
@@ -609,12 +609,12 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Modal Subir Material */}
       {modalSubir && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Subir Nuevo Material</h3>
+          <div role="dialog" aria-modal="true" aria-label="Subir Nuevo Material" className={`bg-pn-surface rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Subir Nuevo Material</h3>
               <button
                 onClick={() => setModalSubir(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -622,23 +622,23 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Nombre del Material *</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Nombre del Material *</label>
                 <input
                   type="text"
                   value={nuevoMaterial.nombre}
                   onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, nombre: e.target.value })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Ej: Introducción a React - Presentación"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Tipo de Material *</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Tipo de Material *</label>
                   <select
                     value={nuevoMaterial.tipo}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, tipo: e.target.value as any })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   >
                     <option value="pdf">PDF</option>
                     <option value="video">Video</option>
@@ -652,11 +652,11 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Curso *</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Curso *</label>
                   <select
                     value={nuevoMaterial.curso}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, curso: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   >
                     <option value="">Seleccionar curso</option>
                     {cursosDisponibles.map((curso) => (
@@ -669,36 +669,36 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Archivo</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Archivo</label>
                 <input
                   key={claveInputArchivo}
                   type="file"
                   accept={ACCEPT_MATERIALES}
                   onChange={handleElegirArchivo}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} text-sm`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink text-sm`}
                 />
                 {nuevoMaterial.archivo ? (
                   <div className="flex items-center justify-between gap-2 mt-2">
-                    <p className="text-green-600 text-xs">
+                    <p className="text-pn-ok text-xs">
                       Se subirá <strong>{nuevoMaterial.archivo.name}</strong> ({nuevoMaterial.tamaño})
                     </p>
                     <button
                       type="button"
                       onClick={quitarArchivo}
-                      className="text-xs text-red-600 hover:underline"
+                      className="text-xs text-pn-danger hover:underline"
                     >
                       Quitar
                     </button>
                   </div>
                 ) : (
-                  <p className={`${text} opacity-60 text-xs mt-1`}>
+                  <p className={`text-pn-ink opacity-60 text-xs mt-1`}>
                     PDF, Word, PowerPoint, Excel, imagen, audio o video, hasta {TAMANIO_MAXIMO_MB} MB.
                   </p>
                 )}
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>
+                <label className={`block text-pn-ink mb-2 font-medium`}>
                   ...o enlace externo {!nuevoMaterial.archivo && '*'}
                 </label>
                 <input
@@ -706,10 +706,10 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   value={nuevoMaterial.url}
                   onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, url: e.target.value })}
                   disabled={!!nuevoMaterial.archivo}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} disabled:opacity-50`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink disabled:opacity-50`}
                   placeholder="https://..."
                 />
-                <p className={`${text} opacity-60 text-xs mt-1`}>
+                <p className={`text-pn-ink opacity-60 text-xs mt-1`}>
                   Para YouTube, Vimeo, Drive o cualquier material que ya viva fuera de la
                   plataforma. Si subes un archivo, este campo se ignora.
                 </p>
@@ -717,23 +717,23 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Módulo (opcional)</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Módulo (opcional)</label>
                   <input
                     type="text"
                     value={nuevoMaterial.modulo || ''}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, modulo: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                     placeholder="Ej: Módulo 1"
                   />
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Tema (opcional)</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Tema (opcional)</label>
                   <input
                     type="text"
                     value={nuevoMaterial.tema || ''}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, tema: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                     placeholder="Ej: Hooks de React"
                   />
                 </div>
@@ -741,39 +741,39 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Tamaño (opcional)</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Tamaño (opcional)</label>
                   <input
                     type="text"
                     value={nuevoMaterial.tamaño || ''}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, tamaño: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                     placeholder="Ej: 2.5 MB"
                   />
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Duración (opcional)</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Duración (opcional)</label>
                   <input
                     type="text"
                     value={nuevoMaterial.duracion || ''}
                     onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, duracion: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                     placeholder="Ej: 15:30 o 1h 20min"
                   />
                 </div>
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => setModalSubir(false)}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubirMaterial}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition flex items-center gap-2"
               >
                 <Upload size={18} />
                 Subir Material
@@ -786,12 +786,12 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Modal Nueva Carpeta */}
       {modalCarpeta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-md`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Nueva Carpeta</h3>
+          <div role="dialog" aria-modal="true" aria-label="Nueva Carpeta" className={`bg-pn-surface rounded-lg w-full max-w-md`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Nueva Carpeta</h3>
               <button
                 onClick={() => setModalCarpeta(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -799,38 +799,38 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Nombre de la Carpeta *</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Nombre de la Carpeta *</label>
                 <input
                   type="text"
                   value={nuevaCarpeta.nombre}
                   onChange={(e) => setNuevaCarpeta({ ...nuevaCarpeta, nombre: e.target.value })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Ej: Material del Módulo 1"
                 />
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Curso *</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Curso *</label>
                 <input
                   type="text"
                   value={nuevaCarpeta.curso}
                   onChange={(e) => setNuevaCarpeta({ ...nuevaCarpeta, curso: e.target.value })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Nombre del curso"
                 />
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => setModalCarpeta(false)}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCrearCarpeta}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                className="bg-pn-ok text-pn-surface px-6 py-2 rounded-lg hover:bg-pn-ok transition flex items-center gap-2"
               >
                 <Folder size={18} />
                 Crear Carpeta
@@ -843,9 +843,9 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Modal Editar Carpeta */}
       {modalEditarCarpeta && carpetaEnEdicion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-md`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Editar Carpeta</h3>
+          <div role="dialog" aria-modal="true" aria-label="Editar Carpeta" className={`bg-pn-surface rounded-lg w-full max-w-md`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Editar Carpeta</h3>
               <button onClick={() => {
                 setModalEditarCarpeta(false);
                 setCarpetaEnEdicion(null);
@@ -856,40 +856,40 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
             <div className="p-6 space-y-4">
               <div>
-                <label className={`block ${text} mb-2`}>Nombre de la Carpeta *</label>
+                <label className={`block text-pn-ink mb-2`}>Nombre de la Carpeta *</label>
                 <input
                   type="text"
                   value={carpetaEnEdicion.nombre}
                   onChange={(e) => setCarpetaEnEdicion({...carpetaEnEdicion, nombre: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 />
               </div>
 
               <div>
-                <label className={`block ${text} mb-2`}>Curso *</label>
+                <label className={`block text-pn-ink mb-2`}>Curso *</label>
                 <input
                   type="text"
                   value={carpetaEnEdicion.curso}
                   onChange={(e) => setCarpetaEnEdicion({...carpetaEnEdicion, curso: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 />
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => {
                   setModalEditarCarpeta(false);
                   setCarpetaEnEdicion(null);
                 }}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3`}
               >
                 Cancelar
               </button>
               <button
                 onClick={() => {
                   if (!carpetaEnEdicion.nombre || !carpetaEnEdicion.curso) {
-                    alert('Completa todos los campos');
+                    avisos.error('Completa todos los campos.');
                     return;
                   }
                   editarCarpeta(carpetaEnEdicion.id, {
@@ -899,7 +899,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   setModalEditarCarpeta(false);
                   setCarpetaEnEdicion(null);
                 }}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover"
               >
                 Guardar Cambios
               </button>
@@ -911,12 +911,12 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Modal Detalle Material */}
       {modalDetalle && materialSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-2xl`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Detalles del Material</h3>
+          <div role="dialog" aria-modal="true" aria-label="Detalles del Material" className={`bg-pn-surface rounded-lg w-full max-w-2xl`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Detalles del Material</h3>
               <button
                 onClick={() => setModalDetalle(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -926,36 +926,36 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
               <div className="flex items-start gap-4">
                 {getTipoIcon(materialSeleccionado.tipo)}
                 <div className="flex-1">
-                  <h4 className={`${text} text-lg font-semibold mb-2`}>
+                  <h4 className={`text-pn-ink text-lg font-semibold mb-2`}>
                     {materialSeleccionado.nombre}
                   </h4>
                   <div className="space-y-2">
-                    <p className={`${text} opacity-70 text-sm`}>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>
                       <strong>Tipo:</strong> {materialSeleccionado.tipo}
                     </p>
-                    <p className={`${text} opacity-70 text-sm`}>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>
                       <strong>Curso:</strong> {materialSeleccionado.curso}
                     </p>
                     {materialSeleccionado.modulo && (
-                      <p className={`${text} opacity-70 text-sm`}>
+                      <p className={`text-pn-ink opacity-70 text-sm`}>
                         <strong>Módulo:</strong> {materialSeleccionado.modulo}
                       </p>
                     )}
                     {materialSeleccionado.tema && (
-                      <p className={`${text} opacity-70 text-sm`}>
+                      <p className={`text-pn-ink opacity-70 text-sm`}>
                         <strong>Tema:</strong> {materialSeleccionado.tema}
                       </p>
                     )}
-                    <p className={`${text} opacity-70 text-sm`}>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>
                       <strong>Fecha de subida:</strong> {materialSeleccionado.fechaSubida}
                     </p>
                     {materialSeleccionado.tamaño && (
-                      <p className={`${text} opacity-70 text-sm`}>
+                      <p className={`text-pn-ink opacity-70 text-sm`}>
                         <strong>Tamaño:</strong> {materialSeleccionado.tamaño}
                       </p>
                     )}
                     {materialSeleccionado.duracion && (
-                      <p className={`${text} opacity-70 text-sm`}>
+                      <p className={`text-pn-ink opacity-70 text-sm`}>
                         <strong>Duración:</strong> {materialSeleccionado.duracion}
                       </p>
                     )}
@@ -963,49 +963,49 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 </div>
               </div>
 
-              <div className={`${border} border-t pt-4`}>
-                <h5 className={`${text} font-medium mb-2`}>Estadísticas</h5>
+              <div className={`border-pn-line border-t pt-4`}>
+                <h5 className={`text-pn-ink font-medium mb-2`}>Estadísticas</h5>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className={`${border} border rounded-lg p-3`}>
+                  <div className={`border-pn-line border rounded-lg p-3`}>
                     <div className="flex items-center gap-2 mb-1">
-                      <Eye size={16} className="text-blue-600" />
-                      <span className={`${text} opacity-70 text-sm`}>Vistas</span>
+                      <Eye size={16} className="text-pn-accent-text" />
+                      <span className={`text-pn-ink opacity-70 text-sm`}>Vistas</span>
                     </div>
-                    <p className={`${text} text-xl font-bold`}>{materialSeleccionado.vistas || 0}</p>
+                    <p className={`text-pn-ink text-xl font-bold`}>{materialSeleccionado.vistas || 0}</p>
                   </div>
-                  <div className={`${border} border rounded-lg p-3`}>
+                  <div className={`border-pn-line border rounded-lg p-3`}>
                     <div className="flex items-center gap-2 mb-1">
-                      <Download size={16} className="text-green-600" />
-                      <span className={`${text} opacity-70 text-sm`}>Descargas</span>
+                      <Download size={16} className="text-pn-ok" />
+                      <span className={`text-pn-ink opacity-70 text-sm`}>Descargas</span>
                     </div>
-                    <p className={`${text} text-xl font-bold`}>{materialSeleccionado.descargas || 0}</p>
+                    <p className={`text-pn-ink text-xl font-bold`}>{materialSeleccionado.descargas || 0}</p>
                   </div>
                 </div>
               </div>
 
-              <div className={`${border} border-t pt-4`}>
+              <div className={`border-pn-line border-t pt-4`}>
                 <button
                   onClick={() =>
-                    uploadsApi.abrir(materialSeleccionado.url).catch(() => alert('No se pudo abrir el material.'))
+                    uploadsApi.abrir(materialSeleccionado.url).catch(() => avisos.error('No se pudo abrir el material.'))
                   }
-                  className={`${text} opacity-70 text-sm break-all hover:text-blue-600 text-left`}
+                  className={`text-pn-ink opacity-70 text-sm break-all hover:text-pn-accent-text text-left`}
                 >
                   {materialSeleccionado.url}
                 </button>
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => compartirMaterial(materialSeleccionado)}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                className="bg-pn-ok text-pn-surface px-6 py-2 rounded-lg hover:bg-pn-ok transition flex items-center gap-2"
               >
                 <Share2 size={18} />
                 Compartir
               </button>
               <button
-                onClick={() => uploadsApi.abrir(materialSeleccionado.url).catch(() => alert('No se pudo abrir el material.'))}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                onClick={() => uploadsApi.abrir(materialSeleccionado.url).catch(() => avisos.error('No se pudo abrir el material.'))}
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition flex items-center gap-2"
               >
                 <Eye size={18} />
                 Ver Material
@@ -1018,14 +1018,14 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       {/* Modal Ver Carpeta */}
       {modalVerCarpeta && carpetaAbierta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
+          <div role="dialog" aria-modal="true" className={`bg-pn-surface rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
             {/* Header */}
-            <div className={`p-6 ${border} border-b flex items-center justify-between`}>
+            <div className={`p-6 border-pn-line border-b flex items-center justify-between`}>
               <div className="flex items-center gap-3">
-                <FolderOpen className="text-yellow-500" size={32} />
+                <FolderOpen className="text-pn-warn" size={32} />
                 <div>
-                  <h3 className={`text-xl font-bold ${text}`}>{carpetaAbierta.nombre}</h3>
-                  <p className={`text-sm ${text} opacity-70`}>
+                  <h3 className={`text-xl font-bold text-pn-ink`}>{carpetaAbierta.nombre}</h3>
+                  <p className={`text-sm text-pn-ink opacity-70`}>
                     {carpetaAbierta.curso} • {carpetaAbierta.materiales.length} {carpetaAbierta.materiales.length === 1 ? 'archivo' : 'archivos'}
                   </p>
                 </div>
@@ -1035,7 +1035,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   setModalVerCarpeta(false);
                   setCarpetaAbierta(null);
                 }}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -1045,11 +1045,11 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
             <div className="flex-1 overflow-y-auto p-6">
               {obtenerMaterialesCarpeta(carpetaAbierta).length === 0 ? (
                 <div className="text-center py-12">
-                  <Folder size={64} className={`${text} opacity-20 mx-auto mb-4`} />
-                  <p className={`${text} opacity-70 mb-2`}>
+                  <Folder size={64} className={`text-pn-ink opacity-20 mx-auto mb-4`} />
+                  <p className={`text-pn-ink opacity-70 mb-2`}>
                     Esta carpeta está vacía
                   </p>
-                  <p className={`text-sm ${text} opacity-50`}>
+                  <p className={`text-sm text-pn-ink opacity-50`}>
                     No hay archivos en esta carpeta
                   </p>
                 </div>
@@ -1058,7 +1058,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                   {obtenerMaterialesCarpeta(carpetaAbierta).map((material) => (
                     <div
                       key={material.id}
-                      className={`${border} border rounded-lg p-4 hover:shadow-md transition`}
+                      className={`border-pn-line border rounded-lg p-4 hover:shadow-md transition`}
                     >
                       <div className="flex items-center gap-4">
                         {/* Icono del tipo de archivo */}
@@ -1068,7 +1068,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
                         {/* Información del material */}
                         <div className="flex-1 min-w-0">
-                          <h4 className={`${text} font-medium mb-1 truncate`}>
+                          <h4 className={`text-pn-ink font-medium mb-1 truncate`}>
                             {material.nombre}
                           </h4>
                           <div className="flex items-center gap-3 text-sm">
@@ -1076,18 +1076,18 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                               {material.tipo}
                             </span>
                             {material.tamaño && (
-                              <span className={`${text} opacity-60`}>{material.tamaño}</span>
+                              <span className={`text-pn-ink opacity-60`}>{material.tamaño}</span>
                             )}
                             {material.duracion && (
-                              <span className={`${text} opacity-60 flex items-center gap-1`}>
+                              <span className={`text-pn-ink opacity-60 flex items-center gap-1`}>
                                 <Clock size={12} />
                                 {material.duracion}
                               </span>
                             )}
-                            <span className={`${text} opacity-60`}>{material.fechaSubida}</span>
+                            <span className={`text-pn-ink opacity-60`}>{material.fechaSubida}</span>
                           </div>
                           {material.modulo && (
-                            <p className={`text-xs ${text} opacity-50 mt-1`}>
+                            <p className={`text-xs text-pn-ink opacity-50 mt-1`}>
                               Módulo: {material.modulo}
                             </p>
                           )}
@@ -1096,11 +1096,11 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                         {/* Acciones */}
                         <div className="flex gap-2 flex-shrink-0">
                           <button
-                            onClick={() => uploadsApi.abrir(material.url).catch(() => alert('No se pudo abrir el material.'))}
-                            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition"
+                            onClick={() => uploadsApi.abrir(material.url).catch(() => avisos.error('No se pudo abrir el material.'))}
+                            className="p-2 hover:bg-pn-accent-soft rounded-lg transition"
                             title="Ver material"
                           >
-                            <Eye size={20} className="text-blue-600" />
+                            <Eye size={20} className="text-pn-accent-text" />
                           </button>
                           <button
                             onClick={() => {
@@ -1111,17 +1111,17 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                               link.target = '_blank';
                               link.click();
                             }}
-                            className="p-2 hover:bg-green-100 dark:hover:bg-green-900 rounded-lg transition"
+                            className="p-2 hover:bg-pn-ok-soft rounded-lg transition"
                             title="Descargar"
                           >
-                            <Download size={20} className="text-green-600" />
+                            <Download size={20} className="text-pn-ok" />
                           </button>
                           <button
                             onClick={() => abrirDetalleMaterial(material)}
-                            className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-lg transition"
+                            className="p-2 hover:bg-pn-accent-2-soft rounded-lg transition"
                             title="Ver detalles"
                           >
-                            <BarChart3 size={20} className="text-purple-600" />
+                            <BarChart3 size={20} className="text-pn-accent-2-text" />
                           </button>
                         </div>
                       </div>
@@ -1132,8 +1132,8 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
             </div>
 
             {/* Footer */}
-            <div className={`p-6 ${border} border-t flex justify-between items-center`}>
-              <div className={`text-sm ${text} opacity-70`}>
+            <div className={`p-6 border-pn-line border-t flex justify-between items-center`}>
+              <div className={`text-sm text-pn-ink opacity-70`}>
                 Total: {obtenerMaterialesCarpeta(carpetaAbierta).length} {obtenerMaterialesCarpeta(carpetaAbierta).length === 1 ? 'archivo' : 'archivos'}
               </div>
               <div className="flex gap-3">
@@ -1143,10 +1143,10 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                     const urls = obtenerMaterialesCarpeta(carpetaAbierta).map(m => m.url).join('\n');
                     if (navigator.clipboard) {
                       navigator.clipboard.writeText(urls);
-                      alert('Enlaces de la carpeta copiados al portapapeles');
+                      avisos.ok('Enlaces de la carpeta copiados al portapapeles.');
                     }
                   }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                  className="bg-pn-ok text-pn-surface px-4 py-2 rounded-lg hover:bg-pn-ok transition flex items-center gap-2"
                 >
                   <Share2 size={18} />
                   Compartir Carpeta
@@ -1156,7 +1156,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                     setModalVerCarpeta(false);
                     setCarpetaAbierta(null);
                   }}
-                  className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                  className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
                 >
                   Cerrar
                 </button>

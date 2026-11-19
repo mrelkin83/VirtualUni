@@ -1,14 +1,12 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { tintaDeRelleno } from '../../../utils/tintas';
 
 interface StatsCardProps {
   titulo: string;
   valor: string | number;
   icon: LucideIcon;
   color: string;
-  darkMode: boolean;
-  card: string;
-  text: string;
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -16,19 +14,16 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   valor,
   icon: Icon,
   color,
-  darkMode,
-  card,
-  text
 }) => {
   return (
-    <div className={`${card} rounded-lg shadow p-6`}>
+    <div className={`bg-pn-surface rounded-lg shadow p-6`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{titulo}</p>
-          <p className={`text-3xl font-bold ${text} mt-2`}>{valor}</p>
+          <p className={`text-sm text-pn-ink-2`}>{titulo}</p>
+          <p className={`text-3xl font-bold text-pn-ink mt-2`}>{valor}</p>
         </div>
-        <div className={`${color} p-4 rounded-full`}>
-          <Icon className="text-white" size={24} />
+        <div className={`${color} ${tintaDeRelleno(color)} p-4 rounded-full`}>
+          <Icon size={24} />
         </div>
       </div>
     </div>

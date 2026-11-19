@@ -4,6 +4,7 @@ import { Globe, Plus, Trash2, X } from 'lucide-react';
 import { programasApi, Programa } from '../../../../api/endpoints/academico';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from './errores';
+import { avisar } from '../../../ui';
 
 /** Campos públicos que el tipo Programa del cliente aún no declara. */
 type ProgramaPublicable = Programa & {
@@ -78,11 +79,11 @@ export function PublicacionProgramaModal({
       queryClient.invalidateQueries({ queryKey: ['sitio-web-config'] });
       onClose();
     },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
-  const campo = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
-  const etiqueta = 'block text-xs font-medium text-gray-700 mb-1';
+  const campo = 'w-full border border-pn-line rounded-lg px-3 py-2 text-sm';
+  const etiqueta = 'block text-xs font-medium text-pn-ink-2 mb-1';
 
   return (
     <div
@@ -95,23 +96,23 @@ export function PublicacionProgramaModal({
         aria-modal="true"
         aria-label={`Publicación de ${programa.name}`}
         tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[88vh] overflow-y-auto"
+        className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[88vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-1">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Globe size={18} className="text-emerald-600" /> Publicación en el sitio web
+          <h3 className="text-lg font-bold text-pn-ink flex items-center gap-2">
+            <Globe size={18} className="text-pn-ok" /> Publicación en el sitio web
           </h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
-        <p className="text-sm text-gray-600 mb-5">{programa.name}</p>
+        <p className="text-sm text-pn-ink-2 mb-5">{programa.name}</p>
 
         <div className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className={etiqueta}>Slug (URL pública) *</label>
               <input value={slug} onChange={(e) => setSlug(slugificar(e.target.value))} className={campo} />
-              <p className="text-xs text-gray-500 mt-1 truncate">/programas/{slug || '…'}</p>
+              <p className="text-xs text-pn-muted mt-1 truncate">/programas/{slug || '…'}</p>
             </div>
             <div>
               <label className={etiqueta}>Área o facultad (directorio)</label>
@@ -176,26 +177,26 @@ export function PublicacionProgramaModal({
                   onChange={(e) => setFaq(faq.map((x, j) => (j === i ? { ...x, a: e.target.value } : x)))}
                   className={campo} />
                 <button onClick={() => setFaq(faq.filter((_, j) => j !== i))}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                  className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded"><Trash2 size={15} /></button>
               </div>
             ))}
             {faq.length < 10 && (
               <button onClick={() => setFaq([...faq, { q: '', a: '' }])}
-                className="text-sm text-emerald-700 font-semibold flex items-center gap-1">
+                className="text-sm text-pn-ok font-semibold flex items-center gap-1">
                 <Plus size={15} /> Agregar pregunta
               </button>
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center justify-between gap-3 pt-2 border-t border-pn-line">
+            <label className="flex items-center gap-2 text-sm text-pn-ink-2">
               <input type="checkbox" checked={publicado} onChange={(e) => setPublicado(e.target.checked)} />
               Visible en el sitio público
             </label>
             <button
               onClick={() => guardar.mutate()}
               disabled={guardar.isPending || (publicado && (!slug || !shortDescription.trim()))}
-              className="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50 text-sm font-semibold"
+              className="bg-pn-ok text-pn-surface px-5 py-2 rounded-lg hover:bg-pn-ok disabled:opacity-50 text-sm font-semibold"
             >
               {guardar.isPending ? 'Guardando…' : 'Guardar publicación'}
             </button>

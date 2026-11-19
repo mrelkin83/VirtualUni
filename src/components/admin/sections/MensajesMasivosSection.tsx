@@ -13,6 +13,7 @@ import {
 import { massMessagesApi } from '../../../api/endpoints/mass-messages';
 import type { MassMessage } from '../../../types/admin.types';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { confirmar } from '../../ui';
 
 interface MessageFormData {
   asunto: string;
@@ -117,7 +118,7 @@ export const MensajesMasivosSection: React.FC = () => {
   };
 
   const handleSend = async (id: string) => {
-    if (!window.confirm('Enviar mensaje masivo a todos los destinatarios?')) return;
+    if (!await confirmar('Enviar mensaje masivo a todos los destinatarios?')) return;
     try {
       await massMessagesApi.send(id);
       await loadMessages();
@@ -127,7 +128,7 @@ export const MensajesMasivosSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Confirmar eliminación de mensaje')) return;
+    if (!await confirmar('Confirmar eliminación de mensaje')) return;
     try {
       await massMessagesApi.delete(id);
       await loadMessages();
@@ -149,22 +150,22 @@ export const MensajesMasivosSection: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'BORRADOR':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
       case 'PROGRAMADO':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-pn-accent-soft text-pn-accent-text';
       case 'ENVIADO':
-        return 'bg-green-100 text-green-800';
+        return 'bg-pn-ok-soft text-pn-ok';
       case 'FALLIDO':
-        return 'bg-red-100 text-red-800';
+        return 'bg-pn-danger-soft text-pn-danger';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
   if (loading && messages.length === 0) {
     return (
       <div className="flex justify-center items-center h-96">
-        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader className="w-8 h-8 animate-spin text-pn-accent-text" />
       </div>
     );
   }
@@ -173,18 +174,18 @@ export const MensajesMasivosSection: React.FC = () => {
     <div className="space-y-6">
       {/* Encabezado */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Mensajes Masivos</h1>
+        <h1 className="text-3xl font-bold text-pn-ink">Mensajes Masivos</h1>
         <div className="flex gap-2">
           <button
             onClick={handleShowStats}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
+            className="bg-pn-ink hover:bg-pn-ink text-pn-surface font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
           >
             <BarChart3 className="w-5 h-5" />
             Estadísticas
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
+            className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Nuevo Mensaje
@@ -200,13 +201,13 @@ export const MensajesMasivosSection: React.FC = () => {
             placeholder="Buscar mensajes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
         >
           <option value="">Todos los estados</option>
           <option value="BORRADOR">Borrador</option>
@@ -218,59 +219,59 @@ export const MensajesMasivosSection: React.FC = () => {
 
       {/* Mensajes */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-pn-danger-soft border border-pn-danger text-pn-danger px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
       )}
 
       {/* Tabla de mensajes */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-pn-surface rounded-lg shadow overflow-hidden">
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No hay mensajes</p>
+            <p className="text-pn-muted">No hay mensajes</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-pn-surface-2 border-b border-pn-line">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Asunto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Destinatarios
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Programado
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-pn-line">
                 {messages.map((message) => (
-                  <tr key={message.id} className="hover:bg-gray-50">
+                  <tr key={message.id} className="hover:bg-pn-surface-2">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-pn-ink">
                         {message.asunto}
                       </div>
-                      <div className="text-sm text-gray-500 truncate">
+                      <div className="text-sm text-pn-muted truncate">
                         {message.contenido.substring(0, 50)}...
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-pn-ink">
                         <div>
                           {message.targetRoles?.length > 0 &&
                             `Roles: ${message.targetRoles.join(', ')}`}
                         </div>
                         {message.targetUsers?.length > 0 && (
-                          <div className="text-gray-500">
+                          <div className="text-pn-muted">
                             {message.targetUsers.length} usuarios específicos
                           </div>
                         )}
@@ -282,7 +283,7 @@ export const MensajesMasivosSection: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-pn-muted">
                         {message.programado ? (
                           <>
                             <Clock className="w-4 h-4 inline mr-1" />
@@ -299,14 +300,14 @@ export const MensajesMasivosSection: React.FC = () => {
                         <>
                           <button
                             onClick={() => handleSend(message.id)}
-                            className="inline-flex items-center gap-1 text-green-600 hover:text-green-800"
+                            className="inline-flex items-center gap-1 text-pn-ok hover:text-pn-ok"
                             title="Enviar"
                           >
                             <Send className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleOpenModal(message)}
-                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                            className="inline-flex items-center gap-1 text-pn-accent-text hover:text-pn-accent-text"
                             title="Editar"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -316,7 +317,7 @@ export const MensajesMasivosSection: React.FC = () => {
                       {message.estado !== 'ENVIADO' && (
                         <button
                           onClick={() => handleDelete(message.id)}
-                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-800"
+                          className="inline-flex items-center gap-1 text-pn-danger hover:text-pn-danger"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -334,14 +335,14 @@ export const MensajesMasivosSection: React.FC = () => {
       {/* Modal de formulario */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
+          <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Mensaje' : 'Nuevo Mensaje Masivo'}" className="bg-pn-surface rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h2 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Mensaje' : 'Nuevo Mensaje Masivo'}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -349,7 +350,7 @@ export const MensajesMasivosSection: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Asunto
                 </label>
                 <input
@@ -358,14 +359,14 @@ export const MensajesMasivosSection: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, asunto: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   required
                   minLength={5}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Contenido
                 </label>
                 <textarea
@@ -373,7 +374,7 @@ export const MensajesMasivosSection: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, contenido: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   rows={5}
                   required
                   minLength={10}
@@ -382,7 +383,7 @@ export const MensajesMasivosSection: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Roles Objetivo
                   </label>
                   <div className="space-y-2">
@@ -408,14 +409,14 @@ export const MensajesMasivosSection: React.FC = () => {
                           }}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">{role}</span>
+                        <span className="text-sm text-pn-ink-2">{role}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                     Programar Envío (Opcional)
                   </label>
                   <input
@@ -427,9 +428,9 @@ export const MensajesMasivosSection: React.FC = () => {
                         programado: e.target.value || undefined,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-pn-muted mt-1">
                     Si no se especifica, se envía inmediatamente
                   </p>
                 </div>
@@ -439,13 +440,13 @@ export const MensajesMasivosSection: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover"
                 >
                   {editingId ? 'Guardar Cambios' : 'Crear y Enviar'}
                 </button>
@@ -458,14 +459,14 @@ export const MensajesMasivosSection: React.FC = () => {
       {/* Modal de estadísticas */}
       {showStatsModal && stats && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full mx-4">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
+          <div role="dialog" aria-modal="true" aria-label="Estadísticas de Mensajes" className="bg-pn-surface rounded-lg max-w-md w-full mx-4">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h2 className="text-xl font-bold text-pn-ink">
                 Estadísticas de Mensajes
               </h2>
               <button
                 onClick={() => setShowStatsModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -473,41 +474,41 @@ export const MensajesMasivosSection: React.FC = () => {
 
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Total</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                <div className="bg-pn-accent-soft p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">Total</p>
+                  <p className="text-2xl font-bold text-pn-accent-text">
                     {stats.total}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Borradores</p>
-                  <p className="text-2xl font-bold text-gray-600">
+                <div className="bg-pn-surface-2 p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">Borradores</p>
+                  <p className="text-2xl font-bold text-pn-ink-2">
                     {stats.borradores}
                   </p>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Programados</p>
-                  <p className="text-2xl font-bold text-yellow-600">
+                <div className="bg-pn-warn-soft p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">Programados</p>
+                  <p className="text-2xl font-bold text-pn-warn">
                     {stats.programados}
                   </p>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Enviados</p>
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="bg-pn-ok-soft p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">Enviados</p>
+                  <p className="text-2xl font-bold text-pn-ok">
                     {stats.enviados}
                   </p>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Fallidos</p>
-                  <p className="text-2xl font-bold text-red-600">
+                <div className="bg-pn-danger-soft p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">Fallidos</p>
+                  <p className="text-2xl font-bold text-pn-danger">
                     {stats.fallidos}
                   </p>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">
+                <div className="bg-pn-accent-2-soft p-4 rounded-lg">
+                  <p className="text-sm text-pn-ink-2">
                     Destinatarios Promedio
                   </p>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-2xl font-bold text-pn-accent-2-text">
                     {stats.destinatariosPromedio}
                   </p>
                 </div>
@@ -516,7 +517,7 @@ export const MensajesMasivosSection: React.FC = () => {
               <div className="flex justify-end pt-4">
                 <button
                   onClick={() => setShowStatsModal(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                  className="px-4 py-2 bg-pn-surface-3 text-pn-ink-2 rounded-lg hover:bg-pn-muted"
                 >
                   Cerrar
                 </button>

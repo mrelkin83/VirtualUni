@@ -14,10 +14,6 @@ interface NuevoMensajeModalProps {
   onClose: () => void;
   onEnviar: (destinatario: string, asunto: string, mensaje: string, adjuntos: string[]) => void;
   estudiantes: Student[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
@@ -25,10 +21,6 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
   onClose,
   onEnviar,
   estudiantes,
-  darkMode,
-  card,
-  text,
-  border,
 }) => {
   const [destinatario, setDestinatario] = useState('');
   const [asunto, setAsunto] = useState('');
@@ -92,25 +84,25 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
         aria-modal="true"
         aria-labelledby="titulo-nuevo-mensaje-docente"
         tabIndex={-1}
-        className={`${card} rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto`}
+        className={`bg-pn-surface rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto`}
       >
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 id="titulo-nuevo-mensaje-docente" className={`text-2xl font-bold ${text} flex items-center gap-2`}>
-              <Send size={24} className="text-blue-600" />
+            <h2 id="titulo-nuevo-mensaje-docente" className={`text-2xl font-bold text-pn-ink flex items-center gap-2`}>
+              <Send size={24} className="text-pn-accent-text" />
               Nuevo Mensaje Individual
             </h2>
             <button
               onClick={onClose}
-              className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+              className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
             >
               <X size={24} />
             </button>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-pn-danger-soft border border-pn-danger text-pn-danger text-sm">
               <AlertCircle size={18} className="flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -119,7 +111,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
           <div className="space-y-4">
             {/* Destinatario */}
             <div>
-              <label htmlFor="nm-docente-busqueda" className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-busqueda" className={`block text-sm font-medium text-pn-ink mb-2`}>
                 Destinatario *
               </label>
 
@@ -130,7 +122,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 placeholder="Buscar estudiante por nombre, email o curso..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink mb-2 focus:outline-none focus:ring-2 focus:ring-pn-accent`}
               />
 
               {/* Selector de estudiante */}
@@ -139,7 +131,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 aria-label="Seleccionar estudiante destinatario"
                 value={destinatario}
                 onChange={(e) => setDestinatario(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
               >
                 <option value="">Seleccionar estudiante</option>
                 {estudiantesFiltrados.map(est => (
@@ -150,9 +142,9 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
               </select>
 
               {destinatario && (
-                <div className={`mt-2 p-3 rounded-lg ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'} flex items-center gap-2`}>
-                  <User size={18} className="text-blue-600" />
-                  <span className={`text-sm ${text}`}>
+                <div className={`mt-2 p-3 rounded-lg bg-pn-accent-soft flex items-center gap-2`}>
+                  <User size={18} className="text-pn-accent-text" />
+                  <span className={`text-sm text-pn-ink`}>
                     Enviando a: <strong>{destinatario}</strong>
                   </span>
                 </div>
@@ -161,7 +153,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
             {/* Asunto */}
             <div>
-              <label htmlFor="nm-docente-asunto" className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-asunto" className={`block text-sm font-medium text-pn-ink mb-2`}>
                 Asunto *
               </label>
               <input
@@ -169,14 +161,14 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 type="text"
                 value={asunto}
                 onChange={(e) => setAsunto(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                 placeholder="Asunto del mensaje"
               />
             </div>
 
             {/* Mensaje */}
             <div>
-              <label htmlFor="nm-docente-mensaje" className={`block text-sm font-medium ${text} mb-2`}>
+              <label htmlFor="nm-docente-mensaje" className={`block text-sm font-medium text-pn-ink mb-2`}>
                 Mensaje *
               </label>
               <textarea
@@ -184,11 +176,11 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 value={mensaje}
                 onChange={(e) => setMensaje(e.target.value)}
                 rows={8}
-                className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                 placeholder="Escribe tu mensaje aquí..."
               />
               <div className="flex justify-end mt-1">
-                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span className={`text-xs text-pn-muted`}>
                   {mensaje.length} caracteres
                 </span>
               </div>
@@ -196,7 +188,7 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
 
             {/* Archivos Adjuntos */}
             <div>
-              <label htmlFor="nm-docente-adjuntos" className={`block text-sm font-medium ${text} mb-2 flex items-center gap-2`}>
+              <label htmlFor="nm-docente-adjuntos" className={`block text-sm font-medium text-pn-ink mb-2 flex items-center gap-2`}>
                 <Paperclip size={16} />
                 Archivos Adjuntos (Opcional)
               </label>
@@ -205,33 +197,33 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 type="file"
                 multiple
                 onChange={handleAdjuntarArchivo}
-                className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
               />
 
               {adjuntos.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <p className={`text-sm font-medium ${text}`}>
+                  <p className={`text-sm font-medium text-pn-ink`}>
                     Archivos seleccionados ({adjuntos.length}):
                   </p>
                   {adjuntos.map((file, index) => (
                     <div
                       key={index}
                       className={`flex items-center justify-between p-3 rounded-lg ${
-                        darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                        'bg-pn-surface-3'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <FileText size={18} className="text-blue-600" />
+                        <FileText size={18} className="text-pn-accent-text" />
                         <div>
-                          <p className={`text-sm font-medium ${text}`}>{file.name}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className={`text-sm font-medium text-pn-ink`}>{file.name}</p>
+                          <p className="text-xs text-pn-muted">
                             {(file.size / 1024).toFixed(2)} KB
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => handleEliminarAdjunto(index)}
-                        className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                        className="text-pn-danger hover:text-pn-danger p-2 hover:bg-pn-danger-soft rounded transition"
                       >
                         <X size={18} />
                       </button>
@@ -253,13 +245,13 @@ export const NuevoMensajeModal: React.FC<NuevoMensajeModalProps> = ({
                 setAdjuntos([]);
                 setBusqueda('');
               }}
-              className={`px-6 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+              className={`px-6 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
             >
               Cancelar
             </button>
             <button
               onClick={handleEnviar}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition flex items-center gap-2"
+              className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-6 py-2 rounded-lg transition flex items-center gap-2"
             >
               <Send size={18} />
               Enviar Mensaje

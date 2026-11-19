@@ -20,6 +20,7 @@ import { ProgramaFormModal } from './ProgramaFormModal';
 import { PublicacionProgramaModal } from './PublicacionProgramaModal';
 import { PensumEditor } from './PensumEditor';
 import { mensajeDeError } from './errores';
+import { avisar, confirmar } from '../../../ui';
 
 export function ProgramasTab() {
   const queryClient = useQueryClient();
@@ -45,7 +46,7 @@ export function ProgramasTab() {
   const eliminar = useMutation({
     mutationFn: (id: string) => programasApi.remove(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['programas'] }),
-    onError: (err) => alert(mensajeDeError(err)),
+    onError: (err) => avisar.error(mensajeDeError(err)),
   });
 
   if (programaEnPensum) {
@@ -63,18 +64,18 @@ export function ProgramasTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-56">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-pn-muted" />
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por código, nombre o título..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full pl-9 pr-3 py-2 border border-pn-line rounded-lg text-sm"
           />
         </div>
         <select
           value={nivel}
           onChange={(e) => setNivel(e.target.value as EducationLevel | '')}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="border border-pn-line rounded-lg px-3 py-2 text-sm"
           aria-label="Filtrar por nivel"
         >
           <option value="">Todos los niveles</option>
@@ -85,7 +86,7 @@ export function ProgramasTab() {
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value as ProgramStatus | '')}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="border border-pn-line rounded-lg px-3 py-2 text-sm"
           aria-label="Filtrar por estado"
         >
           <option value="">Todos los estados</option>
@@ -95,17 +96,17 @@ export function ProgramasTab() {
         </select>
         <button
           onClick={() => { setProgramaEnEdicion(null); setModalAbierto(true); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm"
+          className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg hover:bg-pn-accent-hover flex items-center gap-2 text-sm"
         >
           <Plus size={16} /> Nuevo programa
         </button>
       </div>
 
-      {isLoading && <p className="text-gray-500 text-sm">Cargando programas...</p>}
-      {error != null && <p className="text-red-600 text-sm">{mensajeDeError(error)}</p>}
+      {isLoading && <p className="text-pn-muted text-sm">Cargando programas...</p>}
+      {error != null && <p className="text-pn-danger text-sm">{mensajeDeError(error)}</p>}
 
       {!isLoading && programas.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-pn-muted">
           <p className="font-medium">Aún no hay programas</p>
           <p className="text-sm">Cree el primero: Tecnólogo, Técnico laboral, Bachillerato, Diplomado…</p>
         </div>
@@ -113,11 +114,11 @@ export function ProgramasTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {programas.map((programa) => (
-          <div key={programa.id} className="bg-white rounded-lg shadow p-4 border border-gray-100">
+          <div key={programa.id} className="bg-pn-surface rounded-lg shadow p-4 border border-pn-line">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h4 className="font-bold text-gray-900 truncate">{programa.name}</h4>
+                  <h4 className="font-bold text-pn-ink truncate">{programa.name}</h4>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colorDeNivel(programa.educationLevel)}`}>
                     {NIVELES[programa.educationLevel]}
                   </span>
@@ -125,11 +126,11 @@ export function ProgramasTab() {
                     {ESTADOS_PROGRAMA[programa.status]}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-pn-ink-2">
                   {programa.code} · {MODALIDADES[programa.modality]} · {PERIODICIDADES[programa.periodStructure]} · {UNIDADES[programa.academicUnit]}
                   {programa.durationPeriods ? ` · ${programa.durationPeriods} periodos` : ''}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-pn-muted mt-1">
                   {programa._count?.studyPlans ?? 0} versión(es) de pensum · {programa._count?.programEnrollments ?? 0} estudiante(s)
                 </p>
               </div>
@@ -137,32 +138,32 @@ export function ProgramasTab() {
                 <button
                   onClick={() => setProgramaEnPensum(programa)}
                   title="Editor de pensum"
-                  className="p-2 text-indigo-600 hover:bg-indigo-50 rounded"
+                  className="p-2 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded"
                 >
                   <Network size={17} />
                 </button>
                 <button
                   onClick={() => setProgramaEnPublicacion(programa)}
                   title="Publicación en el sitio web"
-                  className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
+                  className="p-2 text-pn-ok hover:bg-pn-ok-soft rounded"
                 >
                   <Globe size={17} />
                 </button>
                 <button
                   onClick={() => { setProgramaEnEdicion(programa); setModalAbierto(true); }}
                   title="Editar programa"
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                  className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded"
                 >
                   <Edit size={17} />
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm(`¿Eliminar el programa "${programa.name}"?`)) {
+                  onClick={async () => {
+                    if (await confirmar(`¿Eliminar el programa "${programa.name}"?`)) {
                       eliminar.mutate(programa.id);
                     }
                   }}
                   title="Eliminar programa"
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"
+                  className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded"
                 >
                   <Trash2 size={17} />
                 </button>

@@ -11,7 +11,7 @@ export default function PoliticaPrivacidad() {
   return (
     <LegalLayout titulo="Política de Privacidad" actualizado="25 de agosto de 2026">
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">1. Quién trata tus datos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">1. Quién trata tus datos</h2>
         <p>
           VirtualUni es operada por <strong>[NOMBRE LEGAL DE LA EMPRESA]</strong>, identificada con
           NIT <strong>[NIT]</strong>, con domicilio en <strong>[CIUDAD, PAÍS]</strong> (en
@@ -28,7 +28,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">2. Qué datos recogemos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">2. Qué datos recogemos</h2>
         <ul className="list-disc pl-6 space-y-1">
           <li><strong>Identificación:</strong> nombre completo, correo electrónico, número de documento de identidad, fotografía (para carnetización).</li>
           <li><strong>Académicos:</strong> cursos matriculados, calificaciones, asistencia, entregas de tareas, resultados de exámenes, certificados emitidos.</li>
@@ -39,7 +39,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">3. Para qué usamos tus datos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">3. Para qué usamos tus datos</h2>
         <p>Los datos se usan exclusivamente para:</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>Prestar el servicio educativo: matrícula, calificación, asistencia, comunicación entre estudiantes y docentes.</li>
@@ -52,7 +52,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">4. Con quién compartimos tus datos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">4. Con quién compartimos tus datos</h2>
         <p>
           Sólo compartimos datos con terceros cuando es estrictamente necesario para operar el
           servicio:
@@ -65,7 +65,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">5. Menores de edad</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">5. Menores de edad</h2>
         <p>
           Cuando un estudiante es menor de edad, el tratamiento de sus datos se realiza bajo la
           autorización de la institución educativa en representación de los padres o acudientes,
@@ -75,7 +75,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">6. Tus derechos (Ley 1581 de 2012 — Habeas Data)</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">6. Tus derechos (Ley 1581 de 2012 — Habeas Data)</h2>
         <p>Como titular de tus datos personales, en Colombia tienes derecho a:</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>Conocer, actualizar y rectificar tus datos.</li>
@@ -93,7 +93,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">7. Cuánto tiempo conservamos tus datos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">7. Cuánto tiempo conservamos tus datos</h2>
         <p>
           Conservamos los datos académicos mientras dure la relación del estudiante o docente con
           la institución y por el tiempo adicional que exija la normativa educativa aplicable.
@@ -104,7 +104,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">8. Seguridad</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">8. Seguridad</h2>
         <p>
           Protegemos tus datos con medidas técnicas razonables: acceso restringido por rol
           (estudiante, docente, administrador), cifrado de la conexión entre tu navegador y
@@ -115,7 +115,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">9. Cambios a esta política</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">9. Cambios a esta política</h2>
         <p>
           Podemos actualizar esta política cuando cambie la forma en que tratamos los datos.
           Publicaremos la versión vigente en esta misma página con la fecha de la última
@@ -124,7 +124,7 @@ export default function PoliticaPrivacidad() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">10. Contacto</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">10. Contacto</h2>
         <p>
           Para preguntas sobre esta política o el tratamiento de tus datos:{' '}
           <strong>[CORREO DE CONTACTO]</strong>.

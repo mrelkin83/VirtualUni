@@ -108,6 +108,22 @@ export class SiteRenderController {
     return new Date(d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  /**
+   * Texto oscuro o blanco según la luminancia relativa (WCAG) del color de
+   * marca: el secundario del tenant puede ser ámbar (pide texto oscuro) o
+   * rojo (pide blanco), y las plecas/cintas del diseño lo usan como fondo.
+   */
+  private tintaSobre(hex: string): string {
+    const h = hex.replace('#', '');
+    const n = h.length === 3 ? h.split('').map((c) => c + c).join('') : h.padEnd(6, '0');
+    const [r, g, b] = [0, 2, 4].map((i) => {
+      const v = parseInt(n.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return lum > 0.4 ? '#101624' : '#ffffff';
+  }
+
   private render(
     res: Response,
     ctx: ContextoSitio,
@@ -123,10 +139,11 @@ export class SiteRenderController {
       nav: ctx.nav,
       esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
-      brand: {
-        c1: colorOk(ctx.tenant.primaryColor, '#3B82F6'),
-        c2: colorOk(ctx.tenant.secondaryColor, '#8B5CF6'),
-      },
+      brand: (() => {
+        const c1 = colorOk(ctx.tenant.primaryColor, '#3B82F6');
+        const c2 = colorOk(ctx.tenant.secondaryColor, '#8B5CF6');
+        return { c1, c2, c1Ink: this.tintaSobre(c1), c2Ink: this.tintaSobre(c2) };
+      })(),
       analytics: ctx.esPreview ? null : (ctx.site.analytics as Record<string, string> | null),
       anio: new Date().getFullYear(),
       vAssets: V_ASSETS,
@@ -151,7 +168,12 @@ export class SiteRenderController {
     const comun = {
       tenant: ctx.tenant, site: ctx.site, textos: ctx.textos, nav: ctx.nav, esPreview: ctx.esPreview,
       modoSoloAdmisiones: ctx.site.siteMode === SiteMode.ADMISSIONS_ONLY,
-      brand: { c1: ctx.tenant.primaryColor, c2: ctx.tenant.secondaryColor },
+      brand: {
+        c1: ctx.tenant.primaryColor,
+        c2: ctx.tenant.secondaryColor,
+        c1Ink: this.tintaSobre(ctx.tenant.primaryColor),
+        c2Ink: this.tintaSobre(ctx.tenant.secondaryColor),
+      },
       analytics: null, anio: new Date().getFullYear(), vAssets: V_ASSETS, fecha: (d: Date | string) => this.fecha(d),
       meta: { title: 'No encontrado', description: '', canonical: '', noindex: true },
     };

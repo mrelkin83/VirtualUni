@@ -10,6 +10,7 @@ import {
 import { proceduresApi } from '../../../api/endpoints/procedures';
 import { comoArreglo } from '../../../utils/respuestaApi';
 import type { Procedure } from '../../../types/admin.types';
+import { confirmar } from '../../ui';
 
 interface ProcedureFormData {
   tipo: string;
@@ -149,7 +150,7 @@ export const TramitesSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Confirmar eliminación de trámite')) return;
+    if (!await confirmar('Confirmar eliminación de trámite')) return;
     try {
       await proceduresApi.delete(id);
       await loadProcedures();
@@ -161,28 +162,28 @@ export const TramitesSection: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDIENTE':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
       case 'EN_PROCESO':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-pn-warn-soft text-pn-warn';
       case 'COMPLETADO':
-        return 'bg-green-100 text-green-800';
+        return 'bg-pn-ok-soft text-pn-ok';
       case 'RECHAZADO':
-        return 'bg-red-100 text-red-800';
+        return 'bg-pn-danger-soft text-pn-danger';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'ALTA':
-        return 'bg-red-100 text-red-800';
+        return 'bg-pn-danger-soft text-pn-danger';
       case 'MEDIA':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-pn-warn-soft text-pn-warn';
       case 'BAJA':
-        return 'bg-green-100 text-green-800';
+        return 'bg-pn-ok-soft text-pn-ok';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
@@ -190,10 +191,10 @@ export const TramitesSection: React.FC = () => {
     <div className="space-y-6">
       {/* Encabezado */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Trámites</h1>
+        <h1 className="text-3xl font-bold text-pn-ink">Trámites</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
+          className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Nuevo Trámite
@@ -208,13 +209,13 @@ export const TramitesSection: React.FC = () => {
             placeholder="Buscar trámites..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
         >
           <option value="">Todos los estados</option>
           <option value="PENDIENTE">Pendiente</option>
@@ -225,7 +226,7 @@ export const TramitesSection: React.FC = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
         >
           <option value="">Todas las prioridades</option>
           <option value="ALTA">Prioridad Alta</option>
@@ -236,53 +237,53 @@ export const TramitesSection: React.FC = () => {
 
       {/* Mensajes */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-pn-danger-soft border border-pn-danger text-pn-danger px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
       )}
 
       {/* Tabla de trámites */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-pn-surface rounded-lg shadow overflow-hidden">
         {procedures.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No hay trámites</p>
+            <p className="text-pn-muted">No hay trámites</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-pn-surface-2 border-b border-pn-line">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Solicitante
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Prioridad
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-pn-ink-2 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-pn-line">
                 {procedures.map((procedure) => (
-                  <tr key={procedure.id} className="hover:bg-gray-50">
+                  <tr key={procedure.id} className="hover:bg-pn-surface-2">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-pn-ink">
                         {procedure.tipo}
                       </div>
-                      <div className="text-sm text-gray-500 truncate">
+                      <div className="text-sm text-pn-muted truncate">
                         {procedure.descripcion.substring(0, 50)}...
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-pn-ink">
                         {procedure.solicitante}
                       </div>
                     </td>
@@ -301,7 +302,7 @@ export const TramitesSection: React.FC = () => {
                         procedure.estado !== 'RECHAZADO' && (
                           <button
                             onClick={() => handleOpenRespondModal(procedure.id)}
-                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                            className="inline-flex items-center gap-1 text-pn-accent-text hover:text-pn-accent-text"
                             title="Responder"
                           >
                             <Send className="w-4 h-4" />
@@ -310,7 +311,7 @@ export const TramitesSection: React.FC = () => {
                       {procedure.estado === 'PENDIENTE' && (
                         <button
                           onClick={() => handleOpenModal(procedure)}
-                          className="inline-flex items-center gap-1 text-green-600 hover:text-green-800"
+                          className="inline-flex items-center gap-1 text-pn-ok hover:text-pn-ok"
                           title="Editar"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -318,7 +319,7 @@ export const TramitesSection: React.FC = () => {
                       )}
                       <button
                         onClick={() => handleDelete(procedure.id)}
-                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-800"
+                        className="inline-flex items-center gap-1 text-pn-danger hover:text-pn-danger"
                         title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -335,14 +336,14 @@ export const TramitesSection: React.FC = () => {
       {/* Modal de formulario */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
+          <div role="dialog" aria-modal="true" aria-label="{editingId ? 'Editar Trámite' : 'Nuevo Trámite'}" className="bg-pn-surface rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h2 className="text-xl font-bold text-pn-ink">
                 {editingId ? 'Editar Trámite' : 'Nuevo Trámite'}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -350,7 +351,7 @@ export const TramitesSection: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Tipo de Trámite
                 </label>
                 <input
@@ -359,14 +360,14 @@ export const TramitesSection: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, tipo: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   required
                   minLength={5}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Descripción
                 </label>
                 <textarea
@@ -374,7 +375,7 @@ export const TramitesSection: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, descripcion: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   rows={5}
                   required
                   minLength={10}
@@ -382,7 +383,7 @@ export const TramitesSection: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Prioridad
                 </label>
                 <select
@@ -393,7 +394,7 @@ export const TramitesSection: React.FC = () => {
                       prioridad: e.target.value as any,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                 >
                   <option value="ALTA">Alta</option>
                   <option value="MEDIA">Media</option>
@@ -405,13 +406,13 @@ export const TramitesSection: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover"
                 >
                   {editingId ? 'Guardar Cambios' : 'Crear Trámite'}
                 </button>
@@ -424,12 +425,12 @@ export const TramitesSection: React.FC = () => {
       {/* Modal de respuesta */}
       {showRespondModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Responder Trámite</h2>
+          <div role="dialog" aria-modal="true" aria-label="Responder Trámite" className="bg-pn-surface rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-pn-line">
+              <h2 className="text-xl font-bold text-pn-ink">Responder Trámite</h2>
               <button
                 onClick={handleCloseRespondModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -437,7 +438,7 @@ export const TramitesSection: React.FC = () => {
 
             <form onSubmit={handleRespond} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Respuesta
                 </label>
                 <textarea
@@ -445,7 +446,7 @@ export const TramitesSection: React.FC = () => {
                   onChange={(e) =>
                     setRespondData({ ...respondData, respuesta: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                   rows={5}
                   required
                   minLength={10}
@@ -453,7 +454,7 @@ export const TramitesSection: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-1">
                   Estado del Trámite
                 </label>
                 <select
@@ -464,7 +465,7 @@ export const TramitesSection: React.FC = () => {
                       estado: e.target.value as any,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-pn-line rounded-lg focus:outline-none focus:ring-2 focus:ring-pn-accent"
                 >
                   <option value="EN_PROCESO">En Proceso</option>
                   <option value="COMPLETADO">Completado</option>
@@ -476,13 +477,13 @@ export const TramitesSection: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCloseRespondModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="px-4 py-2 bg-pn-ok text-pn-surface rounded-lg hover:bg-pn-ok"
                 >
                   Enviar Respuesta
                 </button>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, AlertCircle, CheckCircle, Clock, X, Save, Calendar as CalendarIcon, CheckSquare } from 'lucide-react';
+import { avisar } from '../../ui';
+import { pulsable } from '../../../utils/pulsable';
 
 /** Devuelve el valor solo si es un número utilizable; si no, null. */
 const numero = (v: unknown): number | null =>
@@ -28,10 +30,6 @@ interface TareasSectionProps {
   tareas: any[];
   setTareaEnRevision: (tarea: any) => void;
   setCrearTareaModal: (open: boolean) => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   crearTarea?: (tareaData: any) => void;
   cursos?: any[];
   estudiantes?: any[];
@@ -40,10 +38,6 @@ interface TareasSectionProps {
 export const TareasSection: React.FC<TareasSectionProps> = ({
   tareas,
   setTareaEnRevision,
-  darkMode,
-  card,
-  text,
-  border,
   crearTarea,
   cursos = [],
   estudiantes = []
@@ -88,15 +82,15 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
 
   const guardarNuevaTarea = () => {
     if (!nuevaTarea.titulo.trim()) {
-      alert('Por favor ingresa un título para la tarea');
+      avisar.info('Por favor ingresa un título para la tarea');
       return;
     }
     if (!nuevaTarea.curso.trim()) {
-      alert('Por favor selecciona un curso');
+      avisar.error('Por favor selecciona un curso');
       return;
     }
     if (!nuevaTarea.fechaLimite) {
-      alert('Por favor selecciona una fecha límite');
+      avisar.error('Por favor selecciona una fecha límite');
       return;
     }
 
@@ -105,7 +99,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
       if (configGrupo.tipoAsignacion === 'manual') {
         const todosValidos = configGrupo.grupos.every(g => g.estudiantes.length >= 2);
         if (!todosValidos || configGrupo.grupos.length === 0) {
-          alert('Debes configurar los grupos manualmente con al menos 2 estudiantes cada uno');
+          avisar.error('Debes configurar los grupos manualmente con al menos 2 estudiantes cada uno');
           return;
         }
       }
@@ -142,10 +136,10 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Gestión de Tareas</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Tareas</h2>
         <button
           onClick={abrirModalNuevaTarea}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+          className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2"
         >
           <Plus size={18} />
           Nueva Tarea
@@ -153,94 +147,94 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className={`${card} rounded-lg shadow p-4`}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={`bg-pn-surface rounded-lg shadow p-4`}>
           <div className="flex items-center gap-3">
-            <div className="bg-orange-100 p-3 rounded-full">
-              <AlertCircle className="text-orange-600" size={24} />
+            <div className="bg-pn-warn-soft p-3 rounded-full">
+              <AlertCircle className="text-pn-warn" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-2xl font-bold text-pn-warn">
                 {tareas.reduce((sum, t) => sum + porRevisar(t), 0)}
               </p>
-              <p className="text-sm text-gray-500">Por revisar</p>
+              <p className="text-sm text-pn-muted">Por revisar</p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-4`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4`}>
           <div className="flex items-center gap-3">
-            <div className="bg-green-100 p-3 rounded-full">
-              <CheckCircle className="text-green-600" size={24} />
+            <div className="bg-pn-ok-soft p-3 rounded-full">
+              <CheckCircle className="text-pn-ok" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-pn-ok">
                 {tareas.reduce((sum, t) => sum + (numero(t.entregasRevisadas) ?? 0), 0)}
               </p>
-              <p className="text-sm text-gray-500">Revisadas</p>
+              <p className="text-sm text-pn-muted">Revisadas</p>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-4`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-4`}>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Clock className="text-blue-600" size={24} />
+            <div className="bg-pn-accent-soft p-3 rounded-full">
+              <Clock className="text-pn-accent-text" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-600">{tareas.length}</p>
-              <p className="text-sm text-gray-500">Tareas activas</p>
+              <p className="text-2xl font-bold text-pn-accent-text">{tareas.length}</p>
+              <p className="text-sm text-pn-muted">Tareas activas</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Lista de Tareas */}
-      <div className={`${card} rounded-lg shadow`}>
+      <div className={`bg-pn-surface rounded-lg shadow`}>
         <div className="p-6">
-          <h3 className={`text-lg font-bold ${text} mb-4`}>Tareas Activas</h3>
+          <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Tareas Activas</h3>
           <div className="space-y-3">
             {tareas.map((tarea) => (
               <div
                 key={tarea.id}
-                className={`border ${border} rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
-                onClick={() => setTareaEnRevision(tarea)}
+                className={`border border-pn-line rounded-lg p-4 hover:shadow-md transition cursor-pointer`}
+                {...pulsable(() => setTareaEnRevision(tarea))}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h4 className={`font-bold ${text} mb-1`}>{tarea.titulo}</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{tarea.curso}</p>
+                    <h4 className={`font-bold text-pn-ink mb-1`}>{tarea.titulo}</h4>
+                    <p className={`text-sm text-pn-ink-2 mb-2`}>{tarea.curso}</p>
                     <div className="flex gap-4 text-sm">
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                      <span className={'text-pn-ink-2'}>
                         📅 Límite: {tarea.fechaLimite}
                       </span>
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                      <span className={'text-pn-ink-2'}>
                         📊 Entregas: {numero(tarea.entregasTotales) ?? '—'}
                       </span>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <p className="text-sm text-gray-500 mb-1">Progreso de revisión</p>
+                    <p className="text-sm text-pn-muted mb-1">Progreso de revisión</p>
                     <div className="flex items-center gap-3">
                       {/* Con datos de la API `entregasRevisadas` puede no venir:
                           la division daba NaN y llegaba al atributo `width`. */}
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="w-32 bg-pn-surface-3 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
-                            porcentajeRevisado(tarea) === 100 ? 'bg-green-600' : 'bg-blue-600'
+                            porcentajeRevisado(tarea) === 100 ? 'bg-pn-ok' : 'bg-pn-accent'
                           }`}
                           style={{ width: `${porcentajeRevisado(tarea) ?? 0}%` }}
                         ></div>
                       </div>
                       <span className={`text-sm font-bold ${
-                        porcentajeRevisado(tarea) === 100 ? 'text-green-600' : 'text-orange-600'
+                        porcentajeRevisado(tarea) === 100 ? 'text-pn-ok' : 'text-pn-warn'
                       }`}>
                         {numero(tarea.entregasRevisadas) ?? '—'}/{numero(tarea.entregasTotales) ?? '—'}
                       </span>
                     </div>
                     {porRevisar(tarea) > 0 && (
-                      <p className="text-xs text-orange-500 mt-1">
+                      <p className="text-xs text-pn-warn mt-1">
                         {porRevisar(tarea)} por revisar
                       </p>
                     )}
@@ -255,13 +249,13 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
       {/* Modal Nueva Tarea */}
       {modalNuevaTarea && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+          <div role="dialog" aria-modal="true" aria-label="Crear Nueva Tarea" className={`bg-pn-surface rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
             {/* Header */}
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Crear Nueva Tarea</h3>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nueva Tarea</h3>
               <button
                 onClick={() => setModalNuevaTarea(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -270,27 +264,27 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
             {/* Contenido */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>
+                <label className={`block text-pn-ink mb-2 font-medium`}>
                   Título de la Tarea *
                 </label>
                 <input
                   type="text"
                   value={nuevaTarea.titulo}
                   onChange={(e) => setNuevaTarea({ ...nuevaTarea, titulo: e.target.value })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Ej: Taller de Programación Orientada a Objetos"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>
                     Curso *
                   </label>
                   <select
                     value={nuevaTarea.curso}
                     onChange={(e) => setNuevaTarea({ ...nuevaTarea, curso: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   >
                     <option value="">Seleccionar curso</option>
                     {cursos.map((curso) => (
@@ -302,20 +296,20 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>
                     Fecha Límite *
                   </label>
                   <input
                     type="date"
                     value={nuevaTarea.fechaLimite}
                     onChange={(e) => setNuevaTarea({ ...nuevaTarea, fechaLimite: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>
+                <label className={`block text-pn-ink mb-2 font-medium`}>
                   Puntaje Máximo
                 </label>
                 <input
@@ -324,26 +318,26 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                   max="100"
                   value={nuevaTarea.puntaje}
                   onChange={(e) => setNuevaTarea({ ...nuevaTarea, puntaje: parseInt(e.target.value) || 0 })}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 />
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>
+                <label className={`block text-pn-ink mb-2 font-medium`}>
                   Descripción
                 </label>
                 <textarea
                   value={nuevaTarea.descripcion}
                   onChange={(e) => setNuevaTarea({ ...nuevaTarea, descripcion: e.target.value })}
                   rows={4}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Descripción detallada de la tarea, instrucciones, criterios de evaluación..."
                 />
               </div>
 
-              <div className={`p-4 rounded-lg ${border} border`}>
+              <div className={`p-4 rounded-lg border-pn-line border`}>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={`block ${text} font-medium`}>
+                  <label className={`block text-pn-ink font-medium`}>
                     Tarea Grupal
                   </label>
                   <button
@@ -351,24 +345,24 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                     onClick={() => setModoGrupal(!modoGrupal)}
                     className={`px-4 py-2 rounded-lg transition ${
                       modoGrupal
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        ? 'bg-pn-accent-2 text-pn-accent-2-ink'
+                        : 'bg-pn-surface-3 text-pn-ink-2'
                     }`}
                   >
                     {modoGrupal ? 'Activado' : 'Desactivado'}
                   </button>
                 </div>
-                <p className={`text-sm ${text} opacity-70`}>
+                <p className={`text-sm text-pn-ink opacity-70`}>
                   Activa esta opción para crear una tarea grupal
                 </p>
               </div>
 
               {modoGrupal && (
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-900/20' : 'bg-purple-50'} space-y-4`}>
-                  <h4 className={`font-bold ${text}`}>Configuración de Grupos</h4>
+                <div className={`p-4 rounded-lg bg-pn-info-soft space-y-4`}>
+                  <h4 className={`font-bold text-pn-ink`}>Configuración de Grupos</h4>
 
                   <div>
-                    <label className={`block ${text} mb-2 font-medium`}>
+                    <label className={`block text-pn-ink mb-2 font-medium`}>
                       Tipo de Asignación
                     </label>
                     <div className="flex gap-2">
@@ -377,8 +371,8 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                         onClick={() => setConfigGrupo({ ...configGrupo, tipoAsignacion: 'manual' })}
                         className={`flex-1 px-4 py-2 rounded-lg transition ${
                           configGrupo.tipoAsignacion === 'manual'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-pn-accent-2 text-pn-accent-2-ink'
+                            : 'bg-pn-surface-3 text-pn-ink-2'
                         }`}
                       >
                         Manual
@@ -388,8 +382,8 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                         onClick={() => setConfigGrupo({ ...configGrupo, tipoAsignacion: 'aleatorio' })}
                         className={`flex-1 px-4 py-2 rounded-lg transition ${
                           configGrupo.tipoAsignacion === 'aleatorio'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-pn-accent-2 text-pn-accent-2-ink'
+                            : 'bg-pn-surface-3 text-pn-ink-2'
                         }`}
                       >
                         Aleatorio
@@ -399,7 +393,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Cantidad de Grupos
                       </label>
                       <input
@@ -407,11 +401,11 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                         min="1"
                         value={configGrupo.cantidadGrupos}
                         onChange={(e) => setConfigGrupo({ ...configGrupo, cantidadGrupos: parseInt(e.target.value) || 1 })}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       />
                     </div>
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Estudiantes por Grupo (2-6)
                       </label>
                       <input
@@ -423,14 +417,14 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                           const val = parseInt(e.target.value) || 2;
                           setConfigGrupo({ ...configGrupo, estudiantesPorGrupo: Math.min(Math.max(val, 2), 6) });
                         }}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       />
                     </div>
                   </div>
 
                   {configGrupo.tipoAsignacion === 'manual' && (
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Asignación Manual de Estudiantes
                       </label>
                       <button
@@ -443,7 +437,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                           setConfigGrupo({ ...configGrupo, grupos: gruposIniciales });
                           setModalAsignacionGrupos(true);
                         }}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                        className="bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded-lg hover:bg-pn-accent-2"
                       >
                         Configurar Grupos Manualmente
                       </button>
@@ -451,8 +445,8 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                   )}
 
                   {configGrupo.tipoAsignacion === 'aleatorio' && (
-                    <div className={`p-3 rounded-lg ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                      <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <div className={`p-3 rounded-lg bg-pn-accent-soft`}>
+                      <p className={`text-sm text-pn-accent-text`}>
                         Los estudiantes serán asignados aleatoriamente a {configGrupo.cantidadGrupos} grupos de {configGrupo.estudiantesPorGrupo} estudiantes cada uno.
                       </p>
                     </div>
@@ -461,17 +455,17 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
               )}
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>
+                <label className={`block text-pn-ink mb-2 font-medium`}>
                   Archivo Adjunto (opcional)
                 </label>
                 <input
                   type="file"
                   onChange={handleFileChange}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   accept=".pdf,.doc,.docx,.txt,.zip"
                 />
                 {nuevaTarea.archivoAdjunto && (
-                  <p className={`${text} text-sm mt-2`}>
+                  <p className={`text-pn-ink text-sm mt-2`}>
                     Archivo seleccionado: {nuevaTarea.archivoAdjunto.name}
                   </p>
                 )}
@@ -479,16 +473,16 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
             </div>
 
             {/* Footer */}
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => setModalNuevaTarea(false)}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
               <button
                 onClick={guardarNuevaTarea}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition flex items-center gap-2"
               >
                 <Save size={18} />
                 Crear Tarea
@@ -501,12 +495,12 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
       {/* Modal Asignación Manual de Grupos */}
       {modalAsignacionGrupos && modoGrupal && configGrupo.tipoAsignacion === 'manual' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>Asignación Manual de Grupos</h3>
+          <div role="dialog" aria-modal="true" aria-label="Asignación Manual de Grupos" className={`bg-pn-surface rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Asignación Manual de Grupos</h3>
               <button
                 onClick={() => setModalAsignacionGrupos(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -515,21 +509,21 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className={`${text} font-bold mb-3`}>Grupos</h4>
+                  <h4 className={`text-pn-ink font-bold mb-3`}>Grupos</h4>
                   <div className="space-y-2">
                     {configGrupo.grupos.map((grupo, index) => (
                       <button
                         key={index}
                         onClick={() => setGrupoEnEdicion(index)}
-                        className={`w-full p-4 rounded-lg ${border} border text-left transition ${
+                        className={`w-full p-4 rounded-lg border-pn-line border text-left transition ${
                           grupoEnEdicion === index
-                            ? 'bg-purple-500 bg-opacity-10 border-purple-500'
-                            : darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                            ? 'bg-pn-accent-2 bg-opacity-10 border-pn-accent-2'
+                            : 'hover:bg-pn-surface-2'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`font-bold ${text}`}>{grupo.nombre}</span>
-                          <span className={`text-sm ${text} opacity-70`}>
+                          <span className={`font-bold text-pn-ink`}>{grupo.nombre}</span>
+                          <span className={`text-sm text-pn-ink opacity-70`}>
                             {grupo.estudiantes.length}/{configGrupo.estudiantesPorGrupo} estudiantes
                           </span>
                         </div>
@@ -539,7 +533,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                 </div>
 
                 <div>
-                  <h4 className={`${text} font-bold mb-3`}>
+                  <h4 className={`text-pn-ink font-bold mb-3`}>
                     {grupoEnEdicion !== null
                       ? `Asignar a ${configGrupo.grupos[grupoEnEdicion]?.nombre}`
                       : 'Selecciona un grupo'}
@@ -553,7 +547,7 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                         return (
                           <div
                             key={estudiante.id}
-                            onClick={() => {
+                            {...pulsable(() => {
                               if (yaAsignado) {
                                 const nuevosGrupos = [...configGrupo.grupos];
                                 nuevosGrupos[grupoEnEdicion].estudiantes = nuevosGrupos[grupoEnEdicion].estudiantes.filter(id => id !== estudiante.id);
@@ -563,21 +557,21 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                                 nuevosGrupos[grupoEnEdicion].estudiantes.push(estudiante.id);
                                 setConfigGrupo({ ...configGrupo, grupos: nuevosGrupos });
                               }
-                            }}
-                            className={`p-3 rounded-lg ${border} border cursor-pointer transition ${
+                            })}
+                            className={`p-3 rounded-lg border-pn-line border cursor-pointer transition ${
                               yaAsignado
-                                ? 'bg-green-500 bg-opacity-10 border-green-500'
+                                ? 'bg-pn-ok bg-opacity-10 border-pn-ok'
                                 : grupoLleno
                                 ? 'opacity-50 cursor-not-allowed'
-                                : darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                                : 'hover:bg-pn-surface-2'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className={`font-medium ${text}`}>{estudiante.nombre}</p>
-                                <p className={`text-sm ${text} opacity-70`}>{estudiante.email}</p>
+                                <p className={`font-medium text-pn-ink`}>{estudiante.nombre}</p>
+                                <p className={`text-sm text-pn-ink opacity-70`}>{estudiante.email}</p>
                               </div>
-                              {yaAsignado && <CheckSquare size={20} className="text-green-600" />}
+                              {yaAsignado && <CheckSquare size={20} className="text-pn-ok" />}
                             </div>
                           </div>
                         );
@@ -588,10 +582,10 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => setModalAsignacionGrupos(false)}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
@@ -599,13 +593,13 @@ export const TareasSection: React.FC<TareasSectionProps> = ({
                 onClick={() => {
                   const todosValidos = configGrupo.grupos.every(g => g.estudiantes.length >= 2);
                   if (!todosValidos) {
-                    alert('Todos los grupos deben tener al menos 2 estudiantes');
+                    avisar.info('Todos los grupos deben tener al menos 2 estudiantes');
                     return;
                   }
                   setModalAsignacionGrupos(false);
-                  alert('Grupos configurados correctamente');
+                  avisar.ok('Grupos configurados correctamente');
                 }}
-                className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition"
+                className="bg-pn-accent-2 text-pn-accent-2-ink px-6 py-2 rounded-lg hover:bg-pn-accent-2 transition"
               >
                 Confirmar Asignación
               </button>

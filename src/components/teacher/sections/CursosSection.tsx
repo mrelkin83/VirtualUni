@@ -7,6 +7,9 @@ import { uploadsApi } from '../../../api/endpoints/uploads';
 import { materialsApi, MaterialType } from '../../../api/endpoints/materials';
 import { ETIQUETA_TIPO, formatearKb, marcaDeTema } from '../../../utils/materiales';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { avisar } from '../../ui';
+import { tintaDeRelleno } from '../../../utils/tintas';
+import { pulsable } from '../../../utils/pulsable';
 
 interface MaterialDeTema {
   id: string;
@@ -23,10 +26,6 @@ interface CursosSectionProps {
   setCursoDetalle: (curso: any) => void;
   modulosCurso: any[];
   setModalConfigCurso: (curso: any) => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   crearModulo?: (moduloData: any) => void;
   editarModulo?: (moduloId: number, moduloData: any) => void;
   eliminarModulo?: (moduloId: number) => void;
@@ -41,10 +40,6 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   setCursoDetalle,
   modulosCurso,
   setModalConfigCurso,
-  darkMode,
-  card,
-  text,
-  border,
   crearModulo,
   editarModulo,
   eliminarModulo,
@@ -87,7 +82,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
   const handleCrearModulo = () => {
     if (!nuevoModulo.titulo || !nuevoModulo.descripcion) {
-      alert('Por favor completa todos los campos');
+      avisar.error('Por favor completa todos los campos');
       return;
     }
 
@@ -114,12 +109,12 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
   const handleCrearTema = () => {
     if (!nuevoTema.titulo || !nuevoTema.duracion) {
-      alert('Por favor completa todos los campos obligatorios');
+      avisar.error('Por favor completa todos los campos obligatorios');
       return;
     }
 
     if (!moduloActual) {
-      alert('Error: No se ha seleccionado un módulo');
+      avisar.error('Error: No se ha seleccionado un módulo');
       return;
     }
 
@@ -171,13 +166,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
       <div className="space-y-6">
         <button
           onClick={() => setCursoDetalle(null)}
-          className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4"
+          className="text-pn-accent-text hover:text-pn-accent-text flex items-center gap-2 mb-4"
         >
           ← Volver a cursos
         </button>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <div className={`${cursoDetalle.color} -m-6 mb-4 p-6 rounded-t-lg text-white`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <div className={`${cursoDetalle.color} ${tintaDeRelleno(cursoDetalle.color)} -m-6 mb-4 p-6 rounded-t-lg`}>
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-2xl font-bold">{cursoDetalle.nombre}</h2>
@@ -185,7 +180,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
               </div>
               <button
                 onClick={() => setModalConfigCurso(cursoDetalle)}
-                className="bg-white text-blue-700 hover:bg-gray-100 px-4 py-2 rounded flex items-center gap-2 font-semibold"
+                className="bg-pn-surface text-pn-accent-text hover:bg-pn-surface-3 px-4 py-2 rounded flex items-center gap-2 font-semibold"
               >
                 <Settings size={18} />
                 Configurar Curso
@@ -193,17 +188,17 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded text-center`}>
-              <p className="text-2xl font-bold text-blue-600">{cursoDetalle.progresoGeneral}%</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className={`bg-pn-surface-3 p-4 rounded text-center`}>
+              <p className="text-2xl font-bold text-pn-accent-text">{cursoDetalle.progresoGeneral}%</p>
               <p className="text-sm">Progreso General</p>
             </div>
-            <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded text-center`}>
-              <p className="text-2xl font-bold text-green-600">{cursoDetalle.estudiantes}</p>
+            <div className={`bg-pn-surface-3 p-4 rounded text-center`}>
+              <p className="text-2xl font-bold text-pn-ok">{cursoDetalle.estudiantes}</p>
               <p className="text-sm">Estudiantes</p>
             </div>
-            <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded text-center`}>
-              <p className="text-2xl font-bold text-orange-600">{cursoDetalle.tareasPendientesRevision}</p>
+            <div className={`bg-pn-surface-3 p-4 rounded text-center`}>
+              <p className="text-2xl font-bold text-pn-warn">{cursoDetalle.tareasPendientesRevision}</p>
               <p className="text-sm">Por Revisar</p>
             </div>
           </div>
@@ -211,10 +206,10 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
           {/* Contenido del Curso */}
           <div className="border-t pt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Contenido del Curso</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Contenido del Curso</h3>
               <button
                 onClick={() => setModalModulo(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2"
               >
                 <Plus size={18} />
                 Nuevo Módulo
@@ -225,18 +220,18 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
               {modulosCurso
                 .filter((m) => m.cursoId === cursoDetalle.id)
                 .map((modulo, index) => (
-                  <div key={modulo.id} className={`border ${border} rounded-lg overflow-hidden`}>
-                    <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4`}>
+                  <div key={modulo.id} className={`border border-pn-line rounded-lg overflow-hidden`}>
+                    <div className={`bg-pn-surface-2 p-4`}>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="bg-blue-600 text-white rounded px-2 py-1 text-xs font-bold">
+                            <span className="bg-pn-accent text-pn-accent-ink rounded px-2 py-1 text-xs font-bold">
                               Módulo {index + 1}
                             </span>
-                            <h4 className={`font-bold ${text}`}>{modulo.titulo}</h4>
+                            <h4 className={`font-bold text-pn-ink`}>{modulo.titulo}</h4>
                           </div>
-                          <p className="text-sm text-gray-500">{modulo.descripcion}</p>
-                          <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                          <p className="text-sm text-pn-muted">{modulo.descripcion}</p>
+                          <div className="flex gap-4 mt-2 text-sm text-pn-muted">
                             <span>{modulo.temas.length} tema{modulo.temas.length !== 1 ? 's' : ''}</span>
                             <span>•</span>
                             <span>
@@ -247,21 +242,21 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                         <div className="flex gap-2">
                           <button
                             onClick={() => abrirModalCrearTema(modulo.id)}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-green-600"
+                            className="p-2 hover:bg-pn-surface-3 rounded text-pn-ok"
                             title="Agregar tema"
                           >
                             <Plus size={18} />
                           </button>
                           <button
                             onClick={() => abrirModalEditarModulo(modulo)}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-blue-600"
+                            className="p-2 hover:bg-pn-surface-3 rounded text-pn-accent-text"
                             title="Editar módulo"
                           >
                             <Edit3 size={18} />
                           </button>
                           <button
                             onClick={() => eliminarModulo?.(modulo.id)}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-red-600"
+                            className="p-2 hover:bg-pn-surface-3 rounded text-pn-danger"
                             title="Eliminar módulo"
                           >
                             <Trash2 size={18} />
@@ -274,13 +269,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                     {modulo.temas.length > 0 && (
                       <div className="p-4 space-y-3">
                         {modulo.temas.map((tema: any, temaIndex: number) => (
-                          <div key={tema.id} className={`border ${border} rounded-lg p-3`}>
+                          <div key={tema.id} className={`border border-pn-line rounded-lg p-3`}>
                             <div className="flex items-start gap-3">
                               <div
                                 className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 ${
                                   tema.tipo === 'teoria'
-                                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900'
-                                    : 'bg-green-100 text-green-600 dark:bg-green-900'
+                                    ? 'bg-pn-accent-soft text-pn-accent-text'
+                                    : 'bg-pn-ok-soft text-pn-ok'
                                 }`}
                               >
                                 {tema.tipo === 'teoria' ? <BookOpen size={16} /> : <ClipboardCheck size={16} />}
@@ -289,36 +284,36 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                 <div className="flex justify-between items-start mb-2">
                                   <div>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs text-gray-500">Tema {temaIndex + 1}</span>
-                                      <h5 className={`font-semibold ${text}`}>{tema.titulo}</h5>
+                                      <span className="text-xs text-pn-muted">Tema {temaIndex + 1}</span>
+                                      <h5 className={`font-semibold text-pn-ink`}>{tema.titulo}</h5>
                                     </div>
-                                    <div className="flex gap-3 text-xs text-gray-500 mt-1">
+                                    <div className="flex gap-3 text-xs text-pn-muted mt-1">
                                       <span>{tema.tipo === 'teoria' ? '📚 Teoría' : '💻 Práctica'}</span>
                                       <span>⏱️ {tema.duracion}</span>
                                       <span>{materialesDeTema(tema.titulo).length} material{materialesDeTema(tema.titulo).length !== 1 ? 'es' : ''}</span>
                                     </div>
                                     {tema.descripcion && (
-                                      <p className="text-xs text-gray-500 mt-1">{tema.descripcion}</p>
+                                      <p className="text-xs text-pn-muted mt-1">{tema.descripcion}</p>
                                     )}
                                   </div>
                                   <div className="flex gap-1">
                                     <button
                                       onClick={() => abrirModalEditarTema(tema)}
-                                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-blue-600"
+                                      className="p-1 hover:bg-pn-surface-3 rounded text-pn-accent-text"
                                       title="Editar tema"
                                     >
                                       <Edit3 size={16} />
                                     </button>
                                     <button
                                       onClick={() => setModalMateriales(tema)}
-                                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-green-600"
+                                      className="p-1 hover:bg-pn-surface-3 rounded text-pn-ok"
                                       title="Gestionar materiales"
                                     >
                                       <Upload size={16} />
                                     </button>
                                     <button
                                       onClick={() => eliminarTema?.(tema.id)}
-                                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600"
+                                      className="p-1 hover:bg-pn-surface-3 rounded text-pn-danger"
                                       title="Eliminar tema"
                                     >
                                       <Trash2 size={16} />
@@ -328,17 +323,17 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                                 {/* Materiales del Tema */}
                                 {materialesDeTema(tema.titulo).length > 0 && (
-                                  <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded p-2 mt-2 space-y-1`}>
+                                  <div className={`bg-pn-surface-2 rounded p-2 mt-2 space-y-1`}>
                                     {materialesDeTema(tema.titulo).map((material) => (
                                       <div key={material.id} className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-2 min-w-0">
                                           {material.tipo === 'VIDEO' ? (
-                                            <Video className="text-purple-600 shrink-0" size={14} />
+                                            <Video className="text-pn-accent-2-text shrink-0" size={14} />
                                           ) : (
-                                            <FileText className="text-blue-600 shrink-0" size={14} />
+                                            <FileText className="text-pn-accent-text shrink-0" size={14} />
                                           )}
                                           <span className="truncate">{material.nombre}</span>
-                                          <span className="text-xs text-gray-400 shrink-0">
+                                          <span className="text-xs text-pn-muted shrink-0">
                                             ({ETIQUETA_TIPO[material.tipo]} · {formatearKb(material.tamanioKb)})
                                           </span>
                                         </div>
@@ -347,9 +342,9 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                                             onClick={() =>
                                               uploadsApi
                                                 .abrir(material.url)
-                                                .catch(() => alert('No se pudo abrir el material.'))
+                                                .catch(() => avisar.error('No se pudo abrir el material.'))
                                             }
-                                            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                                            className="p-1 hover:bg-pn-surface-3 rounded"
                                             title="Abrir"
                                           >
                                             <Eye size={14} />
@@ -368,11 +363,11 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                     {modulo.temas.length === 0 && (
                       <div className="p-8 text-center">
-                        <BookOpen className="mx-auto text-gray-400 mb-2" size={32} />
-                        <p className="text-gray-500 text-sm">No hay temas en este módulo</p>
+                        <BookOpen className="mx-auto text-pn-muted mb-2" size={32} />
+                        <p className="text-pn-muted text-sm">No hay temas en este módulo</p>
                         <button
                           onClick={() => abrirModalCrearTema(modulo.id)}
-                          className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-semibold"
+                          className="mt-2 text-pn-accent-text hover:text-pn-accent-text text-sm font-semibold"
                         >
                           + Agregar primer tema
                         </button>
@@ -382,13 +377,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                 ))}
 
               {modulosCurso.filter((m) => m.cursoId === cursoDetalle.id).length === 0 && (
-                <div className={`${card} p-8 rounded-lg border ${border} text-center`}>
-                  <BookOpen className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className={`${text} text-lg font-semibold mb-2`}>No hay módulos en este curso</p>
-                  <p className="text-gray-500 mb-4">Comienza creando el primer módulo del curso</p>
+                <div className={`bg-pn-surface p-8 rounded-lg border border-pn-line text-center`}>
+                  <BookOpen className="mx-auto text-pn-muted mb-4" size={48} />
+                  <p className={`text-pn-ink text-lg font-semibold mb-2`}>No hay módulos en este curso</p>
+                  <p className="text-pn-muted mb-4">Comienza creando el primer módulo del curso</p>
                   <button
                     onClick={() => setModalModulo(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center gap-2"
+                    className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-6 py-2 rounded-lg inline-flex items-center gap-2"
                   >
                     <Plus size={18} />
                     Crear Primer Módulo
@@ -402,10 +397,10 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
         {/* Modal Crear/Editar Módulo */}
         {modalModulo && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div role="dialog" aria-modal="true" aria-label="{moduloEditando ? 'Editar Módulo' : 'Nuevo Módulo'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className={`text-2xl font-bold ${text}`}>
+                  <h2 className={`text-2xl font-bold text-pn-ink`}>
                     {moduloEditando ? 'Editar Módulo' : 'Nuevo Módulo'}
                   </h2>
                   <button
@@ -414,7 +409,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       setModuloEditando(null);
                       setNuevoModulo({ titulo: '', descripcion: '', orden: 1 });
                     }}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-pn-muted hover:text-pn-ink-2"
                   >
                     <X size={24} />
                   </button>
@@ -422,33 +417,33 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                 <div className="space-y-4">
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Título del Módulo *
                     </label>
                     <input
                       type="text"
                       value={nuevoModulo.titulo}
                       onChange={(e) => setNuevoModulo({ ...nuevoModulo, titulo: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                       placeholder="Ej: Introducción a React"
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Descripción *
                     </label>
                     <textarea
                       value={nuevoModulo.descripcion}
                       onChange={(e) => setNuevoModulo({ ...nuevoModulo, descripcion: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                       rows={3}
                       placeholder="Describe el contenido y objetivos de este módulo..."
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Orden
                     </label>
                     <input
@@ -456,7 +451,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       min="1"
                       value={nuevoModulo.orden}
                       onChange={(e) => setNuevoModulo({ ...nuevoModulo, orden: parseInt(e.target.value) || 1 })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                     />
                   </div>
                 </div>
@@ -468,13 +463,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       setModuloEditando(null);
                       setNuevoModulo({ titulo: '', descripcion: '', orden: 1 });
                     }}
-                    className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                    className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleCrearModulo}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                    className="bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink px-6 py-2 rounded-lg"
                   >
                     {moduloEditando ? 'Actualizar' : 'Crear Módulo'}
                   </button>
@@ -487,10 +482,10 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
         {/* Modal Crear/Editar Tema */}
         {modalTema && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`${card} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div role="dialog" aria-modal="true" aria-label="{temaEditando ? 'Editar Tema' : 'Nuevo Tema'}" className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className={`text-2xl font-bold ${text}`}>
+                  <h2 className={`text-2xl font-bold text-pn-ink`}>
                     {temaEditando ? 'Editar Tema' : 'Nuevo Tema'}
                   </h2>
                   <button
@@ -500,7 +495,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       setNuevoTema({ titulo: '', tipo: 'teoria', duracion: '', descripcion: '' });
                       setModuloActual(null);
                     }}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-pn-muted hover:text-pn-ink-2"
                   >
                     <X size={24} />
                   </button>
@@ -508,20 +503,20 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
 
                 <div className="space-y-4">
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Título del Tema *
                     </label>
                     <input
                       type="text"
                       value={nuevoTema.titulo}
                       onChange={(e) => setNuevoTema({ ...nuevoTema, titulo: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                       placeholder="Ej: Componentes y Props"
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Tipo de Tema *
                     </label>
                     <div className="flex gap-4">
@@ -534,7 +529,7 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                           onChange={(e) => setNuevoTema({ ...nuevoTema, tipo: e.target.value as 'teoria' | 'practica' })}
                           className="w-4 h-4"
                         />
-                        <span className={text}>📚 Teoría</span>
+                        <span className="text-pn-ink">📚 Teoría</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -545,32 +540,32 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                           onChange={(e) => setNuevoTema({ ...nuevoTema, tipo: e.target.value as 'teoria' | 'practica' })}
                           className="w-4 h-4"
                         />
-                        <span className={text}>💻 Práctica</span>
+                        <span className="text-pn-ink">💻 Práctica</span>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Duración Estimada *
                     </label>
                     <input
                       type="text"
                       value={nuevoTema.duracion}
                       onChange={(e) => setNuevoTema({ ...nuevoTema, duracion: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                       placeholder="Ej: 45 min, 1 hora, 2 horas"
                     />
                   </div>
 
                   <div>
-                    <label className={`block text-sm font-medium ${text} mb-2`}>
+                    <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                       Descripción (opcional)
                     </label>
                     <textarea
                       value={nuevoTema.descripcion}
                       onChange={(e) => setNuevoTema({ ...nuevoTema, descripcion: e.target.value })}
-                      className={`w-full px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                      className={`w-full px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
                       rows={3}
                       placeholder="Describe los objetivos y contenido de este tema..."
                     />
@@ -585,13 +580,13 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
                       setNuevoTema({ titulo: '', tipo: 'teoria', duracion: '', descripcion: '' });
                       setModuloActual(null);
                     }}
-                    className={`px-6 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                    className={`px-6 py-2 rounded-lg bg-pn-surface-3 hover:bg-pn-line`}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleCrearTema}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg"
+                    className="bg-pn-ok hover:bg-pn-ok text-pn-surface px-6 py-2 rounded-lg"
                   >
                     {temaEditando ? 'Actualizar' : 'Crear Tema'}
                   </button>
@@ -608,10 +603,6 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
             isOpen={!!modalMateriales}
             onClose={() => setModalMateriales(null)}
             courseId={courseId}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
           />
         )}
       </div>
@@ -622,45 +613,45 @@ export const CursosSection: React.FC<CursosSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Mis Cursos</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Mis Cursos</h2>
       </div>
 
       {/* Contexto académico de cada grupo: asignatura, periodo y de qué
           programas vienen sus alumnos. Autónomo: trae sus propios datos. */}
-      <MisGruposPanel darkMode={darkMode} />
+      <MisGruposPanel />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cursos.map((curso) => (
           <div
             key={curso.id}
-            className={`${card} rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer`}
-            onClick={() => setCursoDetalle(curso)}
+            className={`bg-pn-surface rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer`}
+            {...pulsable(() => setCursoDetalle(curso))}
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className={`text-xl font-bold ${text}`}>{curso.nombre}</h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{curso.codigo}</p>
+                <h3 className={`text-xl font-bold text-pn-ink`}>{curso.nombre}</h3>
+                <p className={`text-sm text-pn-ink-2`}>{curso.codigo}</p>
               </div>
               <div className={`${curso.color} w-4 h-4 rounded-full`}></div>
             </div>
 
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Estudiantes</span>
-                <span className={`font-semibold ${text}`}>{curso.estudiantes}</span>
+                <span className={'text-pn-ink-2'}>Estudiantes</span>
+                <span className={`font-semibold text-pn-ink`}>{curso.estudiantes}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Por revisar</span>
-                <span className="font-semibold text-orange-500">{curso.tareasPendientesRevision}</span>
+                <span className={'text-pn-ink-2'}>Por revisar</span>
+                <span className="font-semibold text-pn-warn">{curso.tareasPendientesRevision}</span>
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Progreso</span>
-                  <span className={`font-semibold ${text}`}>{curso.progresoGeneral}%</span>
+                  <span className={'text-pn-ink-2'}>Progreso</span>
+                  <span className={`font-semibold text-pn-ink`}>{curso.progresoGeneral}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-pn-surface-3 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    className="bg-pn-accent h-2 rounded-full transition-all"
                     style={{ width: `${curso.progresoGeneral}%` }}
                   ></div>
                 </div>

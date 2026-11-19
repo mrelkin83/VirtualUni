@@ -120,7 +120,7 @@ export function AnalyticsSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pn-accent-line"></div>
       </div>
     );
   }
@@ -130,14 +130,14 @@ export function AnalyticsSection() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-          <p className="text-gray-600">Vista general de estadísticas y métricas</p>
+          <h2 className="text-2xl font-bold text-pn-ink">Analytics Dashboard</h2>
+          <p className="text-pn-ink-2">Vista general de estadísticas y métricas</p>
         </div>
         <div className="flex gap-3">
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
           >
             <option value="3">Últimos 3 meses</option>
             <option value="6">Últimos 6 meses</option>
@@ -145,21 +145,21 @@ export function AnalyticsSection() {
           </select>
           <button
             onClick={downloadExcelReport}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-pn-ok text-pn-surface rounded-lg hover:bg-pn-ok transition-colors"
           >
             <FileDown className="w-4 h-4" />
             Excel
           </button>
           <button
             onClick={downloadPDFReport}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-pn-danger text-pn-surface rounded-lg hover:bg-pn-danger transition-colors"
           >
             <FileDown className="w-4 h-4" />
             PDF
           </button>
           <button
             onClick={downloadReport}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition-colors"
           >
             <Download className="w-4 h-4" />
             JSON
@@ -215,15 +215,15 @@ export function AnalyticsSection() {
 
       {/* Student Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-pn-surface rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
+              <Users className="w-5 h-5 text-pn-accent-text" />
               <h3 className="text-lg font-semibold">Analíticas de Estudiantes</h3>
             </div>
             <button
               onClick={downloadStudentExcel}
-              className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 bg-pn-accent text-pn-accent-ink text-xs rounded hover:bg-pn-accent-hover transition-colors"
             >
               <FileDown className="w-3 h-3" />
               Excel
@@ -246,9 +246,9 @@ export function AnalyticsSection() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-pn-surface rounded-lg shadow p-6">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-purple-600" />
+            <BookOpen className="w-5 h-5 text-pn-accent-2-text" />
             <h3 className="text-lg font-semibold">Analíticas de Cursos</h3>
           </div>
           <div className="space-y-3">
@@ -267,8 +267,8 @@ export function AnalyticsSection() {
             />
             <div className="pt-2 border-t">
               <div className="flex justify-between text-sm">
-                <span className="text-green-600">● Activos: {courseAnalytics?.coursesByStatus?.active || 0}</span>
-                <span className="text-gray-400">● Inactivos: {courseAnalytics?.coursesByStatus?.inactive || 0}</span>
+                <span className="text-pn-ok">● Activos: {courseAnalytics?.coursesByStatus?.active || 0}</span>
+                <span className="text-pn-muted">● Inactivos: {courseAnalytics?.coursesByStatus?.inactive || 0}</span>
               </div>
             </div>
           </div>
@@ -276,61 +276,61 @@ export function AnalyticsSection() {
       </div>
 
       {/* Assignment Analytics */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-pn-surface rounded-lg shadow p-6">
         <div className="flex items-center gap-2 mb-4">
-          <FileText className="w-5 h-5 text-orange-600" />
+          <FileText className="w-5 h-5 text-pn-warn" />
           <h3 className="text-lg font-semibold">Analíticas de Tareas</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-3xl font-bold text-gray-900">{assignmentAnalytics?.totalAssignments || 0}</p>
-            <p className="text-sm text-gray-600">Total Tareas</p>
+            <p className="text-3xl font-bold text-pn-ink">{assignmentAnalytics?.totalAssignments || 0}</p>
+            <p className="text-sm text-pn-ink-2">Total Tareas</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-blue-600">{assignmentAnalytics?.totalSubmissions || 0}</p>
-            <p className="text-sm text-gray-600">Entregas</p>
+            <p className="text-3xl font-bold text-pn-accent-text">{assignmentAnalytics?.totalSubmissions || 0}</p>
+            <p className="text-sm text-pn-ink-2">Entregas</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">{assignmentAnalytics?.gradedSubmissions || 0}</p>
-            <p className="text-sm text-gray-600">Calificadas</p>
+            <p className="text-3xl font-bold text-pn-ok">{assignmentAnalytics?.gradedSubmissions || 0}</p>
+            <p className="text-sm text-pn-ink-2">Calificadas</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-orange-600">{assignmentAnalytics?.pendingGrading || 0}</p>
-            <p className="text-sm text-gray-600">Pendientes</p>
+            <p className="text-3xl font-bold text-pn-warn">{assignmentAnalytics?.pendingGrading || 0}</p>
+            <p className="text-sm text-pn-ink-2">Pendientes</p>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t">
           <div className="flex gap-6">
             <div>
-              <span className="text-sm text-gray-600">Tasa de Entrega:</span>
-              <span className="ml-2 font-semibold text-blue-600">{assignmentAnalytics?.submissionRate || 0}%</span>
+              <span className="text-sm text-pn-ink-2">Tasa de Entrega:</span>
+              <span className="ml-2 font-semibold text-pn-accent-text">{assignmentAnalytics?.submissionRate || 0}%</span>
             </div>
             <div>
-              <span className="text-sm text-gray-600">Progreso de Calificación:</span>
-              <span className="ml-2 font-semibold text-green-600">{assignmentAnalytics?.gradingProgress || 0}%</span>
+              <span className="text-sm text-pn-ink-2">Progreso de Calificación:</span>
+              <span className="ml-2 font-semibold text-pn-ok">{assignmentAnalytics?.gradingProgress || 0}%</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Financial Analytics */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-pn-surface rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-green-600" />
+            <DollarSign className="w-5 h-5 text-pn-ok" />
             <h3 className="text-lg font-semibold">Analíticas Financieras</h3>
           </div>
           <div className="flex gap-2">
             <button
               onClick={downloadFinancialExcel}
-              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-pn-ok text-pn-surface text-sm rounded-lg hover:bg-pn-ok transition-colors"
             >
               <FileDown className="w-4 h-4" />
               Excel
             </button>
             <button
               onClick={downloadFinancialPDF}
-              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-pn-ok text-pn-surface text-sm rounded-lg hover:bg-pn-ok transition-colors"
             >
               <FileDown className="w-4 h-4" />
               PDF
@@ -339,55 +339,55 @@ export function AnalyticsSection() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-sm text-gray-600">Ingresos</p>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-sm text-pn-ink-2">Ingresos</p>
+            <p className="text-2xl font-bold text-pn-ok">
               ${financialAnalytics?.income?.toLocaleString() || 0}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Egresos</p>
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-sm text-pn-ink-2">Egresos</p>
+            <p className="text-2xl font-bold text-pn-danger">
               ${financialAnalytics?.expenses?.toLocaleString() || 0}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Balance</p>
-            <p className={`text-2xl font-bold ${(financialAnalytics?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className="text-sm text-pn-ink-2">Balance</p>
+            <p className={`text-2xl font-bold ${(financialAnalytics?.balance || 0) >= 0 ? 'text-pn-ok' : 'text-pn-danger'}`}>
               ${financialAnalytics?.balance?.toLocaleString() || 0}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Total Transacciones</p>
-            <p className="text-2xl font-bold text-gray-900">{financialAnalytics?.totalTransactions || 0}</p>
+            <p className="text-sm text-pn-ink-2">Total Transacciones</p>
+            <p className="text-2xl font-bold text-pn-ink">{financialAnalytics?.totalTransactions || 0}</p>
           </div>
         </div>
       </div>
 
       {/* Monthly Trends */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-pn-surface rounded-lg shadow p-6">
         <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-blue-600" />
+          <BarChart3 className="w-5 h-5 text-pn-accent-text" />
           <h3 className="text-lg font-semibold">Tendencias Mensuales</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-pn-line">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mes</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estudiantes</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inscripciones</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ingresos</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Egresos</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-pn-muted uppercase">Mes</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-pn-muted uppercase">Estudiantes</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-pn-muted uppercase">Inscripciones</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-pn-muted uppercase">Ingresos</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-pn-muted uppercase">Egresos</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-pn-line">
               {monthlyTrends && Object.entries(monthlyTrends).map(([month, data]: [string, any]) => (
-                <tr key={month} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{month}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{data.students || 0}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{data.enrollments || 0}</td>
-                  <td className="px-4 py-3 text-sm text-green-600">${(data.income || 0).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-sm text-red-600">${(data.expenses || 0).toLocaleString()}</td>
+                <tr key={month} className="hover:bg-pn-surface-2">
+                  <td className="px-4 py-3 text-sm font-medium text-pn-ink">{month}</td>
+                  <td className="px-4 py-3 text-sm text-pn-ink-2">{data.students || 0}</td>
+                  <td className="px-4 py-3 text-sm text-pn-ink-2">{data.enrollments || 0}</td>
+                  <td className="px-4 py-3 text-sm text-pn-ok">${(data.income || 0).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-pn-danger">${(data.expenses || 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -401,17 +401,17 @@ export function AnalyticsSection() {
 // Componente de tarjeta de estadística
 function StatCard({ title, value, change, trending, icon: Icon, color }: any) {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
+    blue: 'bg-pn-accent-soft text-pn-accent-text',
+    green: 'bg-pn-ok-soft text-pn-ok',
+    purple: 'bg-pn-accent-2-soft text-pn-accent-2-text',
+    orange: 'bg-pn-warn-soft text-pn-warn',
   };
 
   const TrendIcon = trending === 'up' ? TrendingUp : TrendingDown;
-  const trendColor = trending === 'up' ? 'text-green-600' : 'text-red-600';
+  const trendColor = trending === 'up' ? 'text-pn-ok' : 'text-pn-danger';
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-pn-surface rounded-lg shadow p-6">
       <div className="flex items-center justify-between">
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-6 h-6" />
@@ -422,8 +422,8 @@ function StatCard({ title, value, change, trending, icon: Icon, color }: any) {
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-600 mt-1">{title}</p>
+        <p className="text-2xl font-bold text-pn-ink">{value}</p>
+        <p className="text-sm text-pn-ink-2 mt-1">{title}</p>
       </div>
     </div>
   );
@@ -433,8 +433,8 @@ function StatCard({ title, value, change, trending, icon: Icon, color }: any) {
 function MetricRow({ label, value, suffix = '' }: any) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-sm text-gray-600">{label}</span>
-      <span className="font-semibold text-gray-900">{value}{suffix}</span>
+      <span className="text-sm text-pn-ink-2">{label}</span>
+      <span className="font-semibold text-pn-ink">{value}{suffix}</span>
     </div>
   );
 }

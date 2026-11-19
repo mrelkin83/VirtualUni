@@ -161,14 +161,14 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
         aria-modal="true"
         aria-labelledby="titulo-plantilla-carnet"
         tabIndex={-1}
-        className="bg-white rounded-lg shadow-xl max-w-5xl w-full my-8"
+        className="bg-pn-surface rounded-lg shadow-xl max-w-5xl w-full my-8"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 id="titulo-plantilla-carnet" className="text-2xl font-bold text-gray-900">
+        <div className="flex items-center justify-between p-6 border-b border-pn-line">
+          <h3 id="titulo-plantilla-carnet" className="text-2xl font-bold text-pn-ink">
             {templateToEdit ? 'Editar Plantilla' : 'Nueva Plantilla de Carnet'}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+          <button onClick={onClose} className="text-pn-muted hover:text-pn-ink-2 transition">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -177,14 +177,14 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
         <div className="p-6 space-y-6">
           {/* Error/Success Messages */}
           {error && (
-            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="flex items-center gap-3 p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-pn-danger">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            <div className="flex items-center gap-3 p-4 bg-pn-ok-soft border border-pn-ok rounded-lg text-pn-ok">
               <CheckCircle className="w-5 h-5 flex-shrink-0" />
               <span>¡Plantilla guardada exitosamente!</span>
             </div>
@@ -192,32 +192,32 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
           {/* Step Indicator */}
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-pn-accent-text' : 'text-pn-muted'}`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
+                  step >= 1 ? 'border-pn-accent-line bg-pn-accent-soft' : 'border-pn-line'
                 }`}
               >
                 <Settings className="w-4 h-4" />
               </div>
               <span className="font-medium">Información</span>
             </div>
-            <div className="w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className="w-12 h-0.5 bg-pn-surface-3"></div>
+            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-pn-accent-text' : 'text-pn-muted'}`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
+                  step >= 2 ? 'border-pn-accent-line bg-pn-accent-soft' : 'border-pn-line'
                 }`}
               >
                 <Layout className="w-4 h-4" />
               </div>
               <span className="font-medium">Dimensiones</span>
             </div>
-            <div className="w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className="w-12 h-0.5 bg-pn-surface-3"></div>
+            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-pn-accent-text' : 'text-pn-muted'}`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  step >= 3 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
+                  step >= 3 ? 'border-pn-accent-line bg-pn-accent-soft' : 'border-pn-line'
                 }`}
               >
                 <Palette className="w-4 h-4" />
@@ -230,7 +230,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                   Nombre de la Plantilla *
                 </label>
                 <input
@@ -238,23 +238,23 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   placeholder="Ej: Carnet Estudiantil 2024"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <label className="block text-sm font-medium text-pn-ink-2 mb-2">Descripción</label>
                 <textarea
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   placeholder="Describe esta plantilla..."
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                   Tipos de Usuario *
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -263,8 +263,8 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                       key={tipo}
                       className={`flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition ${
                         tiposUsuario.includes(tipo)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-pn-accent-line bg-pn-accent-soft'
+                          : 'border-pn-line hover:border-pn-line-strong'
                       }`}
                     >
                       <input
@@ -280,7 +280,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
                     checked={esActiva}
@@ -290,7 +290,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   <span className="text-sm font-medium">Plantilla activa</span>
                 </label>
 
-                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
                     checked={esPredeterminada}
@@ -307,13 +307,13 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Orientación</label>
+                <label className="block text-sm font-medium text-pn-ink-2 mb-2">Orientación</label>
                 <div className="grid grid-cols-2 gap-3">
                   <label
                     className={`flex items-center justify-center gap-2 p-4 border-2 rounded-lg cursor-pointer transition ${
                       orientacion === 'horizontal'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-pn-accent-line bg-pn-accent-soft'
+                        : 'border-pn-line hover:border-pn-line-strong'
                     }`}
                   >
                     <input
@@ -330,8 +330,8 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   <label
                     className={`flex items-center justify-center gap-2 p-4 border-2 rounded-lg cursor-pointer transition ${
                       orientacion === 'vertical'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-pn-accent-line bg-pn-accent-soft'
+                        : 'border-pn-line hover:border-pn-line-strong'
                     }`}
                   >
                     <input
@@ -348,10 +348,10 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                   Tamaño Estándar
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(STANDARD_SIZES).map(([key, size]) => (
                     <button
                       key={key}
@@ -361,11 +361,11 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                           setAlto(size.alto);
                         }
                       }}
-                      className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+                      className="p-3 border border-pn-line rounded-lg hover:bg-pn-surface-2 transition text-sm"
                     >
                       <div className="font-medium">{size.name}</div>
                       {key !== 'custom' && (
-                        <div className="text-xs text-gray-600 mt-1">
+                        <div className="text-xs text-pn-ink-2 mt-1">
                           {size.ancho} x {size.alto} mm
                         </div>
                       )}
@@ -376,7 +376,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                     Ancho (mm)
                   </label>
                   <input
@@ -384,24 +384,24 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                     value={ancho}
                     onChange={(e) => setAncho(Number(e.target.value))}
                     step="0.1"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Alto (mm)</label>
+                  <label className="block text-sm font-medium text-pn-ink-2 mb-2">Alto (mm)</label>
                   <input
                     type="number"
                     value={alto}
                     onChange={(e) => setAlto(Number(e.target.value))}
                     step="0.1"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:border-transparent"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
                     checked={doblesCara}
@@ -411,7 +411,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   <span className="text-sm font-medium">Doble cara</span>
                 </label>
 
-                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
                     checked={incluirQR}
@@ -421,7 +421,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   <span className="text-sm font-medium">Incluir QR</span>
                 </label>
 
-                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 p-3 border border-pn-line rounded-lg cursor-pointer hover:bg-pn-surface-2">
                   <input
                     type="checkbox"
                     checked={incluirCodigoBarras}
@@ -438,10 +438,10 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Colores</h4>
-                <div className="grid grid-cols-3 gap-4">
+                <h4 className="font-semibold text-pn-ink mb-3">Colores</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Color Primario
                     </label>
                     <div className="flex gap-2">
@@ -449,19 +449,19 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                         type="color"
                         value={colorPrimario}
                         onChange={(e) => setColorPrimario(e.target.value)}
-                        className="w-12 h-10 rounded border border-gray-300"
+                        className="w-12 h-10 rounded border border-pn-line"
                       />
                       <input
                         type="text"
                         value={colorPrimario}
                         onChange={(e) => setColorPrimario(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                        className="flex-1 px-3 py-2 border border-pn-line rounded-lg"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Color Secundario
                     </label>
                     <div className="flex gap-2">
@@ -469,19 +469,19 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                         type="color"
                         value={colorSecundario}
                         onChange={(e) => setColorSecundario(e.target.value)}
-                        className="w-12 h-10 rounded border border-gray-300"
+                        className="w-12 h-10 rounded border border-pn-line"
                       />
                       <input
                         type="text"
                         value={colorSecundario}
                         onChange={(e) => setColorSecundario(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                        className="flex-1 px-3 py-2 border border-pn-line rounded-lg"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Color de Texto
                     </label>
                     <div className="flex gap-2">
@@ -489,13 +489,13 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                         type="color"
                         value={colorTexto}
                         onChange={(e) => setColorTexto(e.target.value)}
-                        className="w-12 h-10 rounded border border-gray-300"
+                        className="w-12 h-10 rounded border border-pn-line"
                       />
                       <input
                         type="text"
                         value={colorTexto}
                         onChange={(e) => setColorTexto(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                        className="flex-1 px-3 py-2 border border-pn-line rounded-lg"
                       />
                     </div>
                   </div>
@@ -503,16 +503,16 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Fuentes</h4>
+                <h4 className="font-semibold text-pn-ink mb-3">Fuentes</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Fuente Principal
                     </label>
                     <select
                       value={fuentePrincipal}
                       onChange={(e) => setFuentePrincipal(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="Arial">Arial</option>
                       <option value="Helvetica">Helvetica</option>
@@ -523,13 +523,13 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       Fuente Secundaria
                     </label>
                     <select
                       value={fuenteSecundaria}
                       onChange={(e) => setFuenteSecundaria(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     >
                       <option value="Arial">Arial</option>
                       <option value="Helvetica">Helvetica</option>
@@ -542,10 +542,10 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Recursos (URLs)</h4>
+                <h4 className="font-semibold text-pn-ink mb-3">Recursos (URLs)</h4>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       URL del Logo
                     </label>
                     <input
@@ -553,12 +553,12 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
                       placeholder="https://ejemplo.com/logo.png"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                       URL Fondo Frontal
                     </label>
                     <input
@@ -566,13 +566,13 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                       value={fondoFrontalUrl}
                       onChange={(e) => setFondoFrontalUrl(e.target.value)}
                       placeholder="https://ejemplo.com/fondo-frontal.png"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                     />
                   </div>
 
                   {doblesCara && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-pn-ink-2 mb-2">
                         URL Fondo Posterior
                       </label>
                       <input
@@ -580,7 +580,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                         value={fondoPosteriorUrl}
                         onChange={(e) => setFondoPosteriorUrl(e.target.value)}
                         placeholder="https://ejemplo.com/fondo-posterior.png"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent"
                       />
                     </div>
                   )}
@@ -588,8 +588,8 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               </div>
 
               {/* Preview */}
-              <div className="bg-gray-100 rounded-lg p-6">
-                <h4 className="font-semibold text-gray-900 mb-3">Vista Previa</h4>
+              <div className="bg-pn-surface-3 rounded-lg p-6">
+                <h4 className="font-semibold text-pn-ink mb-3">Vista Previa</h4>
                 <div
                   className="mx-auto rounded-lg overflow-hidden shadow-lg"
                   style={{
@@ -621,11 +621,11 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-t border-pn-line bg-pn-surface-2">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 transition disabled:opacity-50"
+            className="px-4 py-2 text-pn-ink-2 hover:text-pn-ink transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -635,7 +635,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               <button
                 onClick={() => setStep(step - 1)}
                 disabled={loading}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                className="px-4 py-2 border border-pn-line text-pn-ink-2 rounded-lg hover:bg-pn-surface-2 transition disabled:opacity-50"
               >
                 Anterior
               </button>
@@ -645,7 +645,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={!nombre.trim() || tiposUsuario.length === 0}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Siguiente
               </button>
@@ -653,7 +653,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={loading || !nombre.trim() || tiposUsuario.length === 0}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2 bg-pn-ok text-pn-surface rounded-lg hover:bg-pn-ok transition disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
                   <>

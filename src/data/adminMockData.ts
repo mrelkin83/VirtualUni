@@ -318,7 +318,7 @@ export const roles: Role[] = [
     descripcion: 'Acceso total al sistema',
     permisos: [],
     usuariosAsignados: 3,
-    color: 'bg-red-500'
+    color: 'bg-pn-danger'
   },
   {
     id: 2,
@@ -326,7 +326,7 @@ export const roles: Role[] = [
     descripcion: 'Gestión de cursos y estudiantes',
     permisos: [],
     usuariosAsignados: 25,
-    color: 'bg-blue-500'
+    color: 'bg-pn-accent'
   },
   {
     id: 3,
@@ -334,7 +334,7 @@ export const roles: Role[] = [
     descripcion: 'Acceso a cursos y recursos',
     permisos: [],
     usuariosAsignados: 350,
-    color: 'bg-green-500'
+    color: 'bg-pn-ok'
   },
   {
     id: 4,
@@ -342,7 +342,7 @@ export const roles: Role[] = [
     descripcion: 'Supervisión de programas académicos',
     permisos: [],
     usuariosAsignados: 8,
-    color: 'bg-purple-500'
+    color: 'bg-pn-accent-2'
   }
 ];
 

@@ -6,10 +6,6 @@ import { Certificate, CertificateRequest } from '../../../types/student.types';
 interface CertificadosSectionProps {
   certificadosDisponibles: Certificate[];
   solicitudes: CertificateRequest[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   solicitarCertificado: (certificadoId: string | number, observaciones: string) => void;
   descargarCertificado: (solicitudId: string | number) => void;
 }
@@ -17,51 +13,47 @@ interface CertificadosSectionProps {
 // Componente de tarjeta de certificado disponible
 const CertificateCard: React.FC<{
   certificado: Certificate;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   onSolicitar: () => void;
-}> = ({ certificado, darkMode, card, text, border, onSolicitar }) => {
+}> = ({ certificado, onSolicitar }) => {
   const getEstadoColor = () => {
     switch (certificado.estado) {
       case 'disponible':
-        return 'text-green-500';
+        return 'text-pn-ok';
       case 'en_proceso':
-        return 'text-orange-500';
+        return 'text-pn-warn';
       case 'rechazado':
-        return 'text-red-500';
+        return 'text-pn-danger';
       default:
-        return 'text-gray-500';
+        return 'text-pn-muted';
     }
   };
 
 
   return (
-    <div className={`${card} rounded-lg shadow p-6 border ${border} hover:shadow-lg transition`}>
+    <div className={`bg-pn-surface rounded-lg shadow p-6 border border-pn-line hover:shadow-lg transition`}>
       <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-lg ${darkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
-          <FileText className="text-blue-500" size={32} />
+        <div className={`p-3 rounded-lg bg-pn-accent-soft`}>
+          <FileText className="text-pn-accent-text" size={32} />
         </div>
         <div className="flex-1">
-          <h3 className={`text-lg font-bold ${text} mb-2`}>{certificado.tipo}</h3>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
+          <h3 className={`text-lg font-bold text-pn-ink mb-2`}>{certificado.tipo}</h3>
+          <p className={`text-sm text-pn-ink-2 mb-3`}>
             {certificado.descripcion}
           </p>
 
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 text-sm">
-              <DollarSign size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
-              <span className={text}>{formatearCop(certificado.costo, { gratisSiCero: true })}</span>
+              <DollarSign size={16} className={'text-pn-ink-2'} />
+              <span className="text-pn-ink">{formatearCop(certificado.costo, { gratisSiCero: true })}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
-              <span className={text}>{certificado.tiempoEstimado}</span>
+              <Clock size={16} className={'text-pn-ink-2'} />
+              <span className="text-pn-ink">{certificado.tiempoEstimado}</span>
             </div>
             {certificado.requiereAprobacion && (
               <div className="flex items-center gap-2 text-sm">
-                <AlertCircle size={16} className="text-orange-500" />
-                <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Requiere aprobación</span>
+                <AlertCircle size={16} className="text-pn-warn" />
+                <span className={'text-pn-ink-2'}>Requiere aprobación</span>
               </div>
             )}
           </div>
@@ -77,8 +69,8 @@ const CertificateCard: React.FC<{
               disabled={certificado.estado !== 'disponible'}
               className={`px-4 py-2 rounded-lg transition font-semibold ${
                 certificado.estado === 'disponible'
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-pn-accent text-pn-accent-ink hover:bg-pn-accent'
+                  : 'bg-pn-surface-3 text-pn-muted cursor-not-allowed'
               }`}
             >
               Solicitar
@@ -93,37 +85,33 @@ const CertificateCard: React.FC<{
 // Componente de tarjeta de solicitud
 const RequestCard: React.FC<{
   solicitud: CertificateRequest;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   onDescargar?: () => void;
   onVerDetalle: () => void;
-}> = ({ solicitud, darkMode, card, text, border, onDescargar, onVerDetalle }) => {
+}> = ({ solicitud, onDescargar, onVerDetalle }) => {
   const getEstadoConfig = () => {
     const configs = {
       pendiente: {
-        color: 'border-orange-500 bg-orange-50 dark:bg-orange-900/10',
-        icon: <Clock className="text-orange-500" size={24} />,
-        badge: 'bg-orange-100 text-orange-700',
+        color: 'border-pn-warn bg-pn-warn-soft',
+        icon: <Clock className="text-pn-warn" size={24} />,
+        badge: 'bg-pn-warn-soft text-pn-warn',
         text: 'Pendiente'
       },
       aprobado: {
-        color: 'border-green-500 bg-green-50 dark:bg-green-900/10',
-        icon: <CheckCircle className="text-green-500" size={24} />,
-        badge: 'bg-green-100 text-green-700',
+        color: 'border-pn-ok bg-pn-ok-soft',
+        icon: <CheckCircle className="text-pn-ok" size={24} />,
+        badge: 'bg-pn-ok-soft text-pn-ok',
         text: 'Aprobado'
       },
       rechazado: {
-        color: 'border-red-500 bg-red-50 dark:bg-red-900/10',
-        icon: <XCircle className="text-red-500" size={24} />,
-        badge: 'bg-red-100 text-red-700',
+        color: 'border-pn-danger bg-pn-danger-soft',
+        icon: <XCircle className="text-pn-danger" size={24} />,
+        badge: 'bg-pn-danger-soft text-pn-danger',
         text: 'Rechazado'
       },
       completado: {
-        color: 'border-blue-500 bg-blue-50 dark:bg-blue-900/10',
-        icon: <CheckCircle className="text-blue-500" size={24} />,
-        badge: 'bg-blue-100 text-blue-700',
+        color: 'border-pn-accent-line bg-pn-accent-soft',
+        icon: <CheckCircle className="text-pn-accent-text" size={24} />,
+        badge: 'bg-pn-accent-soft text-pn-accent-text',
         text: 'Completado'
       }
     };
@@ -133,24 +121,24 @@ const RequestCard: React.FC<{
   const config = getEstadoConfig();
 
   return (
-    <div className={`${card} rounded-lg shadow p-4 border-l-4 ${config.color}`}>
+    <div className={`bg-pn-surface rounded-lg shadow p-4 border-l-4 ${config.color}`}>
       <div className="flex items-start gap-4">
         {config.icon}
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
-            <h4 className={`font-bold ${text}`}>{solicitud.tipoCertificado}</h4>
+            <h4 className={`font-bold text-pn-ink`}>{solicitud.tipoCertificado}</h4>
             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${config.badge}`}>
               {config.text}
             </span>
           </div>
 
           {solicitud.observaciones && (
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
+            <p className={`text-sm text-pn-ink-2 mb-3`}>
               {solicitud.observaciones}
             </p>
           )}
 
-          <div className={`flex flex-wrap gap-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
+          <div className={`flex flex-wrap gap-4 text-sm text-pn-ink-2 mb-3`}>
             <span>Solicitado: {new Date(solicitud.fechaSolicitud).toLocaleDateString()}</span>
             {solicitud.fechaEstimada && (
               <span>Estimado: {new Date(solicitud.fechaEstimada).toLocaleDateString()}</span>
@@ -160,7 +148,7 @@ const RequestCard: React.FC<{
           <div className="flex gap-2">
             <button
               onClick={onVerDetalle}
-              className="text-blue-500 hover:text-blue-600 text-sm flex items-center gap-1 font-semibold"
+              className="text-pn-accent-text hover:text-pn-accent-text text-sm flex items-center gap-1 font-semibold"
             >
               <Eye size={16} />
               Ver detalle
@@ -168,7 +156,7 @@ const RequestCard: React.FC<{
             {solicitud.estado === 'completado' && solicitud.archivoUrl && onDescargar && (
               <button
                 onClick={onDescargar}
-                className="text-green-500 hover:text-green-600 text-sm flex items-center gap-1 font-semibold"
+                className="text-pn-ok hover:text-pn-ok text-sm flex items-center gap-1 font-semibold"
               >
                 <Download size={16} />
                 Descargar
@@ -185,10 +173,6 @@ const RequestCard: React.FC<{
 export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
   certificadosDisponibles,
   solicitudes,
-  darkMode,
-  card,
-  text,
-  border,
   solicitarCertificado,
   descargarCertificado
 }) => {
@@ -215,16 +199,14 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className={`text-2xl font-bold ${text}`}>Certificados y Constancias</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Certificados y Constancias</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setVistaActual('disponibles')}
             className={`px-4 py-2 rounded-lg transition ${
               vistaActual === 'disponibles'
-                ? 'bg-blue-500 text-white'
-                : darkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-pn-accent text-pn-accent-ink'
+                : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
             }`}
           >
             Disponibles
@@ -233,15 +215,13 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
             onClick={() => setVistaActual('solicitudes')}
             className={`px-4 py-2 rounded-lg transition relative ${
               vistaActual === 'solicitudes'
-                ? 'bg-blue-500 text-white'
-                : darkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-pn-accent text-pn-accent-ink'
+                : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
             }`}
           >
             Mis Solicitudes
             {stats.solicitudesPendientes > 0 && (
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-pn-warn text-pn-surface text-xs w-5 h-5 rounded-full flex items-center justify-center">
                 {stats.solicitudesPendientes}
               </span>
             )}
@@ -251,40 +231,36 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <FileText className="text-blue-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.totalDisponibles}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <FileText className="text-pn-accent-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Disponibles</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalDisponibles}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Clock className="text-orange-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pendientes</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.solicitudesPendientes}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Clock className="text-pn-warn mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Pendientes</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.solicitudesPendientes}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <CheckCircle className="text-green-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aprobadas</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.solicitudesAprobadas}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <CheckCircle className="text-pn-ok mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Aprobadas</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.solicitudesAprobadas}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Download className="text-purple-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Completadas</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.solicitudesCompletadas}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Download className="text-pn-accent-2-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Completadas</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.solicitudesCompletadas}</p>
         </div>
       </div>
 
       {/* Vista de Certificados Disponibles */}
       {vistaActual === 'disponibles' && (
         <div className="space-y-4">
-          <h3 className={`text-lg font-bold ${text}`}>Certificados Disponibles para Solicitar</h3>
+          <h3 className={`text-lg font-bold text-pn-ink`}>Certificados Disponibles para Solicitar</h3>
           {certificadosDisponibles.map(certificado => (
             <CertificateCard
               key={certificado.id}
               certificado={certificado}
-              darkMode={darkMode}
-              card={card}
-              text={text}
-              border={border}
               onSolicitar={() => setModalSolicitud(certificado)}
             />
           ))}
@@ -294,25 +270,21 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
       {/* Vista de Solicitudes */}
       {vistaActual === 'solicitudes' && (
         <div className="space-y-4">
-          <h3 className={`text-lg font-bold ${text}`}>Mis Solicitudes de Certificados</h3>
+          <h3 className={`text-lg font-bold text-pn-ink`}>Mis Solicitudes de Certificados</h3>
           {solicitudes.length > 0 ? (
             solicitudes.map(solicitud => (
               <RequestCard
                 key={solicitud.id}
                 solicitud={solicitud}
-                darkMode={darkMode}
-                card={card}
-                text={text}
-                border={border}
                 onDescargar={() => descargarCertificado(solicitud.id)}
                 onVerDetalle={() => setDetalleModal(solicitud)}
               />
             ))
           ) : (
-            <div className={`${card} rounded-lg shadow p-12 text-center border ${border}`}>
-              <FileText size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-              <p className={`${text} font-bold mb-2`}>No tienes solicitudes de certificados</p>
-              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            <div className={`bg-pn-surface rounded-lg shadow p-12 text-center border border-pn-line`}>
+              <FileText size={64} className={`mx-auto mb-4 text-pn-muted`} />
+              <p className={`text-pn-ink font-bold mb-2`}>No tienes solicitudes de certificados</p>
+              <p className={'text-pn-ink-2'}>
                 Solicita certificados desde la pestaña "Disponibles"
               </p>
             </div>
@@ -326,15 +298,15 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setModalSolicitud(null)}
         >
-          <div
-            className={`${card} rounded-lg max-w-md w-full p-6`}
+          <div role="dialog" aria-modal="true" aria-label="Solicitar certificado"
+            className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Solicitar Certificado</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Solicitar Certificado</h3>
               <button
                 onClick={() => setModalSolicitud(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X size={24} />
               </button>
@@ -342,35 +314,35 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500">Tipo de Certificado</p>
-                <p className={`font-semibold ${text}`}>{modalSolicitud.tipo}</p>
+                <p className="text-sm text-pn-muted">Tipo de Certificado</p>
+                <p className={`font-semibold text-pn-ink`}>{modalSolicitud.tipo}</p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">Descripción</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className="text-sm text-pn-muted">Descripción</p>
+                <p className={`text-sm text-pn-ink-2`}>
                   {modalSolicitud.descripcion}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Costo</p>
-                  <p className={`font-semibold ${text}`}>
+                  <p className="text-sm text-pn-muted">Costo</p>
+                  <p className={`font-semibold text-pn-ink`}>
                     {modalSolicitud.costo === 0 ? 'Gratis' : `$${modalSolicitud.costo.toLocaleString()}`}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Tiempo Estimado</p>
-                  <p className={`font-semibold ${text}`}>{modalSolicitud.tiempoEstimado}</p>
+                  <p className="text-sm text-pn-muted">Tiempo Estimado</p>
+                  <p className={`font-semibold text-pn-ink`}>{modalSolicitud.tiempoEstimado}</p>
                 </div>
               </div>
 
               {modalSolicitud.requiereAprobacion && (
-                <div className="bg-orange-50 dark:bg-orange-900/10 p-3 rounded-lg">
+                <div className="bg-pn-warn-soft p-3 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="text-orange-500" size={20} />
-                    <p className="text-sm text-orange-700 dark:text-orange-400">
+                    <AlertCircle className="text-pn-warn" size={20} />
+                    <p className="text-sm text-pn-warn">
                       Este certificado requiere aprobación institucional
                     </p>
                   </div>
@@ -378,21 +350,21 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
               )}
 
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>
                   Observaciones (opcional)
                 </label>
                 <textarea
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
                   placeholder="Indica el motivo o uso del certificado..."
-                  className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none bg-pn-surface text-pn-ink`}
                   rows={3}
                 />
               </div>
 
               <button
                 onClick={handleSolicitar}
-                className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 font-semibold"
+                className="w-full bg-pn-accent text-pn-accent-ink py-3 rounded hover:bg-pn-accent-hover font-semibold"
               >
                 Confirmar Solicitud
               </button>
@@ -407,15 +379,15 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setDetalleModal(null)}
         >
-          <div
-            className={`${card} rounded-lg max-w-md w-full p-6`}
+          <div role="dialog" aria-modal="true" aria-label="Detalle del certificado"
+            className={`bg-pn-surface rounded-lg max-w-md w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Detalle de Solicitud</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Detalle de Solicitud</h3>
               <button
                 onClick={() => setDetalleModal(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-pn-muted hover:text-pn-ink-2"
               >
                 <X size={24} />
               </button>
@@ -423,17 +395,17 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500">Tipo de Certificado</p>
-                <p className={`font-semibold ${text}`}>{detalleModal.tipoCertificado}</p>
+                <p className="text-sm text-pn-muted">Tipo de Certificado</p>
+                <p className={`font-semibold text-pn-ink`}>{detalleModal.tipoCertificado}</p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">Estado</p>
+                <p className="text-sm text-pn-muted">Estado</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                  detalleModal.estado === 'completado' ? 'bg-blue-100 text-blue-700' :
-                  detalleModal.estado === 'aprobado' ? 'bg-green-100 text-green-700' :
-                  detalleModal.estado === 'pendiente' ? 'bg-orange-100 text-orange-700' :
-                  'bg-red-100 text-red-700'
+                  detalleModal.estado === 'completado' ? 'bg-pn-accent-soft text-pn-accent-text' :
+                  detalleModal.estado === 'aprobado' ? 'bg-pn-ok-soft text-pn-ok' :
+                  detalleModal.estado === 'pendiente' ? 'bg-pn-warn-soft text-pn-warn' :
+                  'bg-pn-danger-soft text-pn-danger'
                 }`}>
                   {detalleModal.estado}
                 </span>
@@ -441,15 +413,15 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Fecha de Solicitud</p>
-                  <p className={`font-semibold ${text}`}>
+                  <p className="text-sm text-pn-muted">Fecha de Solicitud</p>
+                  <p className={`font-semibold text-pn-ink`}>
                     {new Date(detalleModal.fechaSolicitud).toLocaleDateString()}
                   </p>
                 </div>
                 {detalleModal.fechaEstimada && (
                   <div>
-                    <p className="text-sm text-gray-500">Fecha Estimada</p>
-                    <p className={`font-semibold ${text}`}>
+                    <p className="text-sm text-pn-muted">Fecha Estimada</p>
+                    <p className={`font-semibold text-pn-ink`}>
                       {new Date(detalleModal.fechaEstimada).toLocaleDateString()}
                     </p>
                   </div>
@@ -458,8 +430,8 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
 
               {detalleModal.observaciones && (
                 <div>
-                  <p className="text-sm text-gray-500">Observaciones</p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className="text-sm text-pn-muted">Observaciones</p>
+                  <p className={`text-sm text-pn-ink-2`}>
                     {detalleModal.observaciones}
                   </p>
                 </div>
@@ -468,7 +440,7 @@ export const CertificadosSection: React.FC<CertificadosSectionProps> = ({
               {detalleModal.estado === 'completado' && detalleModal.archivoUrl && (
                 <button
                   onClick={() => descargarCertificado(detalleModal.id)}
-                  className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 font-semibold flex items-center justify-center gap-2"
+                  className="w-full bg-pn-ok text-pn-surface py-3 rounded hover:bg-pn-ok font-semibold flex items-center justify-center gap-2"
                 >
                   <Download size={20} />
                   Descargar Certificado

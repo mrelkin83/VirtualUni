@@ -20,10 +20,6 @@ interface Props {
   tiempoRestante: number | null;
   finalizarExamen: () => void;
   abandonar: () => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 const formatearTiempo = (segundos: number | null): string => {
@@ -47,25 +43,21 @@ export const RendirExamenSection: React.FC<Props> = ({
   tiempoRestante,
   finalizarExamen,
   abandonar,
-  darkMode,
-  card,
-  text,
-  border,
 }) => {
   const preguntas = examen.preguntas ?? [];
   const total = preguntas.length;
 
   if (total === 0) {
     return (
-      <div className={`${card} rounded-lg shadow p-8 text-center space-y-4`}>
-        <AlertCircle className="mx-auto text-orange-500" size={40} />
-        <h2 className={`text-xl font-bold ${text}`}>{examen.titulo}</h2>
-        <p className="text-gray-500">
+      <div className={`bg-pn-surface rounded-lg shadow p-8 text-center space-y-4`}>
+        <AlertCircle className="mx-auto text-pn-warn" size={40} />
+        <h2 className={`text-xl font-bold text-pn-ink`}>{examen.titulo}</h2>
+        <p className="text-pn-muted">
           Este examen no tiene preguntas cargadas. Avisa a tu docente antes de continuar.
         </p>
         <button
           onClick={abandonar}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+          className="bg-pn-ink hover:bg-pn-ink text-pn-surface px-4 py-2 rounded-lg"
         >
           Volver a mis exámenes
         </button>
@@ -84,15 +76,15 @@ export const RendirExamenSection: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* Cabecera: examen, avance y tiempo */}
-      <div className={`${card} rounded-lg shadow p-6`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className={`text-2xl font-bold ${text}`}>{examen.titulo}</h2>
-            <p className="text-sm text-gray-500">{examen.curso}</p>
+            <h2 className={`text-2xl font-bold text-pn-ink`}>{examen.titulo}</h2>
+            <p className="text-sm text-pn-muted">{examen.curso}</p>
           </div>
           <div
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono font-bold ${
-              quedaPoco ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+              quedaPoco ? 'bg-pn-danger-soft text-pn-danger' : 'bg-pn-accent-soft text-pn-accent-text'
             }`}
           >
             <Clock size={18} />
@@ -101,13 +93,13 @@ export const RendirExamenSection: React.FC<Props> = ({
         </div>
 
         <div className="mt-4">
-          <div className="flex justify-between text-sm text-gray-500 mb-1">
+          <div className="flex justify-between text-sm text-pn-muted mb-1">
             <span>Pregunta {indice + 1} de {total}</span>
             <span>{contestadas} de {total} contestadas</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-pn-surface-3 rounded-full h-2">
             <div
-              className="h-2 rounded-full bg-blue-600 transition-all"
+              className="h-2 rounded-full bg-pn-accent transition-all"
               style={{ width: `${(contestadas / total) * 100}%` }}
             />
           </div>
@@ -115,8 +107,8 @@ export const RendirExamenSection: React.FC<Props> = ({
       </div>
 
       {/* Pregunta */}
-      <div className={`${card} rounded-lg shadow p-6 space-y-4`}>
-        <p className={`text-lg font-semibold ${text}`}>{pregunta.pregunta}</p>
+      <div className={`bg-pn-surface rounded-lg shadow p-6 space-y-4`}>
+        <p className={`text-lg font-semibold text-pn-ink`}>{pregunta.pregunta}</p>
 
         <div className="space-y-2">
           {(pregunta.opciones ?? []).map((opcion: string, i: number) => {
@@ -126,8 +118,8 @@ export const RendirExamenSection: React.FC<Props> = ({
                 key={i}
                 className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
                   elegida
-                    ? 'border-blue-600 bg-blue-50'
-                    : `${border} ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`
+                    ? 'border-pn-accent-line bg-pn-accent-soft'
+                    : `border-pn-line hover:bg-pn-surface-2`
                 }`}
               >
                 <input
@@ -137,7 +129,7 @@ export const RendirExamenSection: React.FC<Props> = ({
                   onChange={() => responder(i)}
                   className="w-4 h-4"
                 />
-                <span className={elegida ? 'text-blue-900 font-medium' : text}>{opcion}</span>
+                <span className={elegida ? 'text-pn-accent-text font-medium' : 'text-pn-ink'}>{opcion}</span>
               </label>
             );
           })}
@@ -145,11 +137,11 @@ export const RendirExamenSection: React.FC<Props> = ({
       </div>
 
       {/* Navegación */}
-      <div className={`${card} rounded-lg shadow p-4 flex flex-wrap items-center gap-3`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-4 flex flex-wrap items-center gap-3`}>
         <button
           onClick={() => setPreguntaActual(indice - 1)}
           disabled={indice === 0}
-          className="flex items-center gap-1 px-4 py-2 rounded-lg bg-gray-200 text-gray-800 disabled:opacity-40"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink disabled:opacity-40"
         >
           <ChevronLeft size={16} /> Anterior
         </button>
@@ -161,10 +153,10 @@ export const RendirExamenSection: React.FC<Props> = ({
               onClick={() => setPreguntaActual(i)}
               className={`w-8 h-8 rounded text-sm font-semibold ${
                 i === indice
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-pn-accent text-pn-accent-ink'
                   : respuestas[p.id] !== undefined
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-200 text-gray-600'
+                    ? 'bg-pn-ok-soft text-pn-ok'
+                    : 'bg-pn-surface-3 text-pn-ink-2'
               }`}
             >
               {i + 1}
@@ -175,7 +167,7 @@ export const RendirExamenSection: React.FC<Props> = ({
         <button
           onClick={() => setPreguntaActual(indice + 1)}
           disabled={indice === total - 1}
-          className="flex items-center gap-1 px-4 py-2 rounded-lg bg-gray-200 text-gray-800 disabled:opacity-40"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg bg-pn-surface-3 text-pn-ink disabled:opacity-40"
         >
           Siguiente <ChevronRight size={16} />
         </button>
@@ -183,13 +175,13 @@ export const RendirExamenSection: React.FC<Props> = ({
         <div className="ml-auto flex gap-2">
           <button
             onClick={abandonar}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100"
+            className="px-4 py-2 rounded-lg border border-pn-line text-pn-ink-2 hover:bg-pn-surface-3"
           >
             Salir sin enviar
           </button>
           <button
             onClick={finalizarExamen}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold"
+            className="flex items-center gap-2 px-5 py-2 rounded-lg bg-pn-ok hover:bg-pn-ok text-pn-surface font-semibold"
           >
             <CheckCircle size={18} /> Enviar examen
           </button>
@@ -197,7 +189,7 @@ export const RendirExamenSection: React.FC<Props> = ({
       </div>
 
       {contestadas < total && (
-        <p className="text-sm text-orange-600 flex items-center gap-2">
+        <p className="text-sm text-pn-warn flex items-center gap-2">
           <AlertCircle size={16} />
           Te quedan {total - contestadas} preguntas sin contestar.
         </p>

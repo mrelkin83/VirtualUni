@@ -1,10 +1,10 @@
 import { Course, Student, Assignment, Exam, Question, EstudianteDetalle } from '../types/teacher.types';
 
 export const cursosDocente: Course[] = [
-  { id: 1, nombre: 'Programación Avanzada', codigo: 'CS301', estudiantes: 45, tareasPendientesRevision: 12, progresoGeneral: 68, color: 'bg-blue-500' },
-  { id: 2, nombre: 'Base de Datos', codigo: 'CS302', estudiantes: 38, tareasPendientesRevision: 5, progresoGeneral: 75, color: 'bg-green-500' },
-  { id: 3, nombre: 'Inteligencia Artificial', codigo: 'CS401', estudiantes: 52, tareasPendientesRevision: 18, progresoGeneral: 55, color: 'bg-orange-500' },
-  { id: 4, nombre: 'Diseño de Interfaces', codigo: 'CS303', estudiantes: 42, tareasPendientesRevision: 10, progresoGeneral: 72, color: 'bg-purple-500' }
+  { id: 1, nombre: 'Programación Avanzada', codigo: 'CS301', estudiantes: 45, tareasPendientesRevision: 12, progresoGeneral: 68, color: 'bg-pn-accent' },
+  { id: 2, nombre: 'Base de Datos', codigo: 'CS302', estudiantes: 38, tareasPendientesRevision: 5, progresoGeneral: 75, color: 'bg-pn-ok' },
+  { id: 3, nombre: 'Inteligencia Artificial', codigo: 'CS401', estudiantes: 52, tareasPendientesRevision: 18, progresoGeneral: 55, color: 'bg-pn-warn' },
+  { id: 4, nombre: 'Diseño de Interfaces', codigo: 'CS303', estudiantes: 42, tareasPendientesRevision: 10, progresoGeneral: 72, color: 'bg-pn-accent-2' }
 ];
 
 export const estudiantesData: Student[] = [
@@ -892,7 +892,7 @@ export const gruposData = [
     progreso: 68,
     horario: 'Lun-Mié 8:00-10:00',
     aula: 'Lab 301',
-    color: 'bg-blue-500',
+    color: 'bg-pn-accent',
     proximaClase: 'Lunes 8:00 AM'
   },
   {
@@ -905,7 +905,7 @@ export const gruposData = [
     progreso: 72,
     horario: 'Lun-Mié 14:00-16:00',
     aula: 'Lab 302',
-    color: 'bg-blue-600',
+    color: 'bg-pn-accent',
     proximaClase: 'Lunes 2:00 PM'
   },
   {
@@ -918,7 +918,7 @@ export const gruposData = [
     progreso: 75,
     horario: 'Mar-Jue 9:00-11:00',
     aula: 'Aula 205',
-    color: 'bg-green-500',
+    color: 'bg-pn-ok',
     proximaClase: 'Martes 9:00 AM'
   },
   {
@@ -931,7 +931,7 @@ export const gruposData = [
     progreso: 70,
     horario: 'Mar-Jue 18:00-20:00',
     aula: 'Aula 206',
-    color: 'bg-green-600',
+    color: 'bg-pn-ok',
     proximaClase: 'Martes 6:00 PM'
   },
   {
@@ -944,7 +944,7 @@ export const gruposData = [
     progreso: 55,
     horario: 'Vie 10:00-14:00',
     aula: 'Auditorio 101',
-    color: 'bg-orange-500',
+    color: 'bg-pn-warn',
     proximaClase: 'Viernes 10:00 AM'
   },
   {
@@ -957,7 +957,7 @@ export const gruposData = [
     progreso: 72,
     horario: 'Lun-Vie 7:00-9:00',
     aula: 'Lab Diseño 1',
-    color: 'bg-purple-500',
+    color: 'bg-pn-accent-2',
     proximaClase: 'Lunes 7:00 AM'
   },
   {
@@ -970,7 +970,7 @@ export const gruposData = [
     progreso: 68,
     horario: 'Lun-Vie 15:00-17:00',
     aula: 'Lab Diseño 2',
-    color: 'bg-purple-600',
+    color: 'bg-pn-accent-2',
     proximaClase: 'Lunes 3:00 PM'
   }
 ];

@@ -13,10 +13,6 @@ import { ComunidadPost } from '../../../types/student.types';
 
 interface ComunidadSectionProps {
   posts: ComunidadPost[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   darLike: (postId: string | number) => void;
   comentar: (postId: string | number, contenido: string) => void;
   compartir: (postId: string | number) => void;
@@ -26,14 +22,10 @@ interface ComunidadSectionProps {
 // Componente de Post
 const PostCard: React.FC<{
   post: ComunidadPost;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   darLike: (id: string | number) => void;
   comentar: (id: string | number, contenido: string) => void;
   compartir: (id: string | number) => void;
-}> = ({ post, darkMode, card, text, border, darLike, comentar, compartir }) => {
+}> = ({ post, darLike, comentar, compartir }) => {
   const [mostrarComentarios, setMostrarComentarios] = useState(false);
   const [nuevoComentario, setNuevoComentario] = useState('');
 
@@ -45,24 +37,24 @@ const PostCard: React.FC<{
   };
 
   return (
-    <div className={`${card} rounded-lg shadow-md p-5 border ${border}`}>
+    <div className={`bg-pn-surface rounded-lg shadow-md p-5 border border-pn-line`}>
       {/* Header del post */}
       <div className="flex items-center gap-3 mb-4">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
-          post.esProfesor ? 'bg-gradient-to-br from-purple-500 to-purple-700' : 'bg-gradient-to-br from-blue-500 to-blue-700'
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
+          post.esProfesor ? 'bg-pn-accent-2 text-pn-accent-2-ink' : 'bg-gradient-to-br from-pn-accent to-pn-accent-hover text-pn-accent-ink'
         }`}>
           {post.avatarAutor}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h4 className={`font-bold ${text}`}>{post.autor}</h4>
+            <h4 className={`font-bold text-pn-ink`}>{post.autor}</h4>
             {post.esProfesor && (
-              <span className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-xs px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-pn-accent-2-soft text-pn-accent-2-text text-xs px-2 py-0.5 rounded-full font-medium">
                 Profesor
               </span>
             )}
           </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`text-sm text-pn-ink-2`}>
             {post.fecha}
             {post.curso && <span className="ml-2">• {post.curso}</span>}
           </div>
@@ -70,21 +62,21 @@ const PostCard: React.FC<{
       </div>
 
       {/* Contenido del post */}
-      <p className={`${text} mb-4 whitespace-pre-wrap`}>{post.contenido}</p>
+      <p className={`text-pn-ink mb-4 whitespace-pre-wrap`}>{post.contenido}</p>
 
       {/* Imágenes */}
       {post.imagenes && post.imagenes.length > 0 && (
         <div className={`grid ${post.imagenes.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2 mb-4`}>
           {post.imagenes.map((img, idx) => (
-            <div key={idx} className={`bg-gray-200 dark:bg-gray-700 rounded-lg aspect-video flex items-center justify-center`}>
-              <ImageIcon className="text-gray-400" size={48} />
+            <div key={idx} className={`bg-pn-surface-3 rounded-lg aspect-video flex items-center justify-center`}>
+              <ImageIcon className="text-pn-muted" size={48} />
             </div>
           ))}
         </div>
       )}
 
       {/* Estadísticas */}
-      <div className={`flex items-center gap-4 py-3 border-t border-b ${border} mb-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`flex items-center gap-4 py-3 border-t border-b border-pn-line mb-3 text-sm text-pn-ink-2`}>
         <span>{post.likes} me gusta</span>
         <span>{post.comentarios} comentarios</span>
         <span>{post.compartidos} compartidos</span>
@@ -95,35 +87,35 @@ const PostCard: React.FC<{
         <button
           onClick={() => darLike(post.id)}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition ${
-            darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+            'hover:bg-pn-surface-3'
           }`}
         >
-          <Heart size={20} className="text-red-500" />
-          <span className={text}>Me gusta</span>
+          <Heart size={20} className="text-pn-danger" />
+          <span className="text-pn-ink">Me gusta</span>
         </button>
         <button
           onClick={() => setMostrarComentarios(!mostrarComentarios)}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition ${
-            darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+            'hover:bg-pn-surface-3'
           }`}
         >
-          <MessageCircle size={20} className="text-blue-500" />
-          <span className={text}>Comentar</span>
+          <MessageCircle size={20} className="text-pn-accent-text" />
+          <span className="text-pn-ink">Comentar</span>
         </button>
         <button
           onClick={() => compartir(post.id)}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition ${
-            darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+            'hover:bg-pn-surface-3'
           }`}
         >
-          <Share2 size={20} className="text-green-500" />
-          <span className={text}>Compartir</span>
+          <Share2 size={20} className="text-pn-ok" />
+          <span className="text-pn-ink">Compartir</span>
         </button>
       </div>
 
       {/* Sección de comentarios */}
       {mostrarComentarios && (
-        <div className={`border-t ${border} pt-4`}>
+        <div className={`border-t border-pn-line pt-4`}>
           <div className="flex gap-2 mb-3">
             <input
               type="text"
@@ -131,18 +123,18 @@ const PostCard: React.FC<{
               value={nuevoComentario}
               onChange={(e) => setNuevoComentario(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleComentar()}
-              className={`flex-1 px-3 py-2 rounded-lg border ${border} ${
-                darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`flex-1 px-3 py-2 rounded-lg border border-pn-line ${
+                'bg-pn-surface text-pn-ink'
+              } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
             />
             <button
               onClick={handleComentar}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
+              className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg transition flex items-center gap-2"
             >
               <Send size={18} />
             </button>
           </div>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`text-sm text-pn-ink-2`}>
             {post.comentarios} comentario{post.comentarios !== 1 ? 's' : ''}
           </p>
         </div>
@@ -154,10 +146,6 @@ const PostCard: React.FC<{
 // Componente Principal
 export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
   posts,
-  darkMode,
-  card,
-  text,
-  border,
   darLike,
   comentar,
   compartir,
@@ -193,11 +181,11 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className={`text-2xl font-bold ${text}`}>Comunidad</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Comunidad</h2>
 
         <button
           onClick={() => setMostrarCrearPost(!mostrarCrearPost)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition"
+          className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition"
         >
           <PlusCircle size={20} />
           Crear publicación
@@ -206,62 +194,62 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Users className="text-blue-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Publicaciones</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.totalPosts}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Users className="text-pn-accent-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Publicaciones</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.totalPosts}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Heart className="text-red-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Me Gusta</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.likesTotales}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Heart className="text-pn-danger mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Me Gusta</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.likesTotales}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <MessageCircle className="text-green-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Comentarios</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.comentariosTotales}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <MessageCircle className="text-pn-ok mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Comentarios</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.comentariosTotales}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Award className="text-purple-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>De Profesores</p>
-          <p className={`text-2xl font-bold ${text}`}>{stats.postsProfesores}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Award className="text-pn-accent-2-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>De Profesores</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{stats.postsProfesores}</p>
         </div>
       </div>
 
       {/* Crear nueva publicación */}
       {mostrarCrearPost && (
-        <div className={`${card} rounded-lg shadow-md p-5 border ${border}`}>
-          <h3 className={`font-bold ${text} mb-3`}>Crear nueva publicación</h3>
+        <div className={`bg-pn-surface rounded-lg shadow-md p-5 border border-pn-line`}>
+          <h3 className={`font-bold text-pn-ink mb-3`}>Crear nueva publicación</h3>
           <textarea
             placeholder="¿Qué estás pensando?"
             value={nuevoPost}
             onChange={(e) => setNuevoPost(e.target.value)}
             rows={4}
-            className={`w-full px-3 py-2 rounded-lg border ${border} ${
-              darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3`}
+            className={`w-full px-3 py-2 rounded-lg border border-pn-line ${
+              'bg-pn-surface text-pn-ink'
+            } focus:outline-none focus:ring-2 focus:ring-pn-accent mb-3`}
           />
           <div className="flex items-center justify-between">
             <button
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                'hover:bg-pn-surface-3'
               }`}
             >
-              <ImageIcon size={20} className="text-blue-500" />
-              <span className={`text-sm ${text}`}>Agregar imagen</span>
+              <ImageIcon size={20} className="text-pn-accent-text" />
+              <span className={`text-sm text-pn-ink`}>Agregar imagen</span>
             </button>
             <div className="flex gap-2">
               <button
                 onClick={() => setMostrarCrearPost(false)}
                 className={`px-4 py-2 rounded-lg transition ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                  'bg-pn-surface-3 hover:bg-pn-line text-pn-ink'
                 }`}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCrearPost}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition"
+                className="bg-pn-accent hover:bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg transition"
               >
                 Publicar
               </button>
@@ -276,10 +264,8 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
           onClick={() => setFiltro('todos')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'todos'
-              ? 'bg-blue-500 text-white'
-              : darkMode
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
           }`}
         >
           Todos
@@ -288,10 +274,8 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
           onClick={() => setFiltro('estudiantes')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'estudiantes'
-              ? 'bg-blue-500 text-white'
-              : darkMode
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
           }`}
         >
           Estudiantes
@@ -300,10 +284,8 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
           onClick={() => setFiltro('profesores')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'profesores'
-              ? 'bg-blue-500 text-white'
-              : darkMode
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
           }`}
         >
           Profesores
@@ -317,10 +299,6 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
             <PostCard
               key={post.id}
               post={post}
-              darkMode={darkMode}
-              card={card}
-              text={text}
-              border={border}
               darLike={darLike}
               comentar={comentar}
               compartir={compartir}
@@ -328,10 +306,10 @@ export const ComunidadSection: React.FC<ComunidadSectionProps> = ({
           ))}
         </div>
       ) : (
-        <div className={`${card} rounded-lg shadow p-12 text-center border ${border}`}>
-          <Users size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-          <p className={`${text} font-bold mb-2`}>No hay publicaciones</p>
-          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+        <div className={`bg-pn-surface rounded-lg shadow p-12 text-center border border-pn-line`}>
+          <Users size={64} className={`mx-auto mb-4 text-pn-muted`} />
+          <p className={`text-pn-ink font-bold mb-2`}>No hay publicaciones</p>
+          <p className={'text-pn-ink-2'}>
             Sé el primero en compartir algo con la comunidad
           </p>
         </div>

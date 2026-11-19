@@ -12,14 +12,14 @@ import { mensajeDeError } from './errores';
 import { formatearFecha } from '../../../../utils/formato';
 
 const ESTADOS: Record<HomologationStatus, { label: string; clase: string }> = {
-  SOLICITADA: { label: 'Solicitada', clase: 'bg-blue-100 text-blue-700' },
-  EN_REVISION: { label: 'En revisión', clase: 'bg-amber-100 text-amber-700' },
-  APROBADA: { label: 'Aprobada', clase: 'bg-green-100 text-green-700' },
+  SOLICITADA: { label: 'Solicitada', clase: 'bg-pn-accent-soft text-pn-accent-text' },
+  EN_REVISION: { label: 'En revisión', clase: 'bg-pn-warn-soft text-pn-warn' },
+  APROBADA: { label: 'Aprobada', clase: 'bg-pn-ok-soft text-pn-ok' },
   APROBADA_PARCIAL: {
     label: 'Aprobada parcial',
-    clase: 'bg-emerald-100 text-emerald-700',
+    clase: 'bg-pn-ok-soft text-pn-ok',
   },
-  RECHAZADA: { label: 'Rechazada', clase: 'bg-red-100 text-red-700' },
+  RECHAZADA: { label: 'Rechazada', clase: 'bg-pn-danger-soft text-pn-danger' },
 };
 
 const TIPOS: Record<string, string> = {
@@ -43,7 +43,7 @@ export function HomologacionesTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <p className="text-sm text-gray-600 max-w-2xl">
+        <p className="text-sm text-pn-ink-2 max-w-2xl">
           Las solicitudes llegan del estudiante o se crean desde la ficha. La
           decisión se toma <strong>asignatura por asignatura</strong>: al
           aprobar un ítem se escribe en el historial académico y el estudiante
@@ -52,7 +52,7 @@ export function HomologacionesTab() {
         <div>
           <label
             htmlFor="filtro-estado"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-pn-ink-2 mb-1"
           >
             Estado
           </label>
@@ -60,7 +60,7 @@ export function HomologacionesTab() {
             id="filtro-estado"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value as HomologationStatus | '')}
-            className="border border-gray-300 rounded-lg px-3 py-2"
+            className="border border-pn-line rounded-lg px-3 py-2"
           >
             <option value="">Todas</option>
             {Object.entries(ESTADOS).map(([valor, { label }]) => (
@@ -72,21 +72,21 @@ export function HomologacionesTab() {
         </div>
       </div>
 
-      {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Cargando…</p>}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(error)}
         </div>
       )}
 
       {!isLoading && solicitudes.length === 0 && (
-        <p className="text-sm text-gray-500">No hay solicitudes con ese filtro.</p>
+        <p className="text-sm text-pn-muted">No hay solicitudes con ese filtro.</p>
       )}
 
       {solicitudes.length > 0 && (
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <div className="overflow-x-auto border border-pn-line rounded-lg">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
+            <thead className="bg-pn-surface-2 text-pn-ink-2">
               <tr>
                 <th className="text-left px-4 py-2 font-medium">Estudiante</th>
                 <th className="text-left px-4 py-2 font-medium">Programa destino</th>
@@ -97,24 +97,24 @@ export function HomologacionesTab() {
                 <th className="px-4 py-2" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-pn-line">
               {solicitudes.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50">
+                <tr key={s.id} className="hover:bg-pn-surface-2">
                   <td className="px-4 py-2">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-pn-ink">
                       {s.student.user.firstName} {s.student.user.lastName}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-pn-muted">
                       {s.student.studentCode}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-gray-700">
+                  <td className="px-4 py-2 text-pn-ink-2">
                     {s.programEnrollment.program.name}
                   </td>
-                  <td className="px-4 py-2 text-gray-700">
+                  <td className="px-4 py-2 text-pn-ink-2">
                     {TIPOS[s.type] ?? s.type}
                     {s.originInstitution && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-pn-muted">
                         {s.originInstitution}
                       </div>
                     )}
@@ -127,13 +127,13 @@ export function HomologacionesTab() {
                       {ESTADOS[s.status].label}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-gray-600">
+                  <td className="px-4 py-2 text-pn-ink-2">
                     {formatearFecha(s.createdAt)}
                   </td>
                   <td className="px-4 py-2 text-right">
                     <button
                       onClick={() => setEnDetalle(s)}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-pn-accent-text hover:underline"
                     >
                       Revisar
                     </button>
@@ -213,7 +213,7 @@ function ModalRevision({
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-revision"
-        className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
+        className="bg-pn-surface rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -221,7 +221,7 @@ function ModalRevision({
               Solicitud de {solicitud.student.user.firstName}{' '}
               {solicitud.student.user.lastName}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-pn-ink-2">
               {TIPOS[solicitud.type] ?? solicitud.type} ·{' '}
               {solicitud.programEnrollment.program.name}
               {solicitud.originInstitution && ` · ${solicitud.originInstitution}`}
@@ -234,7 +234,7 @@ function ModalRevision({
 
         {solicitud.supportFiles.length > 0 && (
           <div className="space-y-1">
-            <h4 className="text-sm font-medium text-gray-700">Soportes</h4>
+            <h4 className="text-sm font-medium text-pn-ink-2">Soportes</h4>
             <ul className="text-sm space-y-0.5">
               {solicitud.supportFiles.map((url) => (
                 <li key={url}>
@@ -242,7 +242,7 @@ function ModalRevision({
                     href={url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-blue-600 hover:underline"
+                    className="flex items-center gap-1.5 text-pn-accent-text hover:underline"
                   >
                     <FileText size={14} />
                     {url.split('/').pop()}
@@ -257,14 +257,14 @@ function ModalRevision({
           <button
             onClick={() => enRevision.mutate()}
             disabled={enRevision.isPending}
-            className="px-4 py-2 border border-amber-300 bg-amber-50 text-amber-800 rounded-lg hover:bg-amber-100 disabled:opacity-50"
+            className="px-4 py-2 border border-pn-warn bg-pn-warn-soft text-pn-warn rounded-lg hover:bg-pn-warn-soft disabled:opacity-50"
           >
             {enRevision.isPending ? 'Marcando…' : 'Marcar en revisión'}
           </button>
         )}
 
         {resuelta && (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+          <div className="p-3 bg-pn-surface-2 border border-pn-line rounded-lg text-sm text-pn-ink-2">
             Esta solicitud ya fue resuelta ({ESTADOS[solicitud.status].label}).
             {solicitud.decisionNotes && ` ${solicitud.decisionNotes}`}
           </div>
@@ -276,14 +276,14 @@ function ModalRevision({
             return (
               <div
                 key={item.id}
-                className="border border-gray-200 rounded-lg p-3 space-y-2"
+                className="border border-pn-line rounded-lg p-3 space-y-2"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-pn-ink">
                       {item.targetSubject.code} — {item.targetSubject.name}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-pn-muted">
                       Destino: {item.targetSubject.credits ?? '—'} créditos ·{' '}
                       {item.targetSubject.hours ?? '—'} h · Origen:{' '}
                       {item.originName ?? 'sin nombre'} · {item.originHours ?? '—'}{' '}
@@ -294,8 +294,8 @@ function ModalRevision({
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         item.decision === 'APROBADO'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-pn-ok-soft text-pn-ok'
+                          : 'bg-pn-danger-soft text-pn-danger'
                       }`}
                     >
                       {item.decision}
@@ -304,7 +304,7 @@ function ModalRevision({
                 </div>
 
                 {item.decisionNotes && (
-                  <p className="text-xs text-gray-600">{item.decisionNotes}</p>
+                  <p className="text-xs text-pn-ink-2">{item.decisionNotes}</p>
                 )}
 
                 {!resuelta && (
@@ -319,8 +319,8 @@ function ModalRevision({
                         }
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${
                           local.aprobado === true
-                            ? 'bg-green-600 text-white border-green-600'
-                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-pn-ok text-pn-surface border-pn-ok'
+                            : 'border-pn-line text-pn-ink-2 hover:bg-pn-surface-2'
                         }`}
                       >
                         <Check size={14} />
@@ -335,8 +335,8 @@ function ModalRevision({
                         }
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${
                           local.aprobado === false
-                            ? 'bg-red-600 text-white border-red-600'
-                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-pn-danger text-pn-surface border-pn-danger'
+                            : 'border-pn-line text-pn-ink-2 hover:bg-pn-surface-2'
                         }`}
                       >
                         <X size={14} />
@@ -345,7 +345,7 @@ function ModalRevision({
                     </div>
 
                     {local.aprobado === true && (
-                      <label className="flex items-start gap-2 text-sm text-amber-800">
+                      <label className="flex items-start gap-2 text-sm text-pn-warn">
                         <input
                           type="checkbox"
                           checked={local.forzar}
@@ -380,7 +380,7 @@ function ModalRevision({
                             ? 'Justificación obligatoria (acta, concepto del consejo…)'
                             : 'Observación de la decisión (opcional)'
                         }
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                        className="w-full border border-pn-line rounded-lg px-3 py-1.5 text-sm"
                       />
                     )}
                   </>
@@ -394,7 +394,7 @@ function ModalRevision({
           <div>
             <label
               htmlFor="obs-decision"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-pn-ink-2 mb-1"
             >
               Observaciones de la decisión (opcional)
             </label>
@@ -403,13 +403,13 @@ function ModalRevision({
               type="text"
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              className="w-full border border-pn-line rounded-lg px-3 py-2"
             />
           </div>
         )}
 
         {resolver.error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="p-3 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
             {mensajeDeError(resolver.error)}
           </div>
         )}
@@ -417,7 +417,7 @@ function ModalRevision({
         <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onCerrar}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="px-4 py-2 border border-pn-line rounded-lg text-pn-ink-2 hover:bg-pn-surface-2"
           >
             Cerrar
           </button>
@@ -437,7 +437,7 @@ function ModalRevision({
                 })
               }
               disabled={!puedeResolver || resolver.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover disabled:opacity-50"
             >
               {resolver.isPending
                 ? 'Guardando…'

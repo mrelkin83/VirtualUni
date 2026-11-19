@@ -9,7 +9,7 @@ export default function TerminosServicio() {
   return (
     <LegalLayout titulo="Términos de Servicio" actualizado="25 de agosto de 2026">
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">1. Aceptación</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">1. Aceptación</h2>
         <p>
           Estos términos rigen el uso de VirtualUni, una plataforma educativa ofrecida por{' '}
           <strong>[NOMBRE LEGAL DE LA EMPRESA]</strong> (NIT <strong>[NIT]</strong>). Al crear una
@@ -20,7 +20,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">2. Qué es el servicio</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">2. Qué es el servicio</h2>
         <p>
           VirtualUni es una plataforma de gestión educativa (cursos, calificaciones, asistencia,
           mensajería, biblioteca, carnetización, trámites administrativos y facturación) que se
@@ -31,7 +31,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">3. Planes y precios</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">3. Planes y precios</h2>
         <p>
           Ofrecemos los planes Free, Basic, Professional y Enterprise, con límites de estudiantes,
           docentes, cursos y almacenamiento según el plan (ver <code>/billing/plans</code> para el
@@ -40,7 +40,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">4. Pagos y renovación</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">4. Pagos y renovación</h2>
         <p>
           Los pagos se procesan a través de <strong>Wompi</strong>. Cada pago cubre un periodo de
           un mes desde su aprobación. <strong>La renovación no es automática</strong>: la
@@ -52,17 +52,17 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">5. Responsabilidades de la institución</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">5. Responsabilidades de la institución</h2>
         <ul className="list-disc pl-6 space-y-1">
           <li>Cargar información veraz sobre sus estudiantes, docentes y administrativos.</li>
-          <li>Contar con la autorización necesaria para tratar los datos de sus estudiantes (incluyendo menores de edad) conforme a la <a href="/privacidad" className="text-blue-600 hover:underline">Política de Privacidad</a>.</li>
+          <li>Contar con la autorización necesaria para tratar los datos de sus estudiantes (incluyendo menores de edad) conforme a la <a href="/privacidad" className="text-pn-accent-text hover:underline">Política de Privacidad</a>.</li>
           <li>Administrar el acceso de sus propios usuarios (crear, desactivar y asignar roles correctamente).</li>
           <li>Mantener la confidencialidad de las credenciales de sus administradores.</li>
         </ul>
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">6. Uso aceptable</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">6. Uso aceptable</h2>
         <p>No está permitido usar VirtualUni para:</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>Intentar vulnerar la seguridad de la plataforma o acceder a datos de otra institución.</li>
@@ -73,7 +73,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">7. Propiedad intelectual</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">7. Propiedad intelectual</h2>
         <p>
           El contenido académico que una institución carga (materiales, exámenes, calificaciones)
           sigue siendo propiedad de esa institución o de sus autores. VirtualUni y su
@@ -83,7 +83,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">8. Disponibilidad del servicio</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">8. Disponibilidad del servicio</h2>
         <p>
           Nos esforzamos por mantener la plataforma disponible de forma continua, pero no
           garantizamos un porcentaje específico de disponibilidad salvo que se pacte por escrito
@@ -93,7 +93,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">9. Suspensión y terminación</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">9. Suspensión y terminación</h2>
         <p>
           Podemos suspender el acceso de una institución por falta de pago (al vencer el periodo
           pagado, según la sección 4) o por incumplimiento grave de estos términos. La institución
@@ -103,7 +103,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">10. Limitación de responsabilidad</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">10. Limitación de responsabilidad</h2>
         <p>
           En la medida permitida por la ley, VirtualUni no será responsable por daños indirectos,
           lucro cesante, o pérdida de datos causada por un uso indebido de la plataforma por parte
@@ -113,7 +113,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">11. Cambios a estos términos</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">11. Cambios a estos términos</h2>
         <p>
           Podemos actualizar estos términos; publicaremos la versión vigente en esta página con su
           fecha de actualización. El uso continuado del servicio tras un cambio implica su
@@ -122,7 +122,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">12. Ley aplicable</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">12. Ley aplicable</h2>
         <p>
           Estos términos se rigen por las leyes de la República de Colombia. Cualquier
           controversia se someterá a los jueces competentes de <strong>[CIUDAD]</strong>, Colombia,
@@ -131,7 +131,7 @@ export default function TerminosServicio() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">13. Contacto</h2>
+        <h2 className="text-xl font-semibold text-pn-ink mb-2">13. Contacto</h2>
         <p>Para preguntas sobre estos términos: <strong>[CORREO DE CONTACTO]</strong>.</p>
       </section>
     </LegalLayout>

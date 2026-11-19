@@ -15,24 +15,25 @@ import { generateAdmisionesExcel } from '../../../../utils/excelExport';
 import { apiClient } from '../../../../api/client';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from '../academico/errores';
+import { avisar, confirmar } from '../../../ui';
 
 const ETIQUETA: Record<string, [string, string]> = {
-  INTERESADO: ['Interesado', 'bg-gray-100 text-gray-700'],
-  BORRADOR: ['Borrador', 'bg-gray-100 text-gray-600'],
-  ENVIADA: ['Enviada', 'bg-blue-100 text-blue-800'],
-  PAGO_PENDIENTE: ['Pago pendiente', 'bg-amber-100 text-amber-800'],
-  PAGO_EN_VERIFICACION: ['Pago en verificación', 'bg-amber-100 text-amber-900'],
-  PAGADA: ['Pagada', 'bg-emerald-100 text-emerald-800'],
-  EN_REVISION: ['En revisión', 'bg-indigo-100 text-indigo-800'],
-  DOCUMENTOS_INCOMPLETOS: ['Docs. incompletos', 'bg-red-100 text-red-800'],
-  ADMITIDA: ['Admitida', 'bg-emerald-200 text-emerald-900'],
-  NO_ADMITIDA: ['No admitida', 'bg-gray-200 text-gray-700'],
-  MATRICULADA: ['Matriculada', 'bg-emerald-300 text-emerald-950'],
-  DESISTIO: ['Desistió', 'bg-gray-200 text-gray-600'],
+  INTERESADO: ['Interesado', 'bg-pn-surface-3 text-pn-ink-2'],
+  BORRADOR: ['Borrador', 'bg-pn-surface-3 text-pn-ink-2'],
+  ENVIADA: ['Enviada', 'bg-pn-accent-soft text-pn-accent-text'],
+  PAGO_PENDIENTE: ['Pago pendiente', 'bg-pn-warn-soft text-pn-warn'],
+  PAGO_EN_VERIFICACION: ['Pago en verificación', 'bg-pn-warn-soft text-pn-warn'],
+  PAGADA: ['Pagada', 'bg-pn-ok-soft text-pn-ok'],
+  EN_REVISION: ['En revisión', 'bg-pn-accent-2-soft text-pn-accent-2-text'],
+  DOCUMENTOS_INCOMPLETOS: ['Docs. incompletos', 'bg-pn-danger-soft text-pn-danger'],
+  ADMITIDA: ['Admitida', 'bg-pn-ok-soft text-pn-ok'],
+  NO_ADMITIDA: ['No admitida', 'bg-pn-surface-3 text-pn-ink-2'],
+  MATRICULADA: ['Matriculada', 'bg-pn-ok-soft text-pn-ok'],
+  DESISTIO: ['Desistió', 'bg-pn-surface-3 text-pn-ink-2'],
 };
 
 const Badge = ({ status }: { status: string }) => {
-  const [texto, color] = ETIQUETA[status] ?? [status, 'bg-gray-100 text-gray-700'];
+  const [texto, color] = ETIQUETA[status] ?? [status, 'bg-pn-surface-3 text-pn-ink-2'];
   return <span className={`text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${color}`}>{texto}</span>;
 };
 
@@ -45,7 +46,7 @@ export function AdmisionesSection() {
   const boton = (id: typeof tab, etiqueta: string, Icono: typeof Inbox) => (
     <button
       onClick={() => setTab(id)}
-      className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${tab === id ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+      className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${tab === id ? 'bg-pn-ok text-pn-surface' : 'bg-pn-surface border border-pn-line text-pn-ink-2'}`}
     >
       <Icono size={15} /> {etiqueta}
     </button>
@@ -83,15 +84,15 @@ function BandejaTab() {
     return acc;
   }, {});
 
-  const campo = 'border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white';
+  const campo = 'border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface';
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Inbox className="text-emerald-600" /> Admisiones
+        <h2 className="text-2xl font-bold text-pn-ink flex items-center gap-2">
+          <Inbox className="text-pn-ok" /> Admisiones
         </h2>
-        <p className="text-sm text-gray-500">Solicitudes de inscripción que llegan del sitio público.</p>
+        <p className="text-sm text-pn-muted">Solicitudes de inscripción que llegan del sitio público.</p>
       </div>
 
       {/* Tablero por estado: clic filtra */}
@@ -100,7 +101,7 @@ function BandejaTab() {
           <button
             key={estado}
             onClick={() => setFiltros((f) => ({ ...f, status: f.status === estado ? undefined : estado }))}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold flex items-center gap-2 ${filtros.status === estado ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold flex items-center gap-2 ${filtros.status === estado ? 'border-pn-ok bg-pn-ok-soft' : 'border-pn-line bg-pn-surface'}`}
           >
             <Badge status={estado} /> {n}
           </button>
@@ -130,19 +131,19 @@ function BandejaTab() {
         <button
           onClick={() => filas.length && generateAdmisionesExcel(filas)}
           disabled={!filas.length}
-          className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-semibold flex items-center gap-2 bg-white hover:border-emerald-500 disabled:opacity-50"
+          className="px-3 py-2 rounded-lg border border-pn-line text-sm font-semibold flex items-center gap-2 bg-pn-surface hover:border-pn-ok disabled:opacity-50"
           title="Exportar lo filtrado a Excel"
         >
           <Download size={15} /> Excel
         </button>
       </div>
 
-      {isLoading && <p className="text-sm text-gray-500">Cargando solicitudes…</p>}
-      {error != null && <p className="text-sm text-red-600">{mensajeDeError(error)}</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Cargando solicitudes…</p>}
+      {error != null && <p className="text-sm text-pn-danger">{mensajeDeError(error)}</p>}
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-pn-surface rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+          <thead className="bg-pn-surface-2 text-left text-xs text-pn-muted uppercase">
             <tr>
               <th className="px-4 py-2.5">Código</th>
               <th className="px-4 py-2.5">Aspirante</th>
@@ -153,36 +154,36 @@ function BandejaTab() {
               <th className="px-4 py-2.5 text-right">Ver</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-pn-line">
             {filas.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50">
+              <tr key={s.id} className="hover:bg-pn-surface-2">
                 <td className="px-4 py-2.5 font-mono text-xs">{s.code}</td>
                 <td className="px-4 py-2.5">
-                  <p className="font-semibold text-gray-900">{s.applicant.firstName} {s.applicant.lastName}</p>
-                  <p className="text-xs text-gray-500">{s.applicant.documentType} {s.applicant.documentNumber}</p>
+                  <p className="font-semibold text-pn-ink">{s.applicant.firstName} {s.applicant.lastName}</p>
+                  <p className="text-xs text-pn-muted">{s.applicant.documentType} {s.applicant.documentNumber}</p>
                 </td>
-                <td className="px-4 py-2.5 text-gray-600">
+                <td className="px-4 py-2.5 text-pn-ink-2">
                   {s.call ? (
                     <>
                       <p>{s.call.program.name}</p>
-                      {s.targetLevel != null && <p className="text-xs text-gray-400">Grado {s.targetLevel === 0 ? 'Transición' : s.targetLevel}</p>}
+                      {s.targetLevel != null && <p className="text-xs text-pn-muted">Grado {s.targetLevel === 0 ? 'Transición' : s.targetLevel}</p>}
                     </>
                   ) : (
-                    <span className="text-gray-400">Contacto / interesado</span>
+                    <span className="text-pn-muted">Contacto / interesado</span>
                   )}
                 </td>
                 <td className="px-4 py-2.5"><Badge status={s.status} /></td>
-                <td className="px-4 py-2.5 text-xs text-gray-500">{s.applicant.utm?.utm_source ?? (s.applicant.utm?.gclid ? 'google ads' : '—')}</td>
-                <td className="px-4 py-2.5 text-xs text-gray-500">{new Date(s.createdAt).toLocaleDateString('es-CO')}</td>
+                <td className="px-4 py-2.5 text-xs text-pn-muted">{s.applicant.utm?.utm_source ?? (s.applicant.utm?.gclid ? 'google ads' : '—')}</td>
+                <td className="px-4 py-2.5 text-xs text-pn-muted">{new Date(s.createdAt).toLocaleDateString('es-CO')}</td>
                 <td className="px-4 py-2.5 text-right">
-                  <button onClick={() => setDetalleId(s.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded" title="Ver detalle">
+                  <button onClick={() => setDetalleId(s.id)} className="p-1.5 text-pn-ok hover:bg-pn-ok-soft rounded" title="Ver detalle">
                     <Eye size={16} />
                   </button>
                 </td>
               </tr>
             ))}
             {!isLoading && filas.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-500">No hay solicitudes con esos filtros.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-pn-muted">No hay solicitudes con esos filtros.</td></tr>
             )}
           </tbody>
         </table>
@@ -225,13 +226,13 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
     mutationFn: ({ docId, status }: { docId: string; status: 'APROBADO' | 'RECHAZADO' }) =>
       admisionesApi.revisarDocumento(docId, { status, reviewNote: notaRechazo[docId] || undefined }),
     onSuccess: invalidar,
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const corregir = useMutation({
     mutationFn: () => admisionesApi.pedirCorreccion(id, nota),
     onSuccess: () => { setNota(''); invalidar(); },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const decision = useMutation({
@@ -246,7 +247,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
       }
     },
     onSuccess: invalidar,
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const abrirDoc = async (docId: string) => {
@@ -256,7 +257,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
       window.open(url, '_blank', 'noopener');
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
-      alert('No se pudo abrir el documento.');
+      avisar.error('No se pudo abrir el documento.');
     }
   };
 
@@ -264,51 +265,51 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         ref={dialogRef} role="dialog" aria-modal="true" aria-label="Detalle de la solicitud" tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-pn-surface rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {isLoading || !s ? (
-          <p className="text-sm text-gray-500">Cargando…</p>
+          <p className="text-sm text-pn-muted">Cargando…</p>
         ) : (
           <>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-pn-ink flex items-center gap-2">
                   <span className="font-mono text-base">{s.code}</span> <Badge status={s.status} />
                 </h3>
-                <p className="text-sm text-gray-600">{s.call?.program.name ?? 'Contacto'} {s.call ? `· ${s.call.name}` : ''}</p>
+                <p className="text-sm text-pn-ink-2">{s.call?.program.name ?? 'Contacto'} {s.call ? `· ${s.call.name}` : ''}</p>
               </div>
               <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div className="rounded-lg border border-gray-200 p-4 space-y-1">
-                <h4 className="font-bold text-gray-900 mb-1">Aspirante</h4>
+              <div className="rounded-lg border border-pn-line p-4 space-y-1">
+                <h4 className="font-bold text-pn-ink mb-1">Aspirante</h4>
                 <p>{s.applicant.firstName} {s.applicant.lastName}</p>
-                <p className="text-gray-500">{s.applicant.documentType} {s.applicant.documentNumber}</p>
-                <p className="text-gray-500">{s.applicant.email} · {s.applicant.phone}</p>
-                {s.applicant.birthDate && <p className="text-gray-500">Nac.: {new Date(s.applicant.birthDate).toLocaleDateString('es-CO')}</p>}
-                {s.applicant.previousEducation && <p className="text-gray-500">Formación: {s.applicant.previousEducation}</p>}
+                <p className="text-pn-muted">{s.applicant.documentType} {s.applicant.documentNumber}</p>
+                <p className="text-pn-muted">{s.applicant.email} · {s.applicant.phone}</p>
+                {s.applicant.birthDate && <p className="text-pn-muted">Nac.: {new Date(s.applicant.birthDate).toLocaleDateString('es-CO')}</p>}
+                {s.applicant.previousEducation && <p className="text-pn-muted">Formación: {s.applicant.previousEducation}</p>}
                 {s.applicant.guardian?.nombre && (
-                  <p className="text-gray-500">Acudiente: {s.applicant.guardian.nombre} ({s.applicant.guardian.parentesco}) · {s.applicant.guardian.telefono}</p>
+                  <p className="text-pn-muted">Acudiente: {s.applicant.guardian.nombre} ({s.applicant.guardian.parentesco}) · {s.applicant.guardian.telefono}</p>
                 )}
-                <p className="text-xs text-gray-400 pt-1">
+                <p className="text-xs text-pn-muted pt-1">
                   Autorización de datos: {new Date(s.applicant.consentAt).toLocaleString('es-CO')} · v{s.applicant.consentVersion}
                 </p>
                 {s.applicant.utm && (
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-pn-muted">
                     Campaña: {Object.entries(s.applicant.utm).filter(([k]) => k !== 'landing').map(([k, v]) => `${k}=${v}`).join(' · ')}
                   </p>
                 )}
               </div>
 
-              <div className="rounded-lg border border-gray-200 p-4">
-                <h4 className="font-bold text-gray-900 mb-2">Línea de tiempo</h4>
+              <div className="rounded-lg border border-pn-line p-4">
+                <h4 className="font-bold text-pn-ink mb-2">Línea de tiempo</h4>
                 <ol className="space-y-1.5 text-xs">
                   {s.events.map((e) => (
                     <li key={e.id} className="flex gap-2">
-                      <span className="text-gray-400 shrink-0">{new Date(e.createdAt).toLocaleString('es-CO')}</span>
-                      <span className="text-gray-700">{EVENTO_ES[e.type] ?? e.type}</span>
+                      <span className="text-pn-muted shrink-0">{new Date(e.createdAt).toLocaleString('es-CO')}</span>
+                      <span className="text-pn-ink-2">{EVENTO_ES[e.type] ?? e.type}</span>
                     </li>
                   ))}
                 </ol>
@@ -316,29 +317,29 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
             </div>
 
             {/* Documentos */}
-            <div className="mt-4 rounded-lg border border-gray-200 p-4">
-              <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><FileText size={16} /> Documentos</h4>
-              <ul className="divide-y divide-gray-100">
+            <div className="mt-4 rounded-lg border border-pn-line p-4">
+              <h4 className="font-bold text-pn-ink mb-2 flex items-center gap-2"><FileText size={16} /> Documentos</h4>
+              <ul className="divide-y divide-pn-line">
                 {s.documents.map((d) => (
                   <li key={d.id} className="py-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">{d.requiredDoc?.name ?? d.originalName}</p>
-                        <p className="text-xs text-gray-400">{d.originalName} · {d.sizeKb} KB</p>
+                        <p className="text-sm font-semibold text-pn-ink">{d.requiredDoc?.name ?? d.originalName}</p>
+                        <p className="text-xs text-pn-muted">{d.originalName} · {d.sizeKb} KB</p>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge status={d.status === 'PENDIENTE' ? 'EN_REVISION' : d.status === 'APROBADO' ? 'ADMITIDA' : 'DOCUMENTOS_INCOMPLETOS'} />
-                        <button onClick={() => abrirDoc(d.id)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="Ver documento"><Eye size={15} /></button>
+                        <button onClick={() => abrirDoc(d.id)} className="p-1.5 text-pn-ink-2 hover:bg-pn-surface-3 rounded" title="Ver documento"><Eye size={15} /></button>
                         <button
                           onClick={() => revisar.mutate({ docId: d.id, status: 'APROBADO' })}
-                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded" title="Aprobar"
+                          className="p-1.5 text-pn-ok hover:bg-pn-ok-soft rounded" title="Aprobar"
                         ><CheckCircle2 size={15} /></button>
                         <button
                           onClick={() => {
-                            if (!notaRechazo[d.id]) return alert('Escribe la nota del rechazo (el aspirante la verá).');
+                            if (!notaRechazo[d.id]) return avisar.info('Escribe la nota del rechazo (el aspirante la verá).');
                             revisar.mutate({ docId: d.id, status: 'RECHAZADO' });
                           }}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Rechazar"
+                          className="p-1.5 text-pn-danger hover:bg-pn-danger-soft rounded" title="Rechazar"
                         ><XCircle size={15} /></button>
                       </div>
                     </div>
@@ -346,25 +347,25 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
                       placeholder="Nota de rechazo (va al correo del aspirante)"
                       value={notaRechazo[d.id] ?? d.reviewNote ?? ''}
                       onChange={(e) => setNotaRechazo((n) => ({ ...n, [d.id]: e.target.value }))}
-                      className="mt-1.5 w-full border border-gray-200 rounded px-2.5 py-1.5 text-xs"
+                      className="mt-1.5 w-full border border-pn-line rounded px-2.5 py-1.5 text-xs"
                     />
                   </li>
                 ))}
-                {s.documents.length === 0 && <li className="py-3 text-sm text-gray-500">Sin documentos subidos.</li>}
+                {s.documents.length === 0 && <li className="py-3 text-sm text-pn-muted">Sin documentos subidos.</li>}
               </ul>
             </div>
 
             {/* Pago manual */}
             {(s.status === 'PAGO_PENDIENTE' || s.status === 'PAGO_EN_VERIFICACION') && (
-              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-sm text-amber-900 font-semibold flex items-center gap-2">
+              <div className="mt-4 rounded-lg border border-pn-warn bg-pn-warn-soft p-4 flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-pn-warn font-semibold flex items-center gap-2">
                   <Banknote size={16} />
                   {s.status === 'PAGO_EN_VERIFICACION' ? 'Comprobante recibido: verifícalo arriba y decide.' : 'Esperando el pago del aspirante.'}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => decision.mutate({ accion: 'confirmarPago' })}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold"
+                    className="px-3 py-1.5 rounded-lg bg-pn-ok text-pn-surface text-sm font-semibold"
                   >Confirmar pago</button>
                   {s.status === 'PAGO_EN_VERIFICACION' && (
                     <button
@@ -372,7 +373,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
                         const n = prompt('¿Por qué se rechaza el comprobante? (va al correo del aspirante)');
                         if (n) decision.mutate({ accion: 'rechazarPago', nota: n });
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold"
+                      className="px-3 py-1.5 rounded-lg bg-pn-danger text-pn-surface text-sm font-semibold"
                     >Rechazar comprobante</button>
                   )}
                 </div>
@@ -384,18 +385,18 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
               <div className="mt-4 flex gap-2 flex-wrap">
                 <button
                   onClick={() => decision.mutate({ accion: 'admitir' })}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-pn-ok hover:bg-pn-ok text-pn-surface text-sm font-bold flex items-center gap-2"
                 ><UserCheck size={15} /> Admitir</button>
                 <button
                   onClick={() => {
                     const n = prompt('Motivo de la no admisión (va al correo del aspirante):');
                     if (n) decision.mutate({ accion: 'noAdmitir', nota: n });
                   }}
-                  className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-sm font-bold flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-pn-ink hover:bg-pn-ink text-pn-surface text-sm font-bold flex items-center gap-2"
                 ><UserX size={15} /> No admitir</button>
                 <button
-                  onClick={() => confirm('¿Marcar que el aspirante desistió?') && decision.mutate({ accion: 'desistir' })}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold"
+                  onClick={async () => await confirmar('¿Marcar que el aspirante desistió?') && decision.mutate({ accion: 'desistir' })}
+                  className="px-4 py-2 rounded-lg border border-pn-line text-pn-ink-2 text-sm font-semibold"
                 >Desistió</button>
               </div>
             )}
@@ -403,7 +404,7 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
               <div className="mt-4">
                 <button
                   onClick={() => decision.mutate({ accion: 'matricular' })}
-                  className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-pn-ok hover:bg-pn-ok text-pn-surface text-sm font-bold flex items-center gap-2"
                 ><CheckCheck size={15} /> Marcar matriculada</button>
               </div>
             )}
@@ -414,12 +415,12 @@ function DetalleSolicitudModal({ id, onClose }: { id: string; onClose: () => voi
                 placeholder="Pedir una corrección general (correo + enlace al aspirante)…"
                 value={nota}
                 onChange={(e) => setNota(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                className="flex-1 border border-pn-line rounded-lg px-3 py-2 text-sm"
               />
               <button
                 onClick={() => nota.trim() && corregir.mutate()}
                 disabled={corregir.isPending || !nota.trim()}
-                className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-pn-warn hover:bg-pn-warn text-pn-surface text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
               >
                 <MailWarning size={15} /> Pedir corrección
               </button>
@@ -444,7 +445,7 @@ function ConvocatoriasTab() {
   const cambiarEstado = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => admisionesApi.actualizarCall(id, { status }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admisiones-calls-detallado'] }),
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   return (
@@ -452,27 +453,27 @@ function ConvocatoriasTab() {
       <div className="flex justify-end">
         <button
           onClick={() => setModal('nueva')}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2"
+          className="px-4 py-2 rounded-lg bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink text-sm font-semibold flex items-center gap-2"
         ><Plus size={15} /> Nueva convocatoria</button>
       </div>
-      {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
-      {error != null && <p className="text-sm text-red-600">{mensajeDeError(error)}</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Cargando…</p>}
+      {error != null && <p className="text-sm text-pn-danger">{mensajeDeError(error)}</p>}
       <div className="grid gap-3">
         {(data ?? []).map((c) => (
-          <div key={c.id} className="bg-white rounded-lg shadow p-4 flex items-start justify-between gap-3 flex-wrap">
+          <div key={c.id} className="bg-pn-surface rounded-lg shadow p-4 flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="font-bold text-gray-900">{c.name}</h4>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.abierta ? 'bg-emerald-100 text-emerald-800' : c.status === 'BORRADOR' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'}`}>
+                <h4 className="font-bold text-pn-ink">{c.name}</h4>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.abierta ? 'bg-pn-ok-soft text-pn-ok' : c.status === 'BORRADOR' ? 'bg-pn-surface-3 text-pn-ink-2' : 'bg-pn-danger-soft text-pn-danger'}`}>
                   {c.abierta ? 'Abierta' : c.status === 'BORRADOR' ? 'Borrador' : 'Cerrada'}
                 </span>
-                {c.rolling && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Permanente</span>}
+                {c.rolling && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-pn-accent-2-soft text-pn-accent-2-text">Permanente</span>}
               </div>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-pn-muted mt-0.5">
                 {c.program.name} · {c.academicPeriod.code} · pensum {c.studyPlan.version}
                 {c.applicationFee > 0 && <> · Inscripción ${c.applicationFee.toLocaleString('es-CO')}</>}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-pn-muted mt-0.5">
                 Cupo: {c.cupoUsado}{c.capacity ? `/${c.capacity}` : ''} · {c._count.applications} solicitud(es)
                 {c.targetLevels?.length ? ` · ${c.targetLevels.length} grado(s) con cupo propio` : ''}
                 · Docs: {c.requiredDocuments.map((d) => d.name).join(', ') || '—'}
@@ -480,16 +481,16 @@ function ConvocatoriasTab() {
             </div>
             <div className="flex gap-2 shrink-0">
               {c.status !== 'ABIERTA' ? (
-                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'ABIERTA' })} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">Abrir</button>
+                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'ABIERTA' })} className="px-3 py-1.5 rounded-lg bg-pn-ok text-pn-surface text-xs font-bold">Abrir</button>
               ) : (
-                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'CERRADA' })} className="px-3 py-1.5 rounded-lg bg-gray-700 text-white text-xs font-bold">Cerrar</button>
+                <button onClick={() => cambiarEstado.mutate({ id: c.id, status: 'CERRADA' })} className="px-3 py-1.5 rounded-lg bg-pn-ink text-pn-surface text-xs font-bold">Cerrar</button>
               )}
-              <button onClick={() => setModal(c)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-700">Editar</button>
+              <button onClick={() => setModal(c)} className="px-3 py-1.5 rounded-lg border border-pn-line text-xs font-bold text-pn-ink-2">Editar</button>
             </div>
           </div>
         ))}
         {!isLoading && (data ?? []).length === 0 && (
-          <p className="text-center text-gray-500 py-10">Aún no hay convocatorias. Crea la primera para recibir inscripciones.</p>
+          <p className="text-center text-pn-muted py-10">Aún no hay convocatorias. Crea la primera para recibir inscripciones.</p>
         )}
       </div>
       {modal && <ConvocatoriaModal convocatoria={modal === 'nueva' ? null : modal} onClose={() => setModal(null)} />}
@@ -550,20 +551,20 @@ function ConvocatoriaModal({ convocatoria, onClose }: { convocatoria: Convocator
       queryClient.invalidateQueries({ queryKey: ['admisiones-calls-detallado'] });
       onClose();
     },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
-  const campo = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
+  const campo = 'w-full border border-pn-line rounded-lg px-3 py-2 text-sm';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         ref={dialogRef} role="dialog" aria-modal="true" aria-label="Convocatoria" tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4"
+        className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900">{c ? 'Editar convocatoria' : 'Nueva convocatoria'}</h3>
+          <h3 className="text-lg font-bold text-pn-ink">{c ? 'Editar convocatoria' : 'Nueva convocatoria'}</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
 
@@ -589,14 +590,14 @@ function ConvocatoriaModal({ convocatoria, onClose }: { convocatoria: Convocator
               maxLength={120}
               className={campo}
             />
-            <p className="text-xs text-gray-400 mt-0.5">/inscripcion/{slug || '…'}</p>
+            <p className="text-xs text-pn-muted mt-0.5">/inscripcion/{slug || '…'}</p>
           </div>
-          <div><label className="text-xs text-gray-500">Abre *</label><input type="date" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} className={campo} /></div>
+          <div><label className="text-xs text-pn-muted">Abre *</label><input type="date" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} className={campo} /></div>
           <div>
-            <label className="text-xs text-gray-500">Cierra {rolling ? '(permanente)' : '*'}</label>
+            <label className="text-xs text-pn-muted">Cierra {rolling ? '(permanente)' : '*'}</label>
             <input type="date" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} disabled={rolling} className={`${campo} disabled:opacity-50`} />
           </div>
-          <div><label className="text-xs text-gray-500">Inicio de clases</label><input type="date" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={campo} /></div>
+          <div><label className="text-xs text-pn-muted">Inicio de clases</label><input type="date" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={campo} /></div>
           <input value={capacity} onChange={(e) => setCapacity(e.target.value.replace(/\D/g, ''))} placeholder="Cupo total (vacío = sin tope)" className={campo} />
           <input value={applicationFee} onChange={(e) => setApplicationFee(e.target.value.replace(/\D/g, ''))} placeholder="Valor inscripción COP (0 = gratis)" className={campo} />
           <input value={minAge} onChange={(e) => setMinAge(e.target.value.replace(/\D/g, ''))} placeholder="Edad mínima" className={campo} />
@@ -605,32 +606,32 @@ function ConvocatoriaModal({ convocatoria, onClose }: { convocatoria: Convocator
             <option>Primaria</option><option>9° aprobado</option><option>Bachiller</option>
             <option>Técnico</option><option>Tecnólogo</option><option>Profesional</option>
           </select>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-pn-ink-2">
             <input type="checkbox" checked={rolling} onChange={(e) => setRolling(e.target.checked)} />
             Inscripción permanente (rolling)
           </label>
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-700">Documentos requeridos</p>
+          <p className="text-xs font-semibold text-pn-ink-2">Documentos requeridos</p>
           {documentos.map((d, i) => (
             <div key={i} className="flex gap-2 items-center">
               <input value={d.name} maxLength={120} onChange={(e) => setDocumentos(documentos.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={campo} />
-              <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0">
+              <label className="flex items-center gap-1 text-xs text-pn-ink-2 shrink-0">
                 <input type="checkbox" checked={d.required} onChange={(e) => setDocumentos(documentos.map((x, j) => j === i ? { ...x, required: e.target.checked } : x))} />
                 obligatorio
               </label>
-              <button onClick={() => setDocumentos(documentos.filter((_, j) => j !== i))} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><X size={14} /></button>
+              <button onClick={() => setDocumentos(documentos.filter((_, j) => j !== i))} className="p-1.5 text-pn-danger hover:bg-pn-danger-soft rounded"><X size={14} /></button>
             </div>
           ))}
-          <button onClick={() => setDocumentos([...documentos, { name: '', required: true }])} className="text-sm text-emerald-700 font-semibold flex items-center gap-1"><Plus size={14} /> Agregar documento</button>
+          <button onClick={() => setDocumentos([...documentos, { name: '', required: true }])} className="text-sm text-pn-ok font-semibold flex items-center gap-1"><Plus size={14} /> Agregar documento</button>
         </div>
 
         <div className="flex justify-end">
           <button
             onClick={() => guardar.mutate()}
             disabled={guardar.isPending || !programId || !studyPlanId || !academicPeriodId || !name.trim() || (!rolling && !closesAt)}
-            className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold disabled:opacity-50"
+            className="px-5 py-2 rounded-lg bg-pn-accent hover:bg-pn-accent-hover text-pn-accent-ink text-sm font-bold disabled:opacity-50"
           >{guardar.isPending ? 'Guardando…' : 'Guardar convocatoria'}</button>
         </div>
       </div>
@@ -661,28 +662,28 @@ function EmbudoTab() {
 
   return (
     <div className="space-y-4">
-      <select value={callId} onChange={(e) => setCallId(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+      <select value={callId} onChange={(e) => setCallId(e.target.value)} className="border border-pn-line rounded-lg px-3 py-2 text-sm bg-pn-surface">
         <option value="">Todas las convocatorias</option>
         {(convocatorias ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
 
-      {isLoading && <p className="text-sm text-gray-500">Calculando…</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Calculando…</p>}
       {data && (
         <>
-          <div className="bg-white rounded-lg shadow p-5 space-y-2">
+          <div className="bg-pn-surface rounded-lg shadow p-5 space-y-2">
             {pasos.map(([nombre, n]) => (
               <div key={nombre} className="flex items-center gap-3">
-                <span className="w-28 text-sm text-gray-600">{nombre}</span>
-                <div className="flex-1 bg-gray-100 rounded h-7 overflow-hidden">
-                  <div className="h-full rounded bg-emerald-500/80 text-white text-xs font-bold flex items-center px-2" style={{ width: `${Math.max(4, (n / max) * 100)}%` }}>{n}</div>
+                <span className="w-28 text-sm text-pn-ink-2">{nombre}</span>
+                <div className="flex-1 bg-pn-surface-3 rounded h-7 overflow-hidden">
+                  <div className="h-full rounded bg-pn-ok text-pn-surface text-xs font-bold flex items-center px-2" style={{ width: `${Math.max(4, (n / max) * 100)}%` }}>{n}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <div className="bg-pn-surface rounded-lg shadow overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+              <thead className="bg-pn-surface-2 text-left text-xs text-pn-muted uppercase">
                 <tr>
                   <th className="px-4 py-2.5">Fuente</th>
                   <th className="px-4 py-2.5 text-right">Solicitudes</th>
@@ -691,22 +692,22 @@ function EmbudoTab() {
                   <th className="px-4 py-2.5 text-right">Matriculadas</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-pn-line">
                 {data.fuentes.map((f) => (
                   <tr key={f.fuente}>
-                    <td className="px-4 py-2.5 font-semibold text-gray-800">{f.fuente}</td>
+                    <td className="px-4 py-2.5 font-semibold text-pn-ink">{f.fuente}</td>
                     <td className="px-4 py-2.5 text-right">{f.total}</td>
                     <td className="px-4 py-2.5 text-right">{f.enviadas}</td>
-                    <td className="px-4 py-2.5 text-right text-emerald-700 font-bold">{f.admitidas}</td>
-                    <td className="px-4 py-2.5 text-right text-emerald-800 font-black">{f.matriculadas}</td>
+                    <td className="px-4 py-2.5 text-right text-pn-ok font-bold">{f.admitidas}</td>
+                    <td className="px-4 py-2.5 text-right text-pn-ok font-black">{f.matriculadas}</td>
                   </tr>
                 ))}
                 {data.fuentes.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Sin datos todavía.</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-pn-muted">Sin datos todavía.</td></tr>
                 )}
               </tbody>
             </table>
-            <p className="px-4 py-2 text-xs text-gray-400">La fuente sale del utm_source (o gclid/fbclid) con el que llegó el aspirante: campañas que matriculan, no solo que hacen clic.</p>
+            <p className="px-4 py-2 text-xs text-pn-muted">La fuente sale del utm_source (o gclid/fbclid) con el que llegó el aspirante: campañas que matriculan, no solo que hacen clic.</p>
           </div>
         </>
       )}

@@ -46,31 +46,31 @@ export const AdminPanel: React.FC = () => {
       id: 'activos',
       label: 'Activos',
       icon: <Building2 className="w-5 h-5" />,
-      color: 'text-blue-600',
+      color: 'text-pn-accent-text',
     },
     {
       id: 'inventario',
       label: 'Inventario',
       icon: <Package className="w-5 h-5" />,
-      color: 'text-purple-600',
+      color: 'text-pn-accent-2-text',
     },
     {
       id: 'nomina',
       label: 'Nómina',
       icon: <DollarSign className="w-5 h-5" />,
-      color: 'text-green-600',
+      color: 'text-pn-ok',
     },
     {
       id: 'recursoshumanos',
       label: 'Recursos Humanos',
       icon: <Users className="w-5 h-5" />,
-      color: 'text-orange-600',
+      color: 'text-pn-warn',
     },
     {
       id: 'carnetizacion',
       label: 'Carnetización',
       icon: <Laptop className="w-5 h-5" />,
-      color: 'text-red-600',
+      color: 'text-pn-danger',
     },
   ];
 
@@ -94,12 +94,12 @@ export const AdminPanel: React.FC = () => {
   const currentNav = navItems.find((item) => item.id === currentSection);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-pn-surface-3">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-gray-900 text-white transition-all duration-300 shadow-lg overflow-hidden`}
+        } bg-pn-ink text-pn-surface transition-all duration-300 shadow-lg overflow-hidden`}
       >
         <div className="p-6">
           <h1 className={`font-bold ${sidebarOpen ? 'text-2xl' : 'text-xs text-center'}`}>
@@ -114,8 +114,8 @@ export const AdminPanel: React.FC = () => {
               onClick={() => setCurrentSection(item.id)}
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 ${
                 currentSection === item.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800'
+                  ? 'bg-pn-accent text-pn-accent-ink'
+                  : 'text-pn-surface-2 hover:bg-pn-surface-3 hover:text-pn-ink'
               }`}
               title={item.label}
             >
@@ -128,7 +128,7 @@ export const AdminPanel: React.FC = () => {
         <div className="absolute bottom-6 left-0 right-0 px-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full flex items-center justify-center px-4 py-2 bg-gray-800 rounded-lg text-gray-300 hover:bg-gray-700 transition"
+            className="w-full flex items-center justify-center px-4 py-2 bg-pn-ink rounded-lg text-pn-surface-2 hover:brightness-125 transition"
             title="Minimizar/Expandir"
           >
             <ChevronDown
@@ -143,19 +143,19 @@ export const AdminPanel: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {/* Top Bar */}
-        <header className="bg-white shadow-md p-6 sticky top-0 z-40">
+        <header className="bg-pn-surface shadow-md p-6 sticky top-0 z-40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {currentNav && <div className={`${currentNav.color}`}>{currentNav.icon}</div>}
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-pn-ink">
                 {currentNav?.label || 'Panel Administrativo'}
               </h2>
             </div>
             <div className="flex items-center gap-4">
-              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 transition">
+              <button className="px-4 py-2 text-pn-ink-2 hover:text-pn-ink transition">
                 Ayuda
               </button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+              <button className="px-4 py-2 bg-pn-danger text-pn-surface rounded-lg hover:bg-pn-danger transition">
                 Cerrar Sesión
               </button>
             </div>

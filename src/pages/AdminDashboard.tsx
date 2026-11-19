@@ -1,10 +1,20 @@
 import React, { useState, createContext, useContext, useRef, useEffect } from 'react';
-import { Menu, X, User, Settings, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Building2, Upload, Mail, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, BarChart3, CreditCard, Megaphone, LogOut } from 'lucide-react';
+import { X, User, Bell, TrendingUp, Users, FileText, Award, BookOpen, ClipboardCheck, PieChart, DollarSign, Building2, Upload, Mail, CheckCircle, Clock, Search, Download, Edit, Trash2, Eye, Send, Plus, Save, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
 import { tenantsApi } from '../api/endpoints/tenants';
 import { messagesApi } from '../api/endpoints/student';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
+import { useSeccionEnUrl } from '../hooks/useSeccionEnUrl';
+import { AppShell } from '../components/layout/AppShell';
+import {
+  NAV_ADMIN,
+  esSeccionAdmin,
+  type SeccionAdmin,
+} from '../components/layout/navegacion';
+import { Button, IconButton } from '../components/ui/Button';
+import { Card, StatCard, StatusPill } from '../components/ui/Surface';
+import { aHex, parsearHex, tintaSobre, useTheme } from '../theme';
 import { coursesAdminApi } from '../api/endpoints/courses';
 import { programasApi, inscripcionesApi, Programa } from '../api/endpoints/academico';
 import { personasApi } from '../api/endpoints/personas';
@@ -27,18 +37,44 @@ import {
   InscripcionesProgramaSection
 } from '../components/admin/sections';
 import { CarnetizacionMejorada } from '../components/admin/carnetizacion/CarnetizacionMejorada';
+import { SitioWebSection } from '../components/admin/sections/sitio-web/SitioWebSection';
+import { AdmisionesSection } from '../components/admin/sections/admisiones/AdmisionesSection';
+import { IntegracionesSection } from '../components/admin/sections/integraciones/IntegracionesSection';
+import { avisar, confirmar } from '../components/ui';
+import { tintaDeRelleno } from '../utils/tintas';
+import { pulsable } from '../utils/pulsable';
 
 // Context para configuración global
 const ConfigContext = createContext(null);
 
 const useConfig = () => useContext(ConfigContext);
 
+/**
+ * Texto legible encima de un color cualquiera. Los colores de marca vienen de
+ * un selector, asi que no se puede dar por hecho que el blanco contraste: es
+ * la misma cuenta que hace el tema para --pn-accent-ink.
+ */
+function tintaDe(color: string): string | undefined {
+  const rgb = parsearHex(color);
+  // Si el hex no es valido se devuelve undefined y React deja el color que
+  // herede: mejor eso que forzar un blanco que a lo mejor no se lee.
+  return rgb ? aHex(tintaSobre(rgb)) : undefined;
+}
+
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [activeSection, setActiveSection] = useState('inicio');
-  
+  const { resuelto, establecerTema } = useTheme();
+  const [activeSection, setActiveSection] = useState<SeccionAdmin>('inicio');
+
+  // Mantiene /admin/<seccion> en la barra de direcciones. La sección sigue
+  // siendo useState; el hook solo la refleja, sin convertirla en <Route>.
+  useSeccionEnUrl<SeccionAdmin>({
+    base: '/admin',
+    seccion: activeSection,
+    setSeccion: setActiveSection,
+    esValida: esSeccionAdmin,
+  });
+
   // Estado de configuración de la plataforma
   const [platformConfig, setPlatformConfig] = useState({
     platformName: 'UniVirtual',
@@ -479,7 +515,7 @@ export default function AdminDashboard() {
   /** Guarda la marca en el tenant (PATCH real; antes era un alert de utileria). */
   const guardarConfiguracion = async () => {
     if (!tenantActual?.id) {
-      alert('No se pudo identificar la institución actual.');
+      avisar.error('No se pudo identificar la institución actual.');
       return;
     }
     try {
@@ -496,9 +532,9 @@ export default function AdminDashboard() {
         primaryColor: platformConfig.primaryColor,
         secondaryColor: platformConfig.secondaryColor,
       });
-      alert('Configuración guardada.');
+      avisar.ok('Configuración guardada.');
     } catch (err: any) {
-      alert('No se pudo guardar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo guardar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -525,33 +561,10 @@ export default function AdminDashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const menuItems = [
-    { id: 'inicio', icon: TrendingUp, label: 'Dashboard', color: 'text-blue-600' },
-    { id: 'mensajes', icon: Mail, label: 'Mensajes', badge: mensajesNoLeidos, color: 'text-blue-600' },
-    { id: 'tramites', icon: FileText, label: 'Trámites', color: 'text-purple-600' },
-    { id: 'anuncios', icon: Megaphone, label: 'Anuncios', color: 'text-orange-600' },
-    { id: 'mensajesmasivos', icon: Send, label: 'Mensajes Masivos', color: 'text-blue-600' },
-    { id: 'inscripcion', icon: Users, label: 'Inscripción', color: 'text-green-600' },
-    { id: 'documentos', icon: FileText, label: 'Documentos', color: 'text-purple-600' },
-    { id: 'plantillas', icon: Award, label: 'Plantillas Certificados', color: 'text-pink-600' },
-    { id: 'usuarios', icon: Users, label: 'Usuarios', color: 'text-green-600' },
-    { id: 'academico', icon: BookOpen, label: 'Gestión académica', color: 'text-blue-600' },
-    { id: 'activos', icon: Building2, label: 'Gestión de Activos', color: 'text-orange-600' },
-    { id: 'inventario', icon: ClipboardCheck, label: 'Inventario', color: 'text-purple-600' },
-    { id: 'nomina', icon: CreditCard, label: 'Nómina', color: 'text-green-600' },
-    { id: 'recursoshumanos', icon: Users, label: 'Recursos Humanos', color: 'text-blue-600' },
-    { id: 'biblioteca', icon: BookOpen, label: 'Biblioteca', color: 'text-pink-600' },
-    { id: 'carnetizacion', icon: User, label: 'Carnetización', color: 'text-purple-600' },
-    { id: 'finanzas', icon: DollarSign, label: 'Finanzas y Contabilidad', color: 'text-green-600' },
-    { id: 'reportes', icon: PieChart, label: 'Reportes', color: 'text-purple-600' },
-    { id: 'analiticas', icon: BarChart3, label: 'Analíticas', color: 'text-indigo-600' },
-    { id: 'configuracion', icon: Settings, label: 'Configuración', color: 'text-gray-600' }
-  ];
+  // El menú vivía aquí, duplicado: 20 entradas planas con un color
+  // arbitrario cada una. Ahora la única definición es NAV_ADMIN, agrupada
+  // por lo que el administrador viene a hacer (ver components/layout).
 
-  const bg = darkMode ? 'bg-gray-900' : 'bg-gray-100';
-  const card = darkMode ? 'bg-gray-800' : 'bg-white';
-  const text = darkMode ? 'text-gray-100' : 'text-gray-800';
-  const border = darkMode ? 'border-gray-700' : 'border-gray-200';
 
   const actualizarConfiguracion = (campo, valor) => {
     setPlatformConfig(prev => ({
@@ -562,7 +575,7 @@ export default function AdminDashboard() {
 
   const crearUsuario = async () => {
     if (!nuevoUsuario.nombre || !nuevoUsuario.email) {
-      alert('Por favor completa los campos obligatorios');
+      avisar.error('Por favor completa los campos obligatorios');
       return;
     }
 
@@ -586,7 +599,7 @@ export default function AdminDashboard() {
           await inscripcionesApi
             .create({ studentId, programId: nuevoUsuario.carrera })
             .catch((e: any) =>
-              alert(
+              avisar.ok(
                 'Usuario creado, pero la inscripción al programa falló: ' +
                   (e?.response?.data?.message ?? e?.message ?? 'error'),
               ),
@@ -601,13 +614,13 @@ export default function AdminDashboard() {
         // No hay endpoint para crear administradores: el único camino era el
         // registro público, que aceptaba el rol sin autenticación y por eso se
         // restringió a alumnado. Se dice en claro en vez de fingir el alta.
-        alert('Las cuentas de administración no se crean desde aquí. Pídelo a soporte de la plataforma.');
+        avisar.ok('Las cuentas de administración no se crean desde aquí. Pídelo a soporte de la plataforma.');
         return;
       }
       await cargarUsuarios();
-      alert(`Usuario creado. Contraseña inicial: ${password}`);
+      avisar.ok(`Usuario creado. Contraseña inicial: ${password}`);
     } catch (err: any) {
-      alert('No se pudo crear el usuario: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo crear el usuario: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -625,7 +638,7 @@ export default function AdminDashboard() {
 
   const editarUsuario = async () => {
     if (!editUserModal.nombre || !editUserModal.email) {
-      alert('Por favor completa los campos obligatorios');
+      avisar.error('Por favor completa los campos obligatorios');
       return;
     }
 
@@ -641,22 +654,22 @@ export default function AdminDashboard() {
       });
       await cargarUsuarios();
       setEditUserModal(null);
-      alert('Usuario actualizado exitosamente');
+      avisar.ok('Usuario actualizado exitosamente');
     } catch (err: any) {
-      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
     }
   };
 
   const eliminarUsuario = async (id) => {
     // El backend hace baja lógica: desactiva la cuenta y conserva su historial
     // académico, que es lo correcto — borrarla arrastraría notas y entregas.
-    if (!window.confirm('¿Desactivar este usuario? Conservará su historial pero no podrá entrar.')) return;
+    if (!await confirmar('¿Desactivar este usuario? Conservará su historial pero no podrá entrar.')) return;
     try {
       await personasApi.desactivarUsuario(String(id));
       await cargarUsuarios();
-      alert('Usuario desactivado');
+      avisar.error('Usuario desactivado');
     } catch (err: any) {
-      alert('No se pudo desactivar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo desactivar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -676,7 +689,7 @@ export default function AdminDashboard() {
 
   const crearPlantilla = async () => {
     if (!nuevaPlantilla.nombre) {
-      alert('Por favor ingresa un nombre para la plantilla');
+      avisar.info('Por favor ingresa un nombre para la plantilla');
       return;
     }
 
@@ -684,7 +697,7 @@ export default function AdminDashboard() {
       await plantillasCertificadoApi.create(nuevaPlantilla as any);
       await cargarPlantillas();
     } catch (err: any) {
-      alert('No se pudo crear la plantilla: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo crear la plantilla: ' + (err?.message || 'error de conexión'));
       return;
     }
 
@@ -696,12 +709,12 @@ export default function AdminDashboard() {
       componentes: [],
       configuracion: { tamano: 'A4', orientacion: 'horizontal', margenes: { top: 20, right: 20, bottom: 20, left: 20 }, fondo: '#ffffff' }
     });
-    alert('Plantilla creada exitosamente');
+    avisar.ok('Plantilla creada exitosamente');
   };
 
   const actualizarPlantilla = async () => {
     if (!editarPlantillaModal.nombre) {
-      alert('Por favor ingresa un nombre para la plantilla');
+      avisar.info('Por favor ingresa un nombre para la plantilla');
       return;
     }
 
@@ -715,9 +728,9 @@ export default function AdminDashboard() {
       });
       await cargarPlantillas();
       setEditarPlantillaModal(null);
-      alert('Plantilla actualizada exitosamente');
+      avisar.ok('Plantilla actualizada exitosamente');
     } catch (err: any) {
-      alert('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo actualizar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -725,20 +738,20 @@ export default function AdminDashboard() {
     try {
       await plantillasCertificadoApi.duplicate(String(plantilla.id));
       await cargarPlantillas();
-      alert('Plantilla duplicada exitosamente');
+      avisar.ok('Plantilla duplicada exitosamente');
     } catch (err: any) {
-      alert('No se pudo duplicar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo duplicar: ' + (err?.message || 'error de conexión'));
     }
   };
 
   const eliminarPlantilla = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta plantilla?')) return;
+    if (!await confirmar('¿Estás seguro de eliminar esta plantilla?')) return;
     try {
       await plantillasCertificadoApi.remove(String(id));
       await cargarPlantillas();
-      alert('Plantilla eliminada exitosamente');
+      avisar.ok('Plantilla eliminada exitosamente');
     } catch (err: any) {
-      alert('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo eliminar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -747,17 +760,17 @@ export default function AdminDashboard() {
     if (nuevoComponente.tipo === 'firma') {
       const firmasActuales = (plantilla.componentes || []).filter(c => c.tipo === 'firma').length;
       if (firmasActuales >= 3) {
-        alert('Solo se permiten hasta 3 firmas por certificado');
+        avisar.error('Solo se permiten hasta 3 firmas por certificado');
         return;
       }
       if (!nuevoComponente.nombreFirmante || !nuevoComponente.cargo) {
-        alert('Por favor ingresa el nombre y cargo del firmante');
+        avisar.info('Por favor ingresa el nombre y cargo del firmante');
         return;
       }
     }
     
     if (!nuevoComponente.contenido && !nuevoComponente.campo && nuevoComponente.tipo !== 'qr_code' && nuevoComponente.tipo !== 'firma') {
-      alert('Por favor ingresa el contenido del componente');
+      avisar.info('Por favor ingresa el contenido del componente');
       return;
     }
     
@@ -801,7 +814,7 @@ export default function AdminDashboard() {
 
     return (
       <div 
-        className="relative bg-white shadow-2xl mx-auto"
+        className="relative bg-pn-surface shadow-2xl mx-auto"
         style={{
           width: plantilla.configuracion.orientacion === 'horizontal' ? '842px' : '595px',
           height: plantilla.configuracion.orientacion === 'horizontal' ? '595px' : '842px',
@@ -876,101 +889,131 @@ export default function AdminDashboard() {
   };
 
   const renderInicio = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Panel Administrativo - {platformConfig.universityName}</h2>
-        <p className="opacity-90">Gestión integral de la plataforma {platformConfig.platformName}</p>
+    <div className="space-y-5">
+      {/* --- Franja de métricas ---
+          Antes eran cuatro tarjetas con barra lateral de color e icono de
+          32 px: cuatro colores arbitrarios que no codificaban nada. Ahora solo
+          se destaca la que exige acción, que son las solicitudes pendientes.
+          Y cayó el degradado azul→morado de bienvenida: ocupaba una franja
+          entera para repetir el nombre que ya está en la cabecera. */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard
+          indice={0}
+          etiqueta="Estudiantes"
+          valor={metricas.totalEstudiantes.toLocaleString('es-CO')}
+          icono={Users}
+          delta={12}
+          nota="vs mes anterior"
+        />
+        <StatCard
+          indice={1}
+          etiqueta="Docentes"
+          valor={metricas.totalDocentes.toLocaleString('es-CO')}
+          icono={Award}
+          delta={5}
+          nota="vs mes anterior"
+        />
+        <StatCard
+          indice={2}
+          etiqueta="Solicitudes"
+          valor={metricas.solicitudesPendientes}
+          icono={ClipboardCheck}
+          nota={metricas.solicitudesPendientes === 1 ? 'pendiente' : 'pendientes'}
+          destacada={metricas.solicitudesPendientes > 0}
+        />
+        <StatCard
+          indice={3}
+          etiqueta="Ingresos del mes"
+          valor={`$${(metricas.ingresosMensuales / 1000).toFixed(0)}K`}
+          icono={DollarSign}
+          delta={18}
+          nota="vs mes anterior"
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Estudiantes', value: metricas.totalEstudiantes.toLocaleString(), color: 'border-blue-500', icon: Users, trend: '+12%' },
-          { label: 'Docentes', value: metricas.totalDocentes.toLocaleString(), color: 'border-green-500', icon: Award, trend: '+5%' },
-          { label: 'Solicitudes', value: metricas.solicitudesPendientes, color: 'border-orange-500', icon: ClipboardCheck, trend: '-8%' },
-          { label: 'Ingresos', value: `$${(metricas.ingresosMensuales / 1000).toFixed(0)}K`, color: 'border-purple-500', icon: DollarSign, trend: '+18%' }
-        ].map((stat, i) => (
-          <div key={i} className={`${card} rounded-lg shadow p-4 border-l-4 ${stat.color} cursor-pointer hover:shadow-lg transition`}>
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>{stat.label}</p>
-                <p className={`text-2xl font-bold ${text}`}>{stat.value}</p>
-              </div>
-              <stat.icon className={stat.color.replace('border-', 'text-')} size={32} />
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              <span className={stat.trend.includes('+') ? 'text-green-600' : 'text-red-600'}>{stat.trend}</span>
-              <span className="text-gray-500">vs mes anterior</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className={`lg:col-span-2 ${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Actividad Reciente</h3>
-          <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        {/* --- Actividad reciente --- */}
+        <Card className="p-0 lg:col-span-2">
+          <h3 className="border-b border-pn-line px-4 py-3.5 font-display text-base font-bold text-pn-ink">
+            Actividad reciente
+          </h3>
+          <ul className="list-none p-0">
             {[
-              { accion: 'Nuevo estudiante registrado', usuario: 'María González', tiempo: 'Hace 5 min', icono: Users, color: 'text-blue-600' },
-              { accion: 'Certificado generado', usuario: 'Sistema', tiempo: 'Hace 15 min', icono: FileText, color: 'text-green-600' },
-              { accion: 'Solicitud aprobada', usuario: 'Admin Ana', tiempo: 'Hace 1 hora', icono: CheckCircle, color: 'text-purple-600' },
-              { accion: 'Pago procesado', usuario: 'Carlos Ruiz', tiempo: 'Hace 2 horas', icono: DollarSign, color: 'text-green-600' }
+              { accion: 'Nuevo estudiante registrado', usuario: 'María González', tiempo: 'Hace 5 min', icono: Users },
+              { accion: 'Certificado generado', usuario: 'Sistema', tiempo: 'Hace 15 min', icono: FileText },
+              { accion: 'Solicitud aprobada', usuario: 'Admin Ana', tiempo: 'Hace 1 hora', icono: CheckCircle },
+              { accion: 'Pago procesado', usuario: 'Carlos Ruiz', tiempo: 'Hace 2 horas', icono: DollarSign },
             ].map((actividad, i) => (
-              <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${border} hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''} transition`}>
-                <actividad.icono className={actividad.color} size={20} />
-                <div className="flex-1">
-                  <p className={`font-semibold text-sm ${text}`}>{actividad.accion}</p>
-                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{actividad.usuario} • {actividad.tiempo}</p>
-                </div>
-              </div>
+              <li
+                key={i}
+                className="flex items-start gap-3 border-b border-pn-line px-4 py-3 last:border-b-0"
+              >
+                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pn-accent-soft text-pn-accent-text">
+                  <actividad.icono size={14} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-body text-sm font-medium text-pn-ink">
+                    {actividad.accion}
+                  </span>
+                  <span className="block truncate font-body text-[12.5px] text-pn-muted">
+                    {actividad.usuario} · {actividad.tiempo}
+                  </span>
+                </span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Card>
 
-        <div className="space-y-6">
-          <div className={`${card} rounded-lg shadow p-6`}>
-            <h3 className={`text-xl font-bold mb-4 ${text}`}>Alertas</h3>
-            <div className="space-y-3">
-              {[
-                { mensaje: '12 pagos pendientes', tipo: 'warning' },
-                { mensaje: '5 solicitudes urgentes', tipo: 'error' },
-                { mensaje: 'Backup completado', tipo: 'success' }
-              ].map((alerta, i) => (
-                <div key={i} className={`p-3 rounded-lg ${
-                  alerta.tipo === 'error' ? 'bg-red-50 border-l-4 border-red-500' :
-                  alerta.tipo === 'warning' ? 'bg-yellow-50 border-l-4 border-yellow-500' :
-                  'bg-green-50 border-l-4 border-green-500'
-                }`}>
-                  <p className={`text-sm font-semibold ${
-                    alerta.tipo === 'error' ? 'text-red-800' :
-                    alerta.tipo === 'warning' ? 'text-yellow-800' :
-                    'text-green-800'
-                  }`}>{alerta.mensaje}</p>
-                </div>
+        <div className="space-y-5">
+          {/* --- Alertas: el tono sale de la semántica, no de un color suelto --- */}
+          <Card className="p-0">
+            <h3 className="border-b border-pn-line px-4 py-3.5 font-display text-base font-bold text-pn-ink">
+              Alertas
+            </h3>
+            <ul className="list-none space-y-2 p-4">
+              {([
+                { mensaje: '12 pagos pendientes', tono: 'warn' as const },
+                { mensaje: '5 solicitudes urgentes', tono: 'danger' as const },
+                { mensaje: 'Backup completado', tono: 'ok' as const },
+              ]).map((alerta, i) => (
+                <li key={i}>
+                  <StatusPill tono={alerta.tono} className="w-full justify-start py-1.5">
+                    {alerta.mensaje}
+                  </StatusPill>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </Card>
 
-          <div className={`${card} rounded-lg shadow p-6`}>
-            <h3 className={`text-xl font-bold mb-4 ${text}`}>Accesos Rápidos</h3>
-            <div className="space-y-2">
+          {/* --- Accesos rápidos --- */}
+          <Card className="p-0">
+            <h3 className="border-b border-pn-line px-4 py-3.5 font-display text-base font-bold text-pn-ink">
+              Accesos rápidos
+            </h3>
+            <div className="flex flex-col gap-2 p-4">
               {[
-                { label: 'Generar Certificado', icon: FileText, action: () => setGenerarCertificadoModal(true) },
-                { label: 'Crear Usuario', icon: Plus, action: () => setCreateUserModal(true) },
-                { label: 'Ver Reportes', icon: PieChart, action: () => setActiveSection('reportes') }
+                { label: 'Generar certificado', icon: FileText, action: () => setGenerarCertificadoModal(true) },
+                { label: 'Crear usuario', icon: Plus, action: () => setCreateUserModal(true) },
+                { label: 'Ver reportes', icon: PieChart, action: () => setActiveSection('reportes') },
               ].map((acceso, i) => (
-                <button key={i} onClick={acceso.action} className={`w-full flex items-center gap-2 p-3 rounded-lg border ${border} hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''} transition text-left`}>
-                  <acceso.icon size={18} className="text-blue-600" />
-                  <span className={`text-sm ${text}`}>{acceso.label}</span>
-                </button>
+                <Button
+                  key={i}
+                  variante="secondary"
+                  icono={acceso.icon}
+                  onClick={acceso.action}
+                  className="justify-start"
+                >
+                  {acceso.label}
+                </Button>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>
   );
 
-  const renderMensajes = () => <MensajesAdminSection darkMode={darkMode} />;
+  const renderMensajes = () => <MensajesAdminSection />;
 
   const renderUsuarios = () => {
     const usuariosFiltrados = filtroUsuarios === 'todos' ? usuarios : usuarios.filter(u => u.rol === filtroUsuarios);
@@ -978,12 +1021,12 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className={`text-2xl font-bold ${text}`}>Gestión de Usuarios</h2>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Usuarios</h2>
           <div className="flex gap-2">
-            <button onClick={() => setComunicacionMasivaModal(true)} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+            <button onClick={() => setComunicacionMasivaModal(true)} className="bg-pn-ok text-pn-surface px-4 py-2 rounded hover:bg-pn-ok flex items-center gap-2">
               <Send size={18} />Comunicación Masiva
             </button>
-            <button onClick={() => setCreateUserModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+            <button onClick={() => setCreateUserModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
               <Plus size={18} />Crear Usuario
             </button>
           </div>
@@ -996,8 +1039,8 @@ export default function AdminDashboard() {
               onClick={() => setFiltroUsuarios(filtro)}
               className={`px-4 py-2 rounded ${
                 filtroUsuarios === filtro
-                  ? 'bg-blue-600 text-white'
-                  : `border ${border} ${text}`
+                  ? 'bg-pn-accent text-pn-accent-ink'
+                  : `border border-pn-line text-pn-ink`
               }`}
             >
               {filtro.charAt(0).toUpperCase() + filtro.slice(1)}
@@ -1005,54 +1048,54 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className={`${card} rounded-lg shadow overflow-hidden`}>
+        <div className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
           <table className="w-full">
-            <thead className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <thead className={`bg-pn-surface-2`}>
               <tr>
-                <th className={`p-3 text-left text-sm font-semibold ${text}`}>Usuario</th>
-                <th className={`p-3 text-left text-sm font-semibold ${text}`}>Rol</th>
-                <th className={`p-3 text-left text-sm font-semibold ${text}`}>Estado</th>
-                <th className={`p-3 text-left text-sm font-semibold ${text}`}>Último Acceso</th>
-                <th className={`p-3 text-left text-sm font-semibold ${text}`}>Acciones</th>
+                <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Usuario</th>
+                <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Rol</th>
+                <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Estado</th>
+                <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Último Acceso</th>
+                <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {usuariosFiltrados.map(usuario => (
-                <tr key={usuario.id} className={`border-t ${border}`}>
+                <tr key={usuario.id} className={`border-t border-pn-line`}>
                   <td className="p-3">
                     <div>
-                      <p className={`font-semibold ${text}`}>{usuario.nombre}</p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{usuario.email}</p>
+                      <p className={`font-semibold text-pn-ink`}>{usuario.nombre}</p>
+                      <p className={`text-sm text-pn-ink-2`}>{usuario.email}</p>
                     </div>
                   </td>
                   <td className="p-3">
                     <span className={`px-3 py-1 rounded text-xs ${
-                      usuario.rol === 'admin' ? 'bg-purple-100 text-purple-700' :
-                      usuario.rol === 'docente' ? 'bg-blue-100 text-blue-700' :
-                      'bg-green-100 text-green-700'
+                      usuario.rol === 'admin' ? 'bg-pn-accent-2-soft text-pn-accent-2-text' :
+                      usuario.rol === 'docente' ? 'bg-pn-accent-soft text-pn-accent-text' :
+                      'bg-pn-ok-soft text-pn-ok'
                     }`}>
                       {usuario.rol}
                     </span>
                   </td>
                   <td className="p-3">
                     <span className={`px-3 py-1 rounded text-xs ${
-                      usuario.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                      usuario.estado === 'activo' ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-surface-3 text-pn-ink-2'
                     }`}>
                       {usuario.estado}
                     </span>
                   </td>
-                  <td className={`p-3 text-sm ${text}`}>{usuario.ultimoAcceso}</td>
+                  <td className={`p-3 text-sm text-pn-ink`}>{usuario.ultimoAcceso}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       {usuario.rol === 'estudiante' && (
-                        <button onClick={() => setVerHistorialModal(usuario)} className="p-2 text-purple-600 hover:bg-purple-50 rounded" title="Ver historial académico">
+                        <button onClick={() => setVerHistorialModal(usuario)} className="p-2 text-pn-accent-2-text hover:bg-pn-accent-2-soft rounded" title="Ver historial académico">
                           <BookOpen size={16} />
                         </button>
                       )}
-                      <button onClick={() => setEditUserModal(usuario)} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                      <button onClick={() => setEditUserModal(usuario)} className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded">
                         <Edit size={16} />
                       </button>
-                      <button onClick={() => eliminarUsuario(usuario.id)} className="p-2 text-red-600 hover:bg-red-50 rounded">
+                      <button onClick={() => eliminarUsuario(usuario.id)} className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -1066,52 +1109,52 @@ export default function AdminDashboard() {
         {/* Modal Historial Académico */}
         {verHistorialModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setVerHistorialModal(null)}>
-            <div className={`${card} rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" aria-label="Historial" className={`bg-pn-surface rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className={`text-xl font-bold ${text}`}>Historial Académico</h3>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{verHistorialModal.nombre}</p>
+                  <h3 className={`text-xl font-bold text-pn-ink`}>Historial Académico</h3>
+                  <p className={`text-sm text-pn-ink-2`}>{verHistorialModal.nombre}</p>
                 </div>
                 <button onClick={() => setVerHistorialModal(null)}><X size={24} /></button>
               </div>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Promedio General</p>
-                    <p className={`text-2xl font-bold ${text}`}>4.2</p>
+                  <div className={`p-4 rounded-lg bg-pn-accent-soft`}>
+                    <p className={`text-sm text-pn-ink-2`}>Promedio General</p>
+                    <p className={`text-2xl font-bold text-pn-ink`}>4.2</p>
                   </div>
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-green-50'}`}>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Cursos Aprobados</p>
-                    <p className={`text-2xl font-bold ${text}`}>12</p>
+                  <div className={`p-4 rounded-lg bg-pn-ok-soft`}>
+                    <p className={`text-sm text-pn-ink-2`}>Cursos Aprobados</p>
+                    <p className={`text-2xl font-bold text-pn-ink`}>12</p>
                   </div>
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Créditos Acumulados</p>
-                    <p className={`text-2xl font-bold ${text}`}>48</p>
+                  <div className={`p-4 rounded-lg bg-pn-info-soft`}>
+                    <p className={`text-sm text-pn-ink-2`}>Créditos Acumulados</p>
+                    <p className={`text-2xl font-bold text-pn-ink`}>48</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className={`font-bold mb-3 ${text}`}>Cursos Cursados</h4>
+                  <h4 className={`font-bold mb-3 text-pn-ink`}>Cursos Cursados</h4>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                      <thead className={`bg-pn-surface-2`}>
                         <tr>
-                          <th className={`p-3 text-left text-sm font-semibold ${text}`}>Curso</th>
-                          <th className={`p-3 text-left text-sm font-semibold ${text}`}>Semestre</th>
-                          <th className={`p-3 text-left text-sm font-semibold ${text}`}>Nota</th>
-                          <th className={`p-3 text-left text-sm font-semibold ${text}`}>Estado</th>
+                          <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Curso</th>
+                          <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Semestre</th>
+                          <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Nota</th>
+                          <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Estado</th>
                         </tr>
                       </thead>
                       <tbody>
                         {historialAcademico.filter(h => h.estudiante === verHistorialModal.nombre).map(hist => (
-                          <tr key={hist.id} className={`border-t ${border}`}>
-                            <td className={`p-3 ${text}`}>{hist.curso}</td>
-                            <td className={`p-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{hist.semestre}</td>
-                            <td className={`p-3 font-semibold text-blue-600`}>{hist.nota}</td>
+                          <tr key={hist.id} className={`border-t border-pn-line`}>
+                            <td className={`p-3 text-pn-ink`}>{hist.curso}</td>
+                            <td className={`p-3 text-sm text-pn-ink-2`}>{hist.semestre}</td>
+                            <td className={`p-3 font-semibold text-pn-accent-text`}>{hist.nota}</td>
                             <td className="p-3">
                               <span className={`px-3 py-1 rounded text-xs ${
-                                hist.estado === 'Aprobado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                hist.estado === 'Aprobado' ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-danger-soft text-pn-danger'
                               }`}>
                                 {hist.estado}
                               </span>
@@ -1125,7 +1168,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setVerHistorialModal(null)} className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}>
+                <button onClick={() => setVerHistorialModal(null)} className={`px-6 py-2 border border-pn-line rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}>
                   Cerrar
                 </button>
               </div>
@@ -1136,9 +1179,9 @@ export default function AdminDashboard() {
         {/* Modal Comunicación Masiva */}
         {comunicacionMasivaModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setComunicacionMasivaModal(false)}>
-            <div className={`${card} rounded-lg p-6 max-w-3xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" aria-label="Comunicación masiva" className={`bg-pn-surface rounded-lg p-6 max-w-3xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between mb-4">
-                <h3 className={`text-xl font-bold ${text}`}>Comunicación Masiva</h3>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Comunicación Masiva</h3>
                 <button onClick={() => setComunicacionMasivaModal(false)}><X size={24} /></button>
               </div>
               <div className="space-y-4">
@@ -1146,7 +1189,7 @@ export default function AdminDashboard() {
                   <label className="block text-sm font-semibold mb-2">Destinatarios</label>
                   <div className="flex gap-2 flex-wrap">
                     {['Todos', 'Estudiantes', 'Docentes', 'Administradores'].map(grupo => (
-                      <button key={grupo} className={`px-4 py-2 rounded border ${border} hover:bg-blue-50 ${darkMode ? 'hover:bg-blue-900' : ''}`}>
+                      <button key={grupo} className={`px-4 py-2 rounded border border-pn-line hover:bg-pn-accent-soft hover:bg-pn-accent-soft`}>
                         {grupo}
                       </button>
                     ))}
@@ -1157,7 +1200,7 @@ export default function AdminDashboard() {
                   <input 
                     type="text" 
                     placeholder="Asunto del mensaje"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                    className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                   />
                 </div>
                 <div>
@@ -1165,20 +1208,20 @@ export default function AdminDashboard() {
                   <textarea 
                     rows={8} 
                     placeholder="Escribe tu mensaje aquí..."
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                    className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                   ></textarea>
                 </div>
                 <div className="flex gap-3">
                   <button 
                     onClick={() => { 
-                      alert('Mensaje enviado a los destinatarios seleccionados'); 
+                      avisar.ok('Mensaje enviado a los destinatarios seleccionados'); 
                       setComunicacionMasivaModal(false); 
                     }} 
-                    className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 flex items-center justify-center gap-2"
+                    className="flex-1 bg-pn-ok text-pn-surface py-2 rounded hover:bg-pn-ok flex items-center justify-center gap-2"
                   >
                     <Send size={18} />Enviar Mensaje
                   </button>
-                  <button onClick={() => setComunicacionMasivaModal(false)} className={`flex-1 border ${border} py-2 rounded`}>
+                  <button onClick={() => setComunicacionMasivaModal(false)} className={`flex-1 border border-pn-line py-2 rounded`}>
                     Cancelar
                   </button>
                 </div>
@@ -1190,9 +1233,9 @@ export default function AdminDashboard() {
         {/* Modal Crear Usuario */}
         {createUserModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setCreateUserModal(false)}>
-            <div className={`${card} rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+            <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-xl font-bold ${text}`}>Crear Nuevo Usuario</h3>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nuevo Usuario</h3>
                 <button onClick={() => setCreateUserModal(false)}><X size={24} /></button>
               </div>
               
@@ -1205,7 +1248,7 @@ export default function AdminDashboard() {
                       value={nuevoUsuario.nombre}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, nombre: e.target.value})}
                       placeholder="Juan Pérez"
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                   
@@ -1216,7 +1259,7 @@ export default function AdminDashboard() {
                       value={nuevoUsuario.email}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, email: e.target.value})}
                       placeholder="juan.perez@university.edu"
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 </div>
@@ -1227,7 +1270,7 @@ export default function AdminDashboard() {
                     <select
                       value={nuevoUsuario.rol}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, rol: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="estudiante">Estudiante</option>
                       <option value="docente">Docente</option>
@@ -1240,7 +1283,7 @@ export default function AdminDashboard() {
                     <select
                       value={nuevoUsuario.estado}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, estado: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="activo">Activo</option>
                       <option value="inactivo">Inactivo</option>
@@ -1254,7 +1297,7 @@ export default function AdminDashboard() {
                     <select
                       value={nuevoUsuario.carrera}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, carrera: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="">Sin programa (inscribir después)</option>
                       {programasAcademicos.map((programa) => (
@@ -1272,7 +1315,7 @@ export default function AdminDashboard() {
                       value={nuevoUsuario.departamento}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, departamento: e.target.value})}
                       placeholder="Ciencias de la Computación"
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 )}
@@ -1285,7 +1328,7 @@ export default function AdminDashboard() {
                       value={nuevoUsuario.posicion}
                       onChange={(e) => setNuevoUsuario({...nuevoUsuario, posicion: e.target.value})}
                       placeholder="Coordinador Académico"
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 )}
@@ -1293,14 +1336,14 @@ export default function AdminDashboard() {
                 <div className="flex gap-3 pt-4">
                   <button 
                     onClick={crearUsuario}
-                    className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
+                    className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2"
                   >
                     <Save size={18} />
                     Crear Usuario
                   </button>
                   <button 
                     onClick={() => setCreateUserModal(false)}
-                    className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
+                    className={`flex-1 border border-pn-line py-2 rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}
                   >
                     Cancelar
                   </button>
@@ -1313,9 +1356,9 @@ export default function AdminDashboard() {
         {/* Modal Editar Usuario */}
         {editUserModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditUserModal(null)}>
-            <div className={`${card} rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+            <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-xl font-bold ${text}`}>Editar Usuario</h3>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Editar Usuario</h3>
                 <button onClick={() => setEditUserModal(null)}><X size={24} /></button>
               </div>
               
@@ -1327,7 +1370,7 @@ export default function AdminDashboard() {
                       type="text"
                       value={editUserModal.nombre}
                       onChange={(e) => setEditUserModal({...editUserModal, nombre: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                   
@@ -1337,7 +1380,7 @@ export default function AdminDashboard() {
                       type="email"
                       value={editUserModal.email}
                       onChange={(e) => setEditUserModal({...editUserModal, email: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 </div>
@@ -1348,7 +1391,7 @@ export default function AdminDashboard() {
                     <select
                       value={editUserModal.rol}
                       onChange={(e) => setEditUserModal({...editUserModal, rol: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="estudiante">Estudiante</option>
                       <option value="docente">Docente</option>
@@ -1361,7 +1404,7 @@ export default function AdminDashboard() {
                     <select
                       value={editUserModal.estado}
                       onChange={(e) => setEditUserModal({...editUserModal, estado: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="activo">Activo</option>
                       <option value="inactivo">Inactivo</option>
@@ -1376,7 +1419,7 @@ export default function AdminDashboard() {
                       type="text"
                       value={editUserModal.carrera || ''}
                       onChange={(e) => setEditUserModal({...editUserModal, carrera: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 )}
@@ -1388,7 +1431,7 @@ export default function AdminDashboard() {
                       type="text"
                       value={editUserModal.departamento || ''}
                       onChange={(e) => setEditUserModal({...editUserModal, departamento: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 )}
@@ -1400,7 +1443,7 @@ export default function AdminDashboard() {
                       type="text"
                       value={editUserModal.posicion || ''}
                       onChange={(e) => setEditUserModal({...editUserModal, posicion: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     />
                   </div>
                 )}
@@ -1408,14 +1451,14 @@ export default function AdminDashboard() {
                 <div className="flex gap-3 pt-4">
                   <button 
                     onClick={editarUsuario}
-                    className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
+                    className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2"
                   >
                     <Save size={18} />
                     Guardar Cambios
                   </button>
                   <button 
                     onClick={() => setEditUserModal(null)}
-                    className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
+                    className={`flex-1 border border-pn-line py-2 rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}
                   >
                     Cancelar
                   </button>
@@ -1434,36 +1477,36 @@ export default function AdminDashboard() {
 
   const renderReportes = () => (
     <div className="space-y-6">
-      <h2 className={`text-2xl font-bold ${text}`}>Centro de Reportes</h2>
+      <h2 className={`text-2xl font-bold text-pn-ink`}>Centro de Reportes</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { titulo: 'Reporte de Estudiantes', descripcion: 'Estadísticas completas de estudiantes', icon: Users, color: 'bg-blue-500' },
-          { titulo: 'Reporte Académico', descripcion: 'Rendimiento y calificaciones', icon: BookOpen, color: 'bg-green-500' },
-          { titulo: 'Reporte Financiero', descripcion: 'Ingresos y transacciones', icon: DollarSign, color: 'bg-purple-500' },
-          { titulo: 'Reporte de Asistencia', descripcion: 'Asistencia y participación', icon: CheckCircle, color: 'bg-orange-500' },
-          { titulo: 'Reporte de Certificados', descripcion: 'Certificados generados', icon: Award, color: 'bg-pink-500' },
-          { titulo: 'Reporte de Actividad', descripcion: 'Actividad en la plataforma', icon: TrendingUp, color: 'bg-indigo-500' }
+          { titulo: 'Reporte de Estudiantes', descripcion: 'Estadísticas completas de estudiantes', icon: Users, color: 'bg-pn-accent' },
+          { titulo: 'Reporte Académico', descripcion: 'Rendimiento y calificaciones', icon: BookOpen, color: 'bg-pn-ok' },
+          { titulo: 'Reporte Financiero', descripcion: 'Ingresos y transacciones', icon: DollarSign, color: 'bg-pn-accent-2' },
+          { titulo: 'Reporte de Asistencia', descripcion: 'Asistencia y participación', icon: CheckCircle, color: 'bg-pn-warn' },
+          { titulo: 'Reporte de Certificados', descripcion: 'Certificados generados', icon: Award, color: 'bg-pn-accent-2' },
+          { titulo: 'Reporte de Actividad', descripcion: 'Actividad en la plataforma', icon: TrendingUp, color: 'bg-pn-accent-2' }
         ].map((reporte, i) => (
-          <div key={i} className={`${card} rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition`}>
-            <div className={`${reporte.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
-              <reporte.icon size={24} className="text-white" />
+          <div key={i} className={`bg-pn-surface rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition`}>
+            <div className={`${reporte.color} ${tintaDeRelleno(reporte.color)} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
+              <reporte.icon size={24} />
             </div>
-            <h4 className={`font-bold mb-2 ${text}`}>{reporte.titulo}</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>{reporte.descripcion}</p>
-            <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+            <h4 className={`font-bold mb-2 text-pn-ink`}>{reporte.titulo}</h4>
+            <p className={`text-sm text-pn-ink-2 mb-4`}>{reporte.descripcion}</p>
+            <button className="w-full bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2">
               <Download size={16} />Generar
             </button>
           </div>
         ))}
       </div>
 
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-xl font-bold mb-4 ${text}`}>Reportes Personalizados</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Reportes Personalizados</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-2">Tipo de Reporte</label>
-            <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+            <select className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
               <option>Seleccionar tipo...</option>
               <option>Académico</option>
               <option>Financiero</option>
@@ -1473,7 +1516,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Período</label>
-            <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+            <select className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
               <option>Último mes</option>
               <option>Último trimestre</option>
               <option>Último semestre</option>
@@ -1483,14 +1526,14 @@ export default function AdminDashboard() {
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Formato</label>
-            <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+            <select className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
               <option>PDF</option>
               <option>Excel</option>
               <option>CSV</option>
             </select>
           </div>
           <div className="flex items-end">
-            <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+            <button className="w-full bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2">
               <Download size={18} />Generar Reporte
             </button>
           </div>
@@ -1501,23 +1544,23 @@ export default function AdminDashboard() {
 
   const renderConfiguracion = () => (
     <div className="space-y-6">
-      <h2 className={`text-2xl font-bold ${text}`}>Configuración del Sistema</h2>
+      <h2 className={`text-2xl font-bold text-pn-ink`}>Configuración del Sistema</h2>
 
       {/* Configuración de la Institución */}
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-lg font-bold ${text} mb-4`}>Configuración de la Institución</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Configuración de la Institución</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+            <label className={`block text-sm font-medium text-pn-ink-2 mb-2`}>
               Nombre de la Institución
             </label>
             <input
               type="text"
               value={tenantActual?.name ?? ''}
-              className={`w-full px-3 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}
+              className={`w-full px-3 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
               readOnly
             />
-            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`mt-1 text-xs text-pn-muted`}>
               Se edita en «Configuración de Marca», más abajo. NIT, email y
               teléfono institucionales estarán disponibles cuando el backend
               los incorpore; antes esta tarjeta mostraba datos de ejemplo.
@@ -1528,8 +1571,8 @@ export default function AdminDashboard() {
 
       {/* Personalización de Marca */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Configuración de Marca</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Configuración de Marca</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold mb-2">Nombre de la Plataforma</label>
@@ -1537,7 +1580,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={platformConfig.platformName}
                 onChange={(e) => actualizarConfiguracion('platformName', e.target.value)}
-                className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
               />
             </div>
             <div>
@@ -1546,14 +1589,14 @@ export default function AdminDashboard() {
                 type="text"
                 value={platformConfig.universityName}
                 onChange={(e) => actualizarConfiguracion('universityName', e.target.value)}
-                className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
               />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2">Logo de la Plataforma</label>
-              <div className={`border-2 border-dashed ${border} rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}>
-                <Upload size={48} className="mx-auto text-gray-400 mb-2" />
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <div className={`border-2 border-dashed border-pn-line rounded-lg p-6 text-center cursor-pointer hover:bg-pn-surface-2 hover:bg-pn-surface-3`}>
+                <Upload size={48} className="mx-auto text-pn-muted mb-2" />
+                <p className={`text-sm text-pn-ink-2`}>
                   Arrastra tu logo aquí o haz clic para seleccionar
                 </p>
               </div>
@@ -1561,8 +1604,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Colores de la Plataforma</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Colores de la Plataforma</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold mb-2">Color Primario</label>
@@ -1577,7 +1620,7 @@ export default function AdminDashboard() {
                   type="text"
                   value={platformConfig.primaryColor}
                   onChange={(e) => actualizarConfiguracion('primaryColor', e.target.value)}
-                  className={`flex-1 p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                  className={`flex-1 p-2 border border-pn-line rounded bg-pn-surface-2`}
                 />
               </div>
             </div>
@@ -1594,17 +1637,17 @@ export default function AdminDashboard() {
                   type="text"
                   value={platformConfig.secondaryColor}
                   onChange={(e) => actualizarConfiguracion('secondaryColor', e.target.value)}
-                  className={`flex-1 p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                  className={`flex-1 p-2 border border-pn-line rounded bg-pn-surface-2`}
                 />
               </div>
             </div>
-            <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <div className={`p-4 rounded-lg bg-pn-surface-2`}>
               <p className="text-sm font-semibold mb-3">Vista Previa de Colores:</p>
               <div className="flex gap-2">
-                <div style={{ backgroundColor: platformConfig.primaryColor }} className="w-20 h-20 rounded flex items-center justify-center text-white text-xs">
+                <div style={{ backgroundColor: platformConfig.primaryColor, color: tintaDe(platformConfig.primaryColor) }} className="w-20 h-20 rounded flex items-center justify-center text-xs">
                   Primario
                 </div>
-                <div style={{ backgroundColor: platformConfig.secondaryColor }} className="w-20 h-20 rounded flex items-center justify-center text-white text-xs">
+                <div style={{ backgroundColor: platformConfig.secondaryColor, color: tintaDe(platformConfig.secondaryColor) }} className="w-20 h-20 rounded flex items-center justify-center text-xs">
                   Secundario
                 </div>
               </div>
@@ -1614,23 +1657,23 @@ export default function AdminDashboard() {
       </div>
 
       {/* Vista Previa de Marca */}
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-xl font-bold mb-4 ${text}`}>Vista Previa en Tiempo Real</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Vista Previa en Tiempo Real</h3>
         <div className="border-2 rounded-lg p-6" style={{ borderColor: platformConfig.primaryColor }}>
           <div className="flex items-center gap-4 mb-4">
-            <div style={{ backgroundColor: platformConfig.primaryColor }} className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            <div style={{ backgroundColor: platformConfig.primaryColor, color: tintaDe(platformConfig.primaryColor) }} className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl">
               {platformConfig.platformName.charAt(0)}
             </div>
             <div>
-              <h4 className={`text-2xl font-bold ${text}`}>{platformConfig.platformName}</h4>
-              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{platformConfig.universityName}</p>
+              <h4 className={`text-2xl font-bold text-pn-ink`}>{platformConfig.platformName}</h4>
+              <p className={'text-pn-ink-2'}>{platformConfig.universityName}</p>
             </div>
           </div>
           <div className="flex gap-3">
-            <button style={{ backgroundColor: platformConfig.primaryColor }} className="text-white px-6 py-2 rounded hover:opacity-90">
+            <button style={{ backgroundColor: platformConfig.primaryColor, color: tintaDe(platformConfig.primaryColor) }} className="px-6 py-2 rounded hover:opacity-90">
               Botón Primario
             </button>
-            <button style={{ backgroundColor: platformConfig.secondaryColor }} className="text-white px-6 py-2 rounded hover:opacity-90">
+            <button style={{ backgroundColor: platformConfig.secondaryColor, color: tintaDe(platformConfig.secondaryColor) }} className="px-6 py-2 rounded hover:opacity-90">
               Botón Secundario
             </button>
           </div>
@@ -1638,24 +1681,24 @@ export default function AdminDashboard() {
       </div>
 
       {/* Roles y Permisos */}
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-lg font-bold ${text} mb-4`}>Roles y Permisos</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Roles y Permisos</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Los cuatro roles REALES del sistema (enum UserRole del backend).
               Antes esta tarjeta pintaba roles inventados del mock, con cupos
               de usuarios que no existian. */}
           {[
-            { id: 'SUPER_ADMIN', nombre: 'Super Admin', descripcion: 'Operador de la plataforma: planes, estados y cupos de todas las instituciones.', color: 'bg-purple-600' },
-            { id: 'TENANT_ADMIN', nombre: 'Administrador', descripcion: 'Gestiona su institución: usuarios, cursos, finanzas y configuración.', color: 'bg-blue-600' },
-            { id: 'TEACHER', nombre: 'Docente', descripcion: 'Cursos a su cargo: contenidos, tareas, exámenes y calificaciones.', color: 'bg-emerald-600' },
-            { id: 'STUDENT', nombre: 'Estudiante', descripcion: 'Accede a sus cursos, entregas, notas y trámites.', color: 'bg-amber-600' },
+            { id: 'SUPER_ADMIN', nombre: 'Super Admin', descripcion: 'Operador de la plataforma: planes, estados y cupos de todas las instituciones.', color: 'bg-pn-accent-2' },
+            { id: 'TENANT_ADMIN', nombre: 'Administrador', descripcion: 'Gestiona su institución: usuarios, cursos, finanzas y configuración.', color: 'bg-pn-accent' },
+            { id: 'TEACHER', nombre: 'Docente', descripcion: 'Cursos a su cargo: contenidos, tareas, exámenes y calificaciones.', color: 'bg-pn-ok' },
+            { id: 'STUDENT', nombre: 'Estudiante', descripcion: 'Accede a sus cursos, entregas, notas y trámites.', color: 'bg-pn-warn' },
           ].map(rol => (
-            <div key={rol.id} className={`p-4 border ${border} rounded-lg`}>
-              <div className={`w-12 h-12 ${rol.color} rounded-full flex items-center justify-center text-white font-bold mb-3`}>
+            <div key={rol.id} className={`p-4 border border-pn-line rounded-lg`}>
+              <div className={`w-12 h-12 ${rol.color} ${tintaDeRelleno(rol.color)} rounded-full flex items-center justify-center font-bold mb-3`}>
                 {rol.nombre.charAt(0)}
               </div>
-              <h4 className={`font-bold ${text}`}>{rol.nombre}</h4>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{rol.descripcion}</p>
+              <h4 className={`font-bold text-pn-ink`}>{rol.nombre}</h4>
+              <p className={`text-sm text-pn-ink-2 mb-2`}>{rol.descripcion}</p>
             </div>
           ))}
         </div>
@@ -1663,13 +1706,13 @@ export default function AdminDashboard() {
 
       {/* Configuración de Sistema */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Notificaciones</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Notificaciones</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`font-semibold ${text}`}>Notificaciones por Email</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Recibir alertas por correo electrónico</p>
+                <p className={`font-semibold text-pn-ink`}>Notificaciones por Email</p>
+                <p className={`text-sm text-pn-ink-2`}>Recibir alertas por correo electrónico</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1678,14 +1721,14 @@ export default function AdminDashboard() {
                   onChange={(e) => actualizarConfiguracion('emailNotifications', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-pn-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-pn-surface after:border-pn-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pn-accent"></div>
               </label>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <p className={`font-semibold ${text}`}>Notificaciones SMS</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Recibir alertas por mensaje de texto</p>
+                <p className={`font-semibold text-pn-ink`}>Notificaciones SMS</p>
+                <p className={`text-sm text-pn-ink-2`}>Recibir alertas por mensaje de texto</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1694,19 +1737,19 @@ export default function AdminDashboard() {
                   onChange={(e) => actualizarConfiguracion('smsNotifications', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-pn-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-pn-surface after:border-pn-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pn-accent"></div>
               </label>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Seguridad</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Seguridad</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`font-semibold ${text}`}>Modo Mantenimiento</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Desactivar acceso temporal a la plataforma</p>
+                <p className={`font-semibold text-pn-ink`}>Modo Mantenimiento</p>
+                <p className={`text-sm text-pn-ink-2`}>Desactivar acceso temporal a la plataforma</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1715,14 +1758,14 @@ export default function AdminDashboard() {
                   onChange={(e) => actualizarConfiguracion('maintenanceMode', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                <div className="w-11 h-6 bg-pn-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-pn-surface after:border-pn-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pn-danger"></div>
               </label>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <p className={`font-semibold ${text}`}>Registro Abierto</p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Permitir nuevos registros de usuarios</p>
+                <p className={`font-semibold text-pn-ink`}>Registro Abierto</p>
+                <p className={`text-sm text-pn-ink-2`}>Permitir nuevos registros de usuarios</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1731,14 +1774,14 @@ export default function AdminDashboard() {
                   onChange={(e) => actualizarConfiguracion('allowRegistration', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-pn-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-pn-surface after:border-pn-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pn-accent"></div>
               </label>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Límites del Sistema</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Límites del Sistema</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold mb-2">Tamaño máximo de archivo (MB)</label>
@@ -1746,7 +1789,7 @@ export default function AdminDashboard() {
                 type="number"
                 value={platformConfig.maxFileSize}
                 onChange={(e) => actualizarConfiguracion('maxFileSize', parseInt(e.target.value))}
-                className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
               />
             </div>
             <div>
@@ -1755,23 +1798,23 @@ export default function AdminDashboard() {
                 type="number"
                 value={platformConfig.sessionTimeout}
                 onChange={(e) => actualizarConfiguracion('sessionTimeout', parseInt(e.target.value))}
-                className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
               />
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
-          <h3 className={`text-xl font-bold mb-4 ${text}`}>Copias de Seguridad</h3>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+          <h3 className={`text-xl font-bold mb-4 text-pn-ink`}>Copias de Seguridad</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 border-l-4 border-green-500">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-pn-ok-soft border-l-4 border-pn-ok">
               <div>
-                <p className="text-sm font-semibold text-green-800">Última copia de seguridad</p>
-                <p className="text-xs text-green-600">03 de Octubre, 2025 - 02:00 AM</p>
+                <p className="text-sm font-semibold text-pn-ok">Última copia de seguridad</p>
+                <p className="text-xs text-pn-ok">03 de Octubre, 2025 - 02:00 AM</p>
               </div>
-              <CheckCircle className="text-green-600" size={24} />
+              <CheckCircle className="text-pn-ok" size={24} />
             </div>
-            <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+            <button className="w-full bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2">
               <Download size={18} />Crear Copia de Seguridad
             </button>
           </div>
@@ -1779,52 +1822,52 @@ export default function AdminDashboard() {
       </div>
 
       {/* Configuración de Pago */}
-      <div className={`${card} rounded-lg shadow p-6`}>
-        <h3 className={`text-lg font-bold ${text} mb-4`}>Configuración de Pago</h3>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
+        <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Configuración de Pago</h3>
         {/* Antes esta tarjeta mostraba el mock de Stripe con claves pk_test_
             inventadas; la pasarela real del proyecto es Wompi y sus claves
             viven en el servidor, nunca en el navegador. */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Pasarela de Pago:</span>
-            <span className={`font-semibold ${text}`}>Wompi</span>
+            <span className={'text-pn-ink-2'}>Pasarela de Pago:</span>
+            <span className={`font-semibold text-pn-ink`}>Wompi</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Moneda:</span>
-            <span className={`font-semibold ${text}`}>COP</span>
+            <span className={'text-pn-ink-2'}>Moneda:</span>
+            <span className={`font-semibold text-pn-ink`}>COP</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Pagos en línea del plan:</span>
+            <span className={'text-pn-ink-2'}>Pagos en línea del plan:</span>
             <span className={`px-2 py-1 rounded text-xs ${
-              tenantActual?.enablePayments ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+              tenantActual?.enablePayments ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-warn-soft text-pn-warn'
             }`}>
               {tenantActual?.enablePayments ? 'Habilitados' : 'No incluidos en el plan actual'}
             </span>
           </div>
-          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`text-xs text-pn-muted`}>
             Las claves de Wompi se configuran en el servidor (variables WOMPI_*) y no se muestran aquí.
           </p>
         </div>
       </div>
 
       {/* Logs de Auditoría */}
-      <div className={`${card} rounded-lg shadow p-6`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-6`}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className={`text-xl font-bold ${text}`}>Logs de Auditoría</h3>
-          <button onClick={() => setLogsAuditoriaModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+          <h3 className={`text-xl font-bold text-pn-ink`}>Logs de Auditoría</h3>
+          <button onClick={() => setLogsAuditoriaModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
             <Eye size={18} />Ver Todos los Logs
           </button>
         </div>
         <div className="space-y-2">
           {logsAuditoria.slice(0, 5).map(log => (
-            <div key={log.id} className={`flex items-start gap-3 p-3 rounded-lg border ${border} hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''} transition`}>
-              <Clock size={16} className="text-blue-600 mt-1" />
+            <div key={log.id} className={`flex items-start gap-3 p-3 rounded-lg border border-pn-line hover:bg-pn-surface-2 hover:bg-pn-surface-3 transition`}>
+              <Clock size={16} className="text-pn-accent-text mt-1" />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className={`font-semibold text-sm ${text}`}>{log.accion}</p>
-                  <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>{log.fecha}</span>
+                  <p className={`font-semibold text-sm text-pn-ink`}>{log.accion}</p>
+                  <span className={`text-xs text-pn-muted`}>{log.fecha}</span>
                 </div>
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-xs text-pn-ink-2`}>
                   {log.usuario} • {log.detalle}
                 </p>
               </div>
@@ -1836,9 +1879,9 @@ export default function AdminDashboard() {
       {/* Modal Logs de Auditoría */}
       {logsAuditoriaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setLogsAuditoriaModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Logs de Auditoría del Sistema</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Logs de Auditoría del Sistema</h3>
               <button onClick={() => setLogsAuditoriaModal(false)}><X size={24} /></button>
             </div>
 
@@ -1847,36 +1890,36 @@ export default function AdminDashboard() {
                 <input
                   type="text"
                   placeholder="Buscar en logs..."
-                  className={`flex-1 p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                  className={`flex-1 p-2 border border-pn-line rounded bg-pn-surface-2`}
                 />
-                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover">
                   <Search size={18} />
                 </button>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <thead className={`bg-pn-surface-2`}>
                     <tr>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Fecha/Hora</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Usuario</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Acción</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Detalle</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>IP</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Fecha/Hora</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Usuario</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Acción</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Detalle</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>IP</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logsAuditoria.map(log => (
-                      <tr key={log.id} className={`border-t ${border}`}>
-                        <td className={`p-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{log.fecha}</td>
-                        <td className={`p-3 ${text}`}>{log.usuario}</td>
+                      <tr key={log.id} className={`border-t border-pn-line`}>
+                        <td className={`p-3 text-sm text-pn-ink-2`}>{log.fecha}</td>
+                        <td className={`p-3 text-pn-ink`}>{log.usuario}</td>
                         <td className={`p-3`}>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                          <span className="px-3 py-1 bg-pn-accent-soft text-pn-accent-text rounded text-xs font-semibold">
                             {log.accion}
                           </span>
                         </td>
-                        <td className={`p-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{log.detalle}</td>
-                        <td className={`p-3 text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>{log.ip}</td>
+                        <td className={`p-3 text-sm text-pn-ink-2`}>{log.detalle}</td>
+                        <td className={`p-3 text-xs text-pn-muted`}>{log.ip}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1885,10 +1928,10 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex justify-between items-center mt-6">
-              <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+              <button className="bg-pn-ok text-pn-surface px-4 py-2 rounded hover:bg-pn-ok flex items-center gap-2">
                 <Download size={18} />Exportar Logs
               </button>
-              <button onClick={() => setLogsAuditoriaModal(false)} className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}>
+              <button onClick={() => setLogsAuditoriaModal(false)} className={`px-6 py-2 border border-pn-line rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}>
                 Cerrar
               </button>
             </div>
@@ -1899,14 +1942,14 @@ export default function AdminDashboard() {
       <div className="flex justify-end gap-3">
         <button
           onClick={restaurarConfiguracion}
-          className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
+          className={`px-6 py-2 border border-pn-line rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}
         >
           Restaurar Valores
         </button>
         <button
           onClick={guardarConfiguracion}
-          style={{ backgroundColor: platformConfig.primaryColor }}
-          className="px-6 py-2 text-white rounded hover:opacity-90 flex items-center gap-2"
+          style={{ backgroundColor: platformConfig.primaryColor, color: tintaDe(platformConfig.primaryColor) }}
+          className="px-6 py-2 rounded hover:opacity-90 flex items-center gap-2"
         >
           <Save size={18} />
           Guardar Configuración
@@ -1918,12 +1961,12 @@ export default function AdminDashboard() {
   const renderDocumentos = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Generación de Documentos</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Generación de Documentos</h2>
         <div className="flex gap-2">
-          <button onClick={() => setHistorialQRModal(true)} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2">
+          <button onClick={() => setHistorialQRModal(true)} className="bg-pn-accent-2 text-pn-accent-2-ink px-4 py-2 rounded hover:bg-pn-accent-2 flex items-center gap-2">
             <Eye size={18} />Historial QR
           </button>
-          <button onClick={() => setGenerarCertificadoModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+          <button onClick={() => setGenerarCertificadoModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
             <Plus size={18} />Generar Documento
           </button>
         </div>
@@ -1931,17 +1974,17 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { titulo: 'Certificados de Estudio', cantidad: 145, icon: Award, color: 'bg-blue-500' },
-          { titulo: 'Constancias de Notas', cantidad: 89, icon: FileText, color: 'bg-green-500' },
-          { titulo: 'Códigos QR Generados', cantidad: historialQRState.length, icon: FileText, color: 'bg-purple-500' }
+          { titulo: 'Certificados de Estudio', cantidad: 145, icon: Award, color: 'bg-pn-accent' },
+          { titulo: 'Constancias de Notas', cantidad: 89, icon: FileText, color: 'bg-pn-ok' },
+          { titulo: 'Códigos QR Generados', cantidad: historialQRState.length, icon: FileText, color: 'bg-pn-accent-2' }
         ].map((tipo, i) => (
-          <div key={i} className={`${card} rounded-lg shadow p-6`}>
-            <div className={`${tipo.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
-              <tipo.icon size={24} className="text-white" />
+          <div key={i} className={`bg-pn-surface rounded-lg shadow p-6`}>
+            <div className={`${tipo.color} ${tintaDeRelleno(tipo.color)} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
+              <tipo.icon size={24} />
             </div>
-            <h4 className={`font-bold mb-2 ${text}`}>{tipo.titulo}</h4>
-            <p className="text-3xl font-bold text-blue-600">{tipo.cantidad}</p>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</p>
+            <h4 className={`font-bold mb-2 text-pn-ink`}>{tipo.titulo}</h4>
+            <p className="text-3xl font-bold text-pn-accent-text">{tipo.cantidad}</p>
+            <p className={`text-sm text-pn-ink-2`}>Total</p>
           </div>
         ))}
       </div>
@@ -1949,45 +1992,45 @@ export default function AdminDashboard() {
       {/* Modal Historial de QR */}
       {historialQRModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setHistorialQRModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Historial de Códigos QR</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Historial de Códigos QR</h3>
               <button onClick={() => setHistorialQRModal(false)}><X size={24} /></button>
             </div>
             
             <div className="space-y-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <thead className={`bg-pn-surface-2`}>
                     <tr>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Documento</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Código QR</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Fecha</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Verificaciones</th>
-                      <th className={`p-3 text-left text-sm font-semibold ${text}`}>Acciones</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Documento</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Código QR</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Fecha</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Verificaciones</th>
+                      <th className={`p-3 text-left text-sm font-semibold text-pn-ink`}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {historialQRState.map(qr => (
-                      <tr key={qr.id} className={`border-t ${border}`}>
-                        <td className={`p-3 ${text}`}>{qr.documento}</td>
+                      <tr key={qr.id} className={`border-t border-pn-line`}>
+                        <td className={`p-3 text-pn-ink`}>{qr.documento}</td>
                         <td className={`p-3`}>
-                          <code className={`px-2 py-1 rounded text-xs ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                          <code className={`px-2 py-1 rounded text-xs bg-pn-surface-3`}>
                             {qr.codigo}
                           </code>
                         </td>
-                        <td className={`p-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{qr.fecha}</td>
+                        <td className={`p-3 text-sm text-pn-ink-2`}>{qr.fecha}</td>
                         <td className={`p-3`}>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                          <span className="px-3 py-1 bg-pn-accent-soft text-pn-accent-text rounded text-xs font-semibold">
                             {qr.verificaciones} veces
                           </span>
                         </td>
                         <td className="p-3">
                           <div className="flex gap-2">
-                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded" title="Ver QR">
+                            <button className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded" title="Ver QR">
                               <Eye size={16} />
                             </button>
-                            <button className="p-2 text-green-600 hover:bg-green-50 rounded" title="Descargar">
+                            <button className="p-2 text-pn-ok hover:bg-pn-ok-soft rounded" title="Descargar">
                               <Download size={16} />
                             </button>
                           </div>
@@ -2000,7 +2043,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setHistorialQRModal(false)} className={`px-6 py-2 border ${border} rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}>
+              <button onClick={() => setHistorialQRModal(false)} className={`px-6 py-2 border border-pn-line rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}>
                 Cerrar
               </button>
             </div>
@@ -2010,15 +2053,15 @@ export default function AdminDashboard() {
 
       {generarCertificadoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setGenerarCertificadoModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-2xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Generar Certificado</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Generar Certificado</h3>
               <button onClick={() => setGenerarCertificadoModal(false)}><X size={24} /></button>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-2">Tipo de Documento</label>
-                <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+                <select className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
                   <option>Certificado de Estudios</option>
                   <option>Constancia de Notas</option>
                   <option>Diploma</option>
@@ -2026,7 +2069,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Estudiante</label>
-                <select className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+                <select className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
                   {usuarios.filter(u => u.rol === 'estudiante').map(est => (
                     <option key={est.id}>{est.nombre}</option>
                   ))}
@@ -2047,12 +2090,12 @@ export default function AdminDashboard() {
                     verificaciones: 0
                   };
                   setHistorialQRState([...historialQRState, nuevoQR]);
-                  alert(`Certificado generado exitosamente con código QR: ${codigoQR}`); 
+                  avisar.ok(`Certificado generado exitosamente con código QR: ${codigoQR}`); 
                   setGenerarCertificadoModal(false); 
-                }} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+                }} className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2">
                   <Download size={18} />Generar PDF
                 </button>
-                <button onClick={() => setGenerarCertificadoModal(false)} className={`flex-1 border ${border} py-2 rounded`}>
+                <button onClick={() => setGenerarCertificadoModal(false)} className={`flex-1 border border-pn-line py-2 rounded`}>
                   Cancelar
                 </button>
               </div>
@@ -2070,45 +2113,45 @@ export default function AdminDashboard() {
   const renderPlantillas = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className={`text-2xl font-bold ${text}`}>Plantillas de Certificados</h2>
-        <button onClick={() => setCrearPlantillaModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Plantillas de Certificados</h2>
+        <button onClick={() => setCrearPlantillaModal(true)} className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded hover:bg-pn-accent-hover flex items-center gap-2">
           <Plus size={18} />Crear Plantilla
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plantillas.map(plantilla => (
-          <div key={plantilla.id} className={`${card} rounded-lg shadow overflow-hidden`}>
-            <div className="h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center relative overflow-hidden">
+          <div key={plantilla.id} className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
+            <div className="h-48 bg-pn-accent-soft flex items-center justify-center relative overflow-hidden">
               <div className="text-center transform scale-50">
                 {renderizarCertificado(plantilla)}
               </div>
               <span className={`absolute top-2 right-2 px-3 py-1 rounded text-xs font-semibold ${
-                plantilla.estado === 'publicado' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                plantilla.estado === 'publicado' ? 'bg-pn-ok-soft text-pn-ok' : 'bg-pn-warn-soft text-pn-warn'
               }`}>
                 {plantilla.estado}
               </span>
             </div>
             <div className="p-4">
-              <h4 className={`font-bold mb-2 ${text}`}>{plantilla.nombre}</h4>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 line-clamp-2`}>
+              <h4 className={`font-bold mb-2 text-pn-ink`}>{plantilla.nombre}</h4>
+              <p className={`text-sm text-pn-ink-2 mb-4 line-clamp-2`}>
                 {plantilla.descripcion}
               </p>
               <div className="flex gap-2">
-                <button onClick={() => setVistaPreviewPlantilla(plantilla)} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 text-sm flex items-center justify-center gap-1">
+                <button onClick={() => setVistaPreviewPlantilla(plantilla)} className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover text-sm flex items-center justify-center gap-1">
                   <Eye size={16} />Vista Previa
                 </button>
-                <button onClick={() => setEditarPlantillaModal(plantilla)} className="p-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
+                <button onClick={() => setEditarPlantillaModal(plantilla)} className="p-2 text-pn-accent-text border border-pn-accent-line rounded hover:bg-pn-accent-soft">
                   <Edit size={16} />
                 </button>
-                <button onClick={() => duplicarPlantilla(plantilla)} className="p-2 text-green-600 border border-green-600 rounded hover:bg-green-50">
+                <button onClick={() => duplicarPlantilla(plantilla)} className="p-2 text-pn-ok border border-pn-ok rounded hover:bg-pn-ok-soft">
                   <FileText size={16} />
                 </button>
-                <button onClick={() => eliminarPlantilla(plantilla.id)} className="p-2 text-red-600 border border-red-600 rounded hover:bg-red-50">
+                <button onClick={() => eliminarPlantilla(plantilla.id)} className="p-2 text-pn-danger border border-pn-danger rounded hover:bg-pn-danger-soft">
                   <Trash2 size={16} />
                 </button>
               </div>
-              <button onClick={() => setGenerarCertificadoPlantilla(plantilla)} className="w-full mt-2 bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm flex items-center justify-center gap-1">
+              <button onClick={() => setGenerarCertificadoPlantilla(plantilla)} className="w-full mt-2 bg-pn-ok text-pn-surface py-2 rounded hover:bg-pn-ok text-sm flex items-center justify-center gap-1">
                 <Download size={16} />Generar Certificado
               </button>
             </div>
@@ -2119,9 +2162,9 @@ export default function AdminDashboard() {
       {/* Modal Crear Plantilla */}
       {crearPlantillaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4" onClick={() => setCrearPlantillaModal(false)}>
-          <div className={`${card} rounded-lg p-6 max-w-6xl w-full my-8`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-6xl w-full my-8`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Crear Nueva Plantilla</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nueva Plantilla</h3>
               <button onClick={() => setCrearPlantillaModal(false)}><X size={24} /></button>
             </div>
             
@@ -2134,7 +2177,7 @@ export default function AdminDashboard() {
                     value={nuevaPlantilla.nombre}
                     onChange={(e) => setNuevaPlantilla({...nuevaPlantilla, nombre: e.target.value})}
                     placeholder="Certificado de Aprobación"
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                    className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                   />
                 </div>
 
@@ -2145,7 +2188,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setNuevaPlantilla({...nuevaPlantilla, descripcion: e.target.value})}
                     placeholder="Descripción de la plantilla..."
                     rows={2}
-                    className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                    className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                   ></textarea>
                 </div>
 
@@ -2155,7 +2198,7 @@ export default function AdminDashboard() {
                     <select
                       value={nuevaPlantilla.configuracion.tamano}
                       onChange={(e) => setNuevaPlantilla({...nuevaPlantilla, configuracion: {...nuevaPlantilla.configuracion, tamano: e.target.value}})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option>A4</option>
                       <option>A3</option>
@@ -2168,7 +2211,7 @@ export default function AdminDashboard() {
                     <select
                       value={nuevaPlantilla.configuracion.orientacion}
                       onChange={(e) => setNuevaPlantilla({...nuevaPlantilla, configuracion: {...nuevaPlantilla.configuracion, orientacion: e.target.value}})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="horizontal">Horizontal</option>
                       <option value="vertical">Vertical</option>
@@ -2186,13 +2229,13 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4 rounded-lg`}>
+                <div className={`bg-pn-surface-2 p-4 rounded-lg`}>
                   <h4 className="font-semibold mb-3">Agregar Componente</h4>
                   <div className="space-y-3">
                     <select
                       value={nuevoComponente.tipo}
                       onChange={(e) => setNuevoComponente({...nuevoComponente, tipo: e.target.value})}
-                      className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                      className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                     >
                       <option value="texto">Texto</option>
                       <option value="campo_dinamico">Campo Dinámico</option>
@@ -2206,13 +2249,13 @@ export default function AdminDashboard() {
                         placeholder="Contenido del texto"
                         value={nuevoComponente.contenido}
                         onChange={(e) => setNuevoComponente({...nuevoComponente, contenido: e.target.value})}
-                        className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                        className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                       />
                     ) : nuevoComponente.tipo === 'campo_dinamico' ? (
                       <select
                         value={nuevoComponente.campo}
                         onChange={(e) => setNuevoComponente({...nuevoComponente, campo: e.target.value})}
-                        className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                        className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                       >
                         <option value="">[nombre_estudiante]</option>
                         <option value="[nombre_estudiante]">[nombre_estudiante]</option>
@@ -2222,13 +2265,13 @@ export default function AdminDashboard() {
                         <option value="[codigo_verificacion]">[codigo_verificacion]</option>
                       </select>
                     ) : nuevoComponente.tipo === 'qr_code' ? (
-                      <div className={`p-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-blue-50'} text-sm`}>
+                      <div className={`p-3 rounded bg-pn-accent-soft text-sm`}>
                         <p className="font-semibold mb-1">Código QR de Verificación</p>
                         <p className="text-xs">Se generará automáticamente un código único para cada certificado</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <div className={`p-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-purple-50'} text-sm mb-2`}>
+                        <div className={`p-3 rounded bg-pn-info-soft text-sm mb-2`}>
                           <p className="font-semibold mb-1">Firma Digital</p>
                           <p className="text-xs">Máximo 3 firmas por certificado ({(nuevaPlantilla.componentes || []).filter(c => c.tipo === 'firma').length}/3)</p>
                         </div>
@@ -2237,14 +2280,14 @@ export default function AdminDashboard() {
                           placeholder="Nombre del firmante"
                           value={nuevoComponente.nombreFirmante}
                           onChange={(e) => setNuevoComponente({...nuevoComponente, nombreFirmante: e.target.value})}
-                          className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                          className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                         />
                         <input
                           type="text"
                           placeholder="Cargo o posición"
                           value={nuevoComponente.cargo}
                           onChange={(e) => setNuevoComponente({...nuevoComponente, cargo: e.target.value})}
-                          className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                          className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                         />
                       </div>
                     )}
@@ -2256,12 +2299,12 @@ export default function AdminDashboard() {
                           placeholder="Tamaño (px)"
                           value={parseInt(nuevoComponente.estilos.fontSize)}
                           onChange={(e) => setNuevoComponente({...nuevoComponente, estilos: {...nuevoComponente.estilos, fontSize: e.target.value + 'px'}})}
-                          className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                          className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                         />
                         <select
                           value={nuevoComponente.estilos.fontWeight}
                           onChange={(e) => setNuevoComponente({...nuevoComponente, estilos: {...nuevoComponente.estilos, fontWeight: e.target.value}})}
-                          className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                          className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                         >
                           <option value="normal">Normal</option>
                           <option value="bold">Negrita</option>
@@ -2275,14 +2318,14 @@ export default function AdminDashboard() {
                         placeholder="Top (ej: 100px)"
                         value={nuevoComponente.posicion.top}
                         onChange={(e) => setNuevoComponente({...nuevoComponente, posicion: {...nuevoComponente.posicion, top: e.target.value}})}
-                        className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                        className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                       />
                       <input
                         type="text"
                         placeholder="Left/Right (ej: 50px)"
                         value={(nuevoComponente.posicion as any).left || ''}
                         onChange={(e) => setNuevoComponente({...nuevoComponente, posicion: {...(nuevoComponente.posicion as any), left: e.target.value}})}
-                        className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-600' : ''}`}
+                        className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}
                       />
                     </div>
 
@@ -2294,7 +2337,7 @@ export default function AdminDashboard() {
                           agregarComponenteAPlantilla(nuevaPlantilla, setNuevaPlantilla);
                         }
                       }}
-                      className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                      className="w-full bg-pn-ok text-pn-surface py-2 rounded hover:bg-pn-ok"
                     >
                       Agregar Componente
                     </button>
@@ -2313,13 +2356,13 @@ export default function AdminDashboard() {
             <div className="flex gap-3 mt-6">
               <button 
                 onClick={crearPlantilla}
-                className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
+                className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2"
               >
                 <Save size={18} />Crear Plantilla
               </button>
               <button 
                 onClick={() => setCrearPlantillaModal(false)}
-                className={`flex-1 border ${border} py-2 rounded hover:bg-gray-50 ${darkMode ? 'hover:bg-gray-700' : ''}`}
+                className={`flex-1 border border-pn-line py-2 rounded hover:bg-pn-surface-2 hover:bg-pn-surface-3`}
               >
                 Cancelar
               </button>
@@ -2331,9 +2374,9 @@ export default function AdminDashboard() {
       {/* Modal Vista Previa */}
       {vistaPreviewPlantilla && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setVistaPreviewPlantilla(null)}>
-          <div className={`${card} rounded-lg p-6 max-w-5xl w-full`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-5xl w-full`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Vista Previa - {vistaPreviewPlantilla.nombre}</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Vista Previa - {vistaPreviewPlantilla.nombre}</h3>
               <button onClick={() => setVistaPreviewPlantilla(null)}><X size={24} /></button>
             </div>
             <div className="overflow-auto" style={{maxHeight: '70vh'}}>
@@ -2351,9 +2394,9 @@ export default function AdminDashboard() {
       {/* Modal Generar Certificado */}
       {generarCertificadoPlantilla && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setGenerarCertificadoPlantilla(null)}>
-          <div className={`${card} rounded-lg p-6 max-w-2xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
+          <div className={`bg-pn-surface rounded-lg p-6 max-w-2xl w-full mx-4`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between mb-4">
-              <h3 className={`text-xl font-bold ${text}`}>Generar Certificado</h3>
+              <h3 className={`text-xl font-bold text-pn-ink`}>Generar Certificado</h3>
               <button onClick={() => setGenerarCertificadoPlantilla(null)}><X size={24} /></button>
             </div>
             <div className="space-y-4">
@@ -2363,12 +2406,12 @@ export default function AdminDashboard() {
                   type="text"
                   value={generarCertificadoPlantilla.nombre}
                   disabled
-                  className={`w-full p-2 border ${border} rounded bg-gray-100`}
+                  className={`w-full p-2 border border-pn-line rounded bg-pn-surface-3`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Estudiante</label>
-                <select id="estudiante-select" className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+                <select id="estudiante-select" className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
                   {usuarios.filter(u => u.rol === 'estudiante').map(est => (
                     <option key={est.id} value={est.nombre}>{est.nombre}</option>
                   ))}
@@ -2376,16 +2419,16 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Curso</label>
-                <select id="curso-select" className={`w-full p-2 border ${border} rounded ${darkMode ? 'bg-gray-700' : ''}`}>
+                <select id="curso-select" className={`w-full p-2 border border-pn-line rounded bg-pn-surface-2`}>
                   {cursos.map(curso => (
                     <option key={curso.id} value={curso.nombre}>{curso.nombre}</option>
                   ))}
                 </select>
               </div>
               
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'} border-l-4 border-blue-500`}>
+              <div className={`p-4 rounded-lg bg-pn-accent-soft border-l-4 border-pn-accent-line`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle size={18} className="text-blue-600" />
+                  <CheckCircle size={18} className="text-pn-accent-text" />
                   <p className="font-semibold text-sm">Código QR de Verificación</p>
                 </div>
                 <p className="text-xs">
@@ -2409,12 +2452,12 @@ export default function AdminDashboard() {
                   };
                   setHistorialQRState([...historialQRState, nuevoQR]);
                   
-                  alert(`Certificado generado exitosamente\n\nCódigo QR: ${codigoQR}\nEstudiante: ${estudiante}\nCurso: ${curso}\n\nEl código QR ha sido registrado en el historial.`);
+                  avisar.ok(`Certificado generado exitosamente\n\nCódigo QR: ${codigoQR}\nEstudiante: ${estudiante}\nCurso: ${curso}\n\nEl código QR ha sido registrado en el historial.`);
                   setGenerarCertificadoPlantilla(null);
-                }} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+                }} className="flex-1 bg-pn-accent text-pn-accent-ink py-2 rounded hover:bg-pn-accent-hover flex items-center justify-center gap-2">
                   <Download size={18} />Generar Certificado con QR
                 </button>
-                <button onClick={() => setGenerarCertificadoPlantilla(null)} className={`flex-1 border ${border} py-2 rounded`}>
+                <button onClick={() => setGenerarCertificadoPlantilla(null)} className={`flex-1 border border-pn-line py-2 rounded`}>
                   Cancelar
                 </button>
               </div>
@@ -2437,7 +2480,7 @@ export default function AdminDashboard() {
 
   const renderCarnetizacion = () => <CarnetizacionMejorada />;
 
-  const renderBiblioteca = () => <BibliotecaSection darkMode={darkMode} />;
+  const renderBiblioteca = () => <BibliotecaSection />;
 
   const renderContent = () => {
     switch(activeSection) {
@@ -2447,6 +2490,9 @@ export default function AdminDashboard() {
       case 'plantillas': return renderPlantillas();
       case 'usuarios': return renderUsuarios();
       case 'academico': return <GestionAcademicaSection />;
+      case 'sitioweb': return <SitioWebSection />;
+      case 'admisiones': return <AdmisionesSection />;
+      case 'integraciones': return <IntegracionesSection />;
       // Enlaces viejos (búsqueda global) siguen llegando a 'cursos': ahora es
       // la pestaña Grupos de la gestión académica.
       case 'cursos': return <GestionAcademicaSection pestanaInicial="grupos" />;
@@ -2468,73 +2514,37 @@ export default function AdminDashboard() {
     }
   };
 
+  // Etiqueta de la pantalla actual. Sale de NAV_ADMIN, que ahora es la única
+  // definición del menú; 'cursos' es el alias heredado de la búsqueda global y
+  // no figura en el menú, así que se nombra aparte.
+  const tituloSeccion =
+    activeSection === 'cursos'
+      ? 'Gestión académica'
+      : (NAV_ADMIN.flatMap((g) => g.entradas).find((e) => e.id === activeSection)
+          ?.etiqueta ?? 'Dashboard');
+
+  const alternarTema = () => establecerTema(resuelto === 'dark' ? 'light' : 'dark');
+
   return (
     <ConfigContext.Provider value={{ config: platformConfig, updateConfig: actualizarConfiguracion }}>
-      <div className={`flex h-screen ${bg}`}>
-        <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-blue-900 to-blue-700 text-white transition-all duration-300 flex flex-col`}>
-          <div className="p-4 flex items-center justify-between border-b border-blue-600">
-            {sidebarOpen && (
-              <div className="flex items-center gap-2">
-                <div style={{ backgroundColor: platformConfig.primaryColor }} className="w-8 h-8 rounded flex items-center justify-center text-white font-bold">
-                  {platformConfig.platformName.charAt(0)}
-                </div>
-                <h1 className="text-lg font-bold">{platformConfig.platformName}</h1>
-              </div>
-            )}
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-blue-600 rounded">
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-            <button 
-              onClick={() => logout()} 
-              className="p-2 hover:bg-red-600 rounded flex items-center gap-2 ml-2" 
-              title="Cerrar sesión"
-            >
-              <LogOut size={20} />
-              {sidebarOpen && <span className="text-sm">Cerrar sesión</span>}
-            </button>
-          </div>
-
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {menuItems.map(item => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition relative ${
-                    activeSection === item.id ? 'bg-blue-600' : 'hover:bg-blue-800'
-                  }`}
-                >
-                  <Icon size={20} />
-                  {sidebarOpen && <span className="text-sm">{item.label}</span>}
-                  {item.badge > 0 && (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="p-4 border-t border-blue-600">
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-blue-800">
-              <User size={20} />
-              {sidebarOpen && <span className="text-sm">Admin Panel</span>}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className={`${card} shadow-sm p-4 flex justify-between items-center`}>
-            <h2 className={`text-2xl font-bold ${text}`}>
-              {menuItems.find(i => i.id === activeSection)?.label || 'Dashboard'}
-            </h2>
-
+      <AppShell<SeccionAdmin>
+        grupos={NAV_ADMIN}
+        seccionActiva={activeSection}
+        onCambiarSeccion={setActiveSection}
+        titulo={tituloSeccion}
+        marca={platformConfig.platformName}
+        subtitulo="Panel de administración"
+        contadores={{
+          mensajes: mensajesNoLeidos,
+          tramites: metricas.solicitudesPendientes,
+        }}
+        onSalir={() => logout()}
+        centroCabecera={
+          <>
             {/* Búsqueda Rápida */}
-            <div className="flex-1 max-w-md mx-4 relative" ref={searchRef}>
+            <div className="relative" ref={searchRef}>
               <div className="relative">
-                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={20} />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted`} size={20} />
                 <input
                   type="text"
                   placeholder="Buscar estudiantes, docentes, cursos, activos..."
@@ -2542,32 +2552,32 @@ export default function AdminDashboard() {
                   onChange={(e) => handleSearch(e.target.value)}
                   onFocus={() => searchQuery.length >= 2 && setSearchOpen(true)}
                   className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    'bg-pn-surface border-pn-line-strong text-pn-ink placeholder:text-pn-muted'
+                  } focus:outline-none focus:ring-2 focus:ring-pn-accent`}
                 />
               </div>
 
               {/* Resultados de búsqueda */}
               {searchOpen && searchResults.length > 0 && (
-                <div className={`absolute top-full left-0 right-0 mt-2 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg border ${
-                  darkMode ? 'border-gray-700' : 'border-gray-200'
+                <div className={`absolute top-full left-0 right-0 mt-2 bg-pn-surface rounded-lg shadow-lg border ${
+                  'border-pn-line'
                 } max-h-96 overflow-y-auto z-50`}>
                   {searchResults.map((result) => (
                     <div
                       key={`${result.tipo}-${result.id}`}
-                      onClick={() => handleResultClick(result)}
-                      className={`p-3 cursor-pointer hover:${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border-b ${
-                        darkMode ? 'border-gray-700' : 'border-gray-100'
+                      {...pulsable(() => handleResultClick(result))}
+                      className={`p-3 cursor-pointer hover:bg-pn-surface-2 border-b ${
+                        'border-pn-line'
                       } last:border-b-0 transition`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          result.tipo === 'estudiante' ? 'bg-blue-100 text-blue-600' :
-                          result.tipo === 'docente' ? 'bg-green-100 text-green-600' :
-                          result.tipo === 'curso' ? 'bg-purple-100 text-purple-600' :
-                          result.tipo === 'activo' ? 'bg-orange-100 text-orange-600' :
-                          result.tipo === 'empleado' ? 'bg-pink-100 text-pink-600' :
-                          'bg-yellow-100 text-yellow-600'
+                          result.tipo === 'estudiante' ? 'bg-pn-accent-soft text-pn-accent-text' :
+                          result.tipo === 'docente' ? 'bg-pn-ok-soft text-pn-ok' :
+                          result.tipo === 'curso' ? 'bg-pn-accent-2-soft text-pn-accent-2-text' :
+                          result.tipo === 'activo' ? 'bg-pn-warn-soft text-pn-warn' :
+                          result.tipo === 'empleado' ? 'bg-pn-accent-2-soft text-pn-accent-2-text' :
+                          'bg-pn-warn-soft text-pn-warn'
                         }`}>
                           {result.tipo === 'estudiante' && <Users size={20} />}
                           {result.tipo === 'docente' && <Award size={20} />}
@@ -2577,16 +2587,16 @@ export default function AdminDashboard() {
                           {result.tipo === 'libro' && <BookOpen size={20} />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-semibold ${text} truncate`}>{result.titulo}</p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>{result.subtitulo}</p>
+                          <p className={`font-semibold text-pn-ink truncate`}>{result.titulo}</p>
+                          <p className={`text-sm text-pn-ink-2 truncate`}>{result.subtitulo}</p>
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          result.tipo === 'estudiante' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                          result.tipo === 'docente' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                          result.tipo === 'curso' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                          result.tipo === 'activo' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                          result.tipo === 'empleado' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' :
-                          'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          result.tipo === 'estudiante' ? 'bg-pn-accent-soft text-pn-accent-text' :
+                          result.tipo === 'docente' ? 'bg-pn-ok-soft text-pn-ok' :
+                          result.tipo === 'curso' ? 'bg-pn-accent-2-soft text-pn-accent-2-text' :
+                          result.tipo === 'activo' ? 'bg-pn-warn-soft text-pn-warn' :
+                          result.tipo === 'empleado' ? 'bg-pn-accent-2-soft text-pn-accent-2-text' :
+                          'bg-pn-warn-soft text-pn-warn'
                         }`}>
                           {result.tipo.charAt(0).toUpperCase() + result.tipo.slice(1)}
                         </span>
@@ -2596,53 +2606,72 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </>
+        }
+        accionesCabecera={
+          <>
+            <IconButton
+              icono={resuelto === 'dark' ? Sun : Moon}
+              etiqueta={resuelto === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
+              onClick={alternarTema}
+            />
 
-            <div className="flex items-center gap-4">
-              <button onClick={() => setDarkMode(!darkMode)} className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-full`}>
-                {darkMode ? '☀️' : '🌙'}
-              </button>
-              <button onClick={() => setActiveSection('mensajes')} className="relative p-2 hover:bg-gray-100 rounded-full">
-                <Mail size={24} className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-                {mensajesNoLeidos > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {mensajesNoLeidos}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveSection('tramites')}
-                title="Solicitudes pendientes"
-                className="relative p-2 hover:bg-gray-100 rounded-full"
-              >
-                <Bell size={24} className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {metricas.solicitudesPendientes}
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Mail}
+                etiqueta="Mensajes"
+                onClick={() => setActiveSection('mensajes')}
+              />
+              {mensajesNoLeidos > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-accent-2 px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-accent-2-ink">
+                  {mensajesNoLeidos > 99 ? '99+' : mensajesNoLeidos}
+                  <span className="sr-only"> mensajes sin leer</span>
                 </span>
-              </button>
-              <div className="flex items-center gap-2">
-                {/* El nombre y el correo estaban escritos a mano
-                    ("admin@university.edu"): cualquier administrador veía la
-                    identidad de otra persona en su propia cabecera. */}
-                <div style={{ backgroundColor: platformConfig.primaryColor }} className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
-                  {(usuarioActual?.firstName?.[0] ?? 'A').toUpperCase()}
-                </div>
-                <div className="hidden md:block">
-                  <p className={`text-sm font-semibold ${text}`}>
-                    {[usuarioActual?.firstName, usuarioActual?.lastName].filter(Boolean).join(' ') || 'Admin Panel'}
-                  </p>
-                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {usuarioActual?.email ?? ''}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+              )}
+            </span>
 
-          <div className="p-6">
-            {renderContent()}
-          </div>
-        </div>
-      </div>
+            <span className="relative inline-flex">
+              <IconButton
+                icono={Bell}
+                etiqueta="Solicitudes pendientes"
+                onClick={() => setActiveSection('tramites')}
+              />
+              {metricas.solicitudesPendientes > 0 && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-[17px] rounded-full bg-pn-danger px-1 text-center font-mono text-[10px] font-semibold leading-[17px] text-pn-surface">
+                  {metricas.solicitudesPendientes > 99
+                    ? '99+'
+                    : metricas.solicitudesPendientes}
+                  <span className="sr-only"> solicitudes pendientes</span>
+                </span>
+              )}
+            </span>
+
+            {/* El nombre y el correo estaban escritos a mano
+                ("admin@university.edu"): cualquier administrador veía la
+                identidad de otra persona en su propia cabecera. */}
+            <span className="ml-1 flex items-center gap-2">
+              <span
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-pn-accent font-display text-sm font-bold text-pn-accent-ink"
+                aria-hidden="true"
+              >
+                {(usuarioActual?.firstName?.[0] ?? 'A').toUpperCase()}
+              </span>
+              <span className="hidden min-w-0 md:block">
+                <span className="block truncate font-body text-[13px] font-semibold text-pn-ink">
+                  {[usuarioActual?.firstName, usuarioActual?.lastName]
+                    .filter(Boolean)
+                    .join(' ') || 'Panel de administración'}
+                </span>
+                <span className="block truncate font-mono text-[10.5px] text-pn-muted">
+                  {usuarioActual?.email ?? ''}
+                </span>
+              </span>
+            </span>
+          </>
+        }
+      >
+        {renderContent()}
+      </AppShell>
     </ConfigContext.Provider>
   );
 }

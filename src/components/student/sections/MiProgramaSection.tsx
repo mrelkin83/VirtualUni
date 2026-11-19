@@ -31,13 +31,13 @@ const ESTADOS: Record<
   EstadoAsignatura,
   { texto: string; icono: React.ElementType; clase: string }
 > = {
-  APROBADA: { texto: 'Aprobada', icono: CheckCircle2, clase: 'text-green-600' },
-  EN_CURSO: { texto: 'En curso', icono: Clock, clase: 'text-blue-600' },
-  PENDIENTE: { texto: 'Pendiente', icono: Circle, clase: 'text-gray-400' },
+  APROBADA: { texto: 'Aprobada', icono: CheckCircle2, clase: 'text-pn-ok' },
+  EN_CURSO: { texto: 'En curso', icono: Clock, clase: 'text-pn-accent-text' },
+  PENDIENTE: { texto: 'Pendiente', icono: Circle, clase: 'text-pn-muted' },
   BLOQUEADA_POR_PRERREQUISITO: {
     texto: 'Bloqueada',
     icono: Lock,
-    clase: 'text-amber-600',
+    clase: 'text-pn-warn',
   },
 };
 
@@ -50,7 +50,7 @@ const ESTADOS: Record<
  * historial académico (incluye homologaciones y reconocimientos). Calcularlo
  * desde las notas daría una cifra distinta de la oficial.
  */
-export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) {
+export function MiProgramaSection() {
   const [inscripcionId, setInscripcionId] = useState<string | null>(null);
 
   const {
@@ -82,24 +82,23 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
     enabled: !!inscripcionId,
   });
 
-  const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100';
-  const texto = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const texto = 'text-pn-ink';
+  const suave = 'text-pn-ink-2';
 
   if (isLoading) {
     return <p className={`text-sm ${suave}`}>Cargando tu programa...</p>;
   }
 
   if (error != null) {
-    return <p className="text-sm text-red-600">{mensajeDeError(error)}</p>;
+    return <p className="text-sm text-pn-danger">{mensajeDeError(error)}</p>;
   }
 
   if (!inscripciones || inscripciones.length === 0) {
     return (
       <div className="space-y-4">
         <h2 className={`text-2xl font-bold ${texto}`}>Mi programa</h2>
-        <div className={`${card} border rounded-lg p-8 text-center`}>
-          <GraduationCap size={32} className="mx-auto mb-2 text-gray-400" />
+        <div className={`bg-pn-surface border rounded-lg p-8 text-center`}>
+          <GraduationCap size={32} className="mx-auto mb-2 text-pn-muted" />
           <p className={`font-medium ${texto}`}>Todavía no estás inscrito a un programa</p>
           <p className={`text-sm mt-1 ${suave}`}>
             La institución registra tu inscripción al programa y su plan de estudios;
@@ -126,7 +125,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
           <select
             value={inscripcionId ?? ''}
             onChange={(e) => setInscripcionId(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="border border-pn-line rounded-lg px-3 py-2 text-sm"
             aria-label="Elegir programa"
           >
             {inscripciones.map((i) => (
@@ -140,7 +139,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
 
       {/* Tarjeta del programa */}
       {inscripcion && programa && (
-        <section className={`${card} border rounded-lg p-5`}>
+        <section className={`bg-pn-surface border rounded-lg p-5`}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -152,7 +151,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                 >
                   {NIVELES[programa.educationLevel]}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-pn-surface-3 text-pn-ink-2">
                   {ESTADOS_INSCRIPCION[inscripcion.status]}
                 </span>
               </div>
@@ -197,7 +196,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                 </span>
               </div>
               <div
-                className="w-full bg-gray-200 rounded-full h-2.5"
+                className="w-full bg-pn-surface-3 rounded-full h-2.5"
                 role="progressbar"
                 aria-valuenow={resumen.porcentajeAvance}
                 aria-valuemin={0}
@@ -205,7 +204,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                 aria-label="Avance del plan de estudios"
               >
                 <div
-                  className="bg-green-600 h-2.5 rounded-full transition-all"
+                  className="bg-pn-ok h-2.5 rounded-full transition-all"
                   style={{ width: `${Math.min(100, resumen.porcentajeAvance)}%` }}
                 />
               </div>
@@ -233,7 +232,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
         {cargandoProgreso && <p className={`text-sm ${suave}`}>Cargando tu avance...</p>}
 
         {errorProgreso != null && (
-          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-sm text-pn-warn bg-pn-warn-soft border border-pn-warn rounded-lg p-3">
             No pudimos cargar tu avance: {mensajeDeError(errorProgreso)}
           </p>
         )}
@@ -253,10 +252,8 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                   key={nivel.level}
                   className={`min-w-64 w-64 shrink-0 rounded-lg border ${
                     esActual
-                      ? 'border-blue-500 bg-blue-50/60'
-                      : darkMode
-                        ? 'border-gray-700 bg-gray-800/60'
-                        : 'border-gray-200 bg-gray-50'
+                      ? 'border-pn-accent-line bg-pn-accent-soft'
+                      : 'border-pn-line bg-pn-surface-2'
                   }`}
                 >
                   <div className="px-3 py-2 border-b border-inherit flex items-center justify-between">
@@ -264,7 +261,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                       {etiquetaNivel} {nivel.level}
                     </h4>
                     {esActual && (
-                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-blue-600 text-white">
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-pn-accent text-pn-accent-ink">
                         Vas aquí
                       </span>
                     )}
@@ -273,7 +270,7 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
                   <ul className="p-2 space-y-2">
                     {nivel.asignaturas.map((asignatura) => (
                       <li key={asignatura.studyPlanSubjectId}>
-                        <TarjetaAsignatura asignatura={asignatura} darkMode={darkMode} />
+                        <TarjetaAsignatura asignatura={asignatura} />
                       </li>
                     ))}
                     {nivel.asignaturas.length === 0 && (
@@ -292,20 +289,18 @@ export function MiProgramaSection({ darkMode = false }: { darkMode?: boolean }) 
 
 function TarjetaAsignatura({
   asignatura,
-  darkMode,
 }: {
   asignatura: AsignaturaDeProgreso;
-  darkMode: boolean;
 }) {
   const estado = ESTADOS[asignatura.estado];
   const Icono = estado.icono;
-  const texto = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const texto = 'text-pn-ink';
+  const suave = 'text-pn-ink-2';
 
   return (
     <div
       className={`rounded-lg border p-2 ${
-        darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+        'bg-pn-surface border-pn-line'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -328,22 +323,22 @@ function TarjetaAsignatura({
       </div>
 
       <div className="flex flex-wrap gap-1 mt-1">
-        <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+        <span className="text-[11px] px-1.5 py-0.5 rounded bg-pn-surface-3 text-pn-ink-2">
           {TIPOS_ASIGNATURA[asignatura.subjectType]}
         </span>
         {asignatura.credits != null && (
-          <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-pn-accent-soft text-pn-accent-text">
             {asignatura.credits} cr
           </span>
         )}
         {asignatura.finalGrade != null && (
-          <span className="text-[11px] px-1.5 py-0.5 rounded bg-green-50 text-green-700">
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-pn-ok-soft text-pn-ok">
             Nota {asignatura.finalGrade}
           </span>
         )}
         {asignatura.reconocida && (
           <span
-            className="text-[11px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 flex items-center gap-1"
+            className="text-[11px] px-1.5 py-0.5 rounded bg-pn-accent-2-soft text-pn-accent-2-text flex items-center gap-1"
             title="No la cursaste en este programa: se te reconoció"
           >
             <Repeat size={10} /> Reconocida
@@ -353,7 +348,7 @@ function TarjetaAsignatura({
 
       {asignatura.estado === 'BLOQUEADA_POR_PRERREQUISITO' &&
         asignatura.prerrequisitosPendientes.length > 0 && (
-          <p className="text-[11px] mt-1 text-amber-700">
+          <p className="text-[11px] mt-1 text-pn-warn">
             Te falta: {asignatura.prerrequisitosPendientes.join(', ')}
           </p>
         )}

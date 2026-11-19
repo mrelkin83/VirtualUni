@@ -66,14 +66,20 @@ export const ETIQUETA_TIPO: Record<MaterialType, string> = {
   OTRO: 'Otro',
 };
 
+/**
+ * El tipo ya va escrito dentro de la insignia, asi que el color refuerza pero
+ * no es lo unico que lo dice. Aun asi se reparten los tokens distintos que hay
+ * para que la lista se pueda recorrer de un vistazo; video y audio comparten
+ * el suyo porque son lo mismo, medios reproducibles.
+ */
 export const COLOR_TIPO: Record<MaterialType, string> = {
-  DOCUMENTO: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  VIDEO: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  ENLACE: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  PRESENTACION: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  IMAGEN: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  AUDIO: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-  OTRO: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+  DOCUMENTO: 'bg-pn-accent-soft text-pn-accent-text',
+  VIDEO: 'bg-pn-accent-2-soft text-pn-accent-2-text',
+  AUDIO: 'bg-pn-accent-2-soft text-pn-accent-2-text',
+  ENLACE: 'bg-pn-info-soft text-pn-info',
+  PRESENTACION: 'bg-pn-warn-soft text-pn-warn',
+  IMAGEN: 'bg-pn-ok-soft text-pn-ok',
+  OTRO: 'bg-pn-surface-3 text-pn-ink-2',
 };
 
 /**

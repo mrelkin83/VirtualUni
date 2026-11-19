@@ -106,23 +106,23 @@ export function colorDeNivel(nivel: EducationLevel): string {
   ];
   const continua: EducationLevel[] = ['DIPLOMADO', 'CURSO_LIBRE', 'TALLER', 'SEMINARIO'];
 
-  if (superior.includes(nivel)) return 'bg-blue-100 text-blue-700';
-  if (etdh.includes(nivel)) return 'bg-amber-100 text-amber-700';
-  if (colegio.includes(nivel)) return 'bg-green-100 text-green-700';
-  if (continua.includes(nivel)) return 'bg-purple-100 text-purple-700';
-  return 'bg-gray-100 text-gray-700';
+  if (superior.includes(nivel)) return 'bg-pn-accent-soft text-pn-accent-text';
+  if (etdh.includes(nivel)) return 'bg-pn-warn-soft text-pn-warn';
+  if (colegio.includes(nivel)) return 'bg-pn-ok-soft text-pn-ok';
+  if (continua.includes(nivel)) return 'bg-pn-accent-2-soft text-pn-accent-2-text';
+  return 'bg-pn-surface-3 text-pn-ink-2';
 }
 
 export function colorDeEstadoPrograma(estado: ProgramStatus): string {
-  if (estado === 'ACTIVO') return 'bg-green-100 text-green-700';
-  if (estado === 'BORRADOR') return 'bg-yellow-100 text-yellow-700';
-  return 'bg-gray-100 text-gray-600';
+  if (estado === 'ACTIVO') return 'bg-pn-ok-soft text-pn-ok';
+  if (estado === 'BORRADOR') return 'bg-pn-warn-soft text-pn-warn';
+  return 'bg-pn-surface-3 text-pn-ink-2';
 }
 
 export function colorDeEstadoPensum(estado: StudyPlanStatus): string {
-  if (estado === 'VIGENTE') return 'bg-green-100 text-green-700';
-  if (estado === 'BORRADOR') return 'bg-yellow-100 text-yellow-700';
-  return 'bg-gray-100 text-gray-600';
+  if (estado === 'VIGENTE') return 'bg-pn-ok-soft text-pn-ok';
+  if (estado === 'BORRADOR') return 'bg-pn-warn-soft text-pn-warn';
+  return 'bg-pn-surface-3 text-pn-ink-2';
 }
 
 /**

@@ -1,14 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { MessageSquare, Search, Filter, Plus, Eye, MessageCircle, Star, ThumbsUp, Clock, User, X } from 'lucide-react';
 import { ForumTopic, ForumReply } from '../../../types/student.types';
+import { avisar } from '../../ui';
+import { pulsable } from '../../../utils/pulsable';
 
 interface ForosSectionProps {
   topicos: ForumTopic[];
   respuestas: ForumReply[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   crearTopico: (titulo: string, descripcion: string, categoria: string, curso: string) => void;
   crearRespuesta: (topicoId: string | number, contenido: string) => void;
 }
@@ -17,17 +15,15 @@ interface ForosSectionProps {
 const SearchBar: React.FC<{
   value: string;
   onChange: (value: string) => void;
-  darkMode: boolean;
-  border: string;
-}> = ({ value, onChange, darkMode, border }) => (
+}> = ({ value, onChange }) => (
   <div className="relative">
-    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
+    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted`} size={20} />
     <input
       type="text"
       placeholder="Buscar temas en los foros..."
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`w-full pl-10 pr-4 py-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+      className={`w-full pl-10 pr-4 py-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none bg-pn-surface text-pn-ink`}
     />
   </div>
 );
@@ -35,18 +31,14 @@ const SearchBar: React.FC<{
 // Componente de Tarjeta de Tópico
 const TopicCard: React.FC<{
   topico: ForumTopic;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   onClick: () => void;
-}> = ({ topico, darkMode, card, text, border, onClick }) => {
+}> = ({ topico, onClick }) => {
   const getEstadoBadge = () => {
     switch (topico.estado) {
       case 'destacado':
-        return <span className="flex items-center gap-1 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full"><Star size={12} />Destacado</span>;
+        return <span className="flex items-center gap-1 text-xs px-2 py-1 bg-pn-warn-soft text-pn-warn rounded-full"><Star size={12} />Destacado</span>;
       case 'cerrado':
-        return <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">Cerrado</span>;
+        return <span className="text-xs px-2 py-1 bg-pn-surface-3 text-pn-ink-2 rounded-full">Cerrado</span>;
       default:
         return null;
     }
@@ -54,26 +46,26 @@ const TopicCard: React.FC<{
 
   const getCategoriaColor = () => {
     const colors = {
-      general: 'bg-blue-100 text-blue-700',
-      academico: 'bg-green-100 text-green-700',
-      dudas: 'bg-orange-100 text-orange-700',
-      proyectos: 'bg-purple-100 text-purple-700'
+      general: 'bg-pn-accent-soft text-pn-accent-text',
+      academico: 'bg-pn-ok-soft text-pn-ok',
+      dudas: 'bg-pn-warn-soft text-pn-warn',
+      proyectos: 'bg-pn-accent-2-soft text-pn-accent-2-text'
     };
     return colors[topico.categoria] || colors.general;
   };
 
   return (
     <div
-      onClick={onClick}
-      className={`${card} rounded-lg shadow p-4 border ${border} hover:shadow-lg transition cursor-pointer`}
+      {...pulsable(onClick)}
+      className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line hover:shadow-lg transition cursor-pointer`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className={`font-bold ${text} text-lg`}>{topico.titulo}</h3>
+            <h3 className={`font-bold text-pn-ink text-lg`}>{topico.titulo}</h3>
             {getEstadoBadge()}
           </div>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3 line-clamp-2`}>
+          <p className={`text-sm text-pn-ink-2 mb-3 line-clamp-2`}>
             {topico.descripcion}
           </p>
         </div>
@@ -83,27 +75,27 @@ const TopicCard: React.FC<{
         <span className={`text-xs px-2 py-1 rounded-full ${getCategoriaColor()}`}>
           {topico.categoria}
         </span>
-        <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+        <span className={`text-xs text-pn-muted`}>
           {topico.curso}
         </span>
       </div>
 
-      <div className={`flex items-center justify-between pt-3 border-t ${border}`}>
+      <div className={`flex items-center justify-between pt-3 border-t border-pn-line`}>
         <div className="flex items-center gap-4 text-sm">
-          <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <span className={`flex items-center gap-1 text-pn-ink-2`}>
             <User size={14} />
             {topico.autor}
           </span>
-          <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <span className={`flex items-center gap-1 text-pn-ink-2`}>
             <MessageCircle size={14} />
             {topico.respuestas}
           </span>
-          <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <span className={`flex items-center gap-1 text-pn-ink-2`}>
             <Eye size={14} />
             {topico.vistas}
           </span>
         </div>
-        <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+        <span className={`text-xs text-pn-muted`}>
           <Clock size={12} className="inline mr-1" />
           {new Date(topico.ultimaActividad).toLocaleDateString()}
         </span>
@@ -115,28 +107,24 @@ const TopicCard: React.FC<{
 // Componente de Respuesta
 const ReplyCard: React.FC<{
   respuesta: ForumReply;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
-}> = ({ respuesta, darkMode, card, text, border }) => (
-  <div className={`${card} rounded-lg shadow p-4 border ${border} ${respuesta.esRespuestaProfesor ? 'border-l-4 border-green-500' : ''}`}>
+}> = ({ respuesta }) => (
+  <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line ${respuesta.esRespuestaProfesor ? 'border-l-4 border-pn-ok' : ''}`}>
     <div className="flex items-start gap-3">
-      <div className={`w-10 h-10 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center`}>
-        <User size={20} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+      <div className={`w-10 h-10 rounded-full bg-pn-surface-3 flex items-center justify-center`}>
+        <User size={20} className={'text-pn-ink-2'} />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-2">
-          <span className={`font-semibold ${text}`}>{respuesta.autor}</span>
+          <span className={`font-semibold text-pn-ink`}>{respuesta.autor}</span>
           {respuesta.esRespuestaProfesor && (
-            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Profesor</span>
+            <span className="text-xs px-2 py-1 bg-pn-ok-soft text-pn-ok rounded-full">Profesor</span>
           )}
-          <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+          <span className={`text-xs text-pn-muted`}>
             {new Date(respuesta.fecha).toLocaleString()}
           </span>
         </div>
-        <p className={`${text} mb-3`}>{respuesta.contenido}</p>
-        <button className={`flex items-center gap-1 text-sm ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>
+        <p className={`text-pn-ink mb-3`}>{respuesta.contenido}</p>
+        <button className={`flex items-center gap-1 text-sm text-pn-ink-2 hover:text-pn-accent-text`}>
           <ThumbsUp size={14} />
           {respuesta.likes}
         </button>
@@ -149,10 +137,6 @@ const ReplyCard: React.FC<{
 export const ForosSection: React.FC<ForosSectionProps> = ({
   topicos,
   respuestas,
-  darkMode,
-  card,
-  text,
-  border,
   crearTopico,
   crearRespuesta
 }) => {
@@ -183,7 +167,7 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
 
   const handleCrearTopico = () => {
     if (!nuevoTopico.titulo || !nuevoTopico.descripcion) {
-      alert('Por favor completa todos los campos');
+      avisar.error('Por favor completa todos los campos');
       return;
     }
     crearTopico(nuevoTopico.titulo, nuevoTopico.descripcion, nuevoTopico.categoria, nuevoTopico.curso);
@@ -204,29 +188,29 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
         <div className="flex items-center justify-between">
           <button
             onClick={() => setTopicoSeleccionado(null)}
-            className="text-blue-500 hover:text-blue-600 flex items-center gap-2"
+            className="text-pn-accent-text hover:text-pn-accent-text flex items-center gap-2"
           >
             ← Volver a los foros
           </button>
         </div>
 
         {/* Tópico Principal */}
-        <div className={`${card} rounded-lg shadow p-6 border ${border}`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6 border border-pn-line`}>
           <div className="flex items-start gap-2 mb-4">
-            <h2 className={`text-2xl font-bold ${text} flex-1`}>{topicoSeleccionado.titulo}</h2>
+            <h2 className={`text-2xl font-bold text-pn-ink flex-1`}>{topicoSeleccionado.titulo}</h2>
             {topicoSeleccionado.estado === 'destacado' && (
-              <Star className="text-yellow-500" size={24} />
+              <Star className="text-pn-warn" size={24} />
             )}
           </div>
-          <p className={`${text} mb-4`}>{topicoSeleccionado.descripcion}</p>
+          <p className={`text-pn-ink mb-4`}>{topicoSeleccionado.descripcion}</p>
           <div className="flex items-center gap-4 text-sm">
-            <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            <span className={'text-pn-ink-2'}>
               Por {topicoSeleccionado.autor}
             </span>
-            <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            <span className={'text-pn-ink-2'}>
               {new Date(topicoSeleccionado.fechaCreacion).toLocaleString()}
             </span>
-            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+            <span className="text-xs px-2 py-1 bg-pn-accent-soft text-pn-accent-text rounded">
               {topicoSeleccionado.curso}
             </span>
           </div>
@@ -234,33 +218,29 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
 
         {/* Respuestas */}
         <div className="space-y-4">
-          <h3 className={`text-lg font-bold ${text}`}>Respuestas ({respuestasTopico.length})</h3>
+          <h3 className={`text-lg font-bold text-pn-ink`}>Respuestas ({respuestasTopico.length})</h3>
           {respuestasTopico.map(respuesta => (
             <ReplyCard
               key={respuesta.id}
               respuesta={respuesta}
-              darkMode={darkMode}
-              card={card}
-              text={text}
-              border={border}
             />
           ))}
         </div>
 
         {/* Formulario de Nueva Respuesta */}
         {topicoSeleccionado.estado !== 'cerrado' && (
-          <div className={`${card} rounded-lg shadow p-6 border ${border}`}>
-            <h3 className={`text-lg font-bold ${text} mb-4`}>Agregar Respuesta</h3>
+          <div className={`bg-pn-surface rounded-lg shadow p-6 border border-pn-line`}>
+            <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Agregar Respuesta</h3>
             <textarea
               value={nuevaRespuesta}
               onChange={(e) => setNuevaRespuesta(e.target.value)}
               placeholder="Escribe tu respuesta..."
-              className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+              className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent focus:outline-none bg-pn-surface text-pn-ink`}
               rows={4}
             />
             <button
               onClick={handleCrearRespuesta}
-              className="mt-3 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="mt-3 px-6 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent transition"
             >
               Publicar Respuesta
             </button>
@@ -274,10 +254,10 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className={`text-2xl font-bold ${text}`}>Foros de Discusión</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Foros de Discusión</h2>
         <button
           onClick={() => setModalNuevoTopico(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent transition"
         >
           <Plus size={20} />
           Nuevo Tema
@@ -286,28 +266,28 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <MessageSquare className="text-blue-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Temas</p>
-          <p className={`text-2xl font-bold ${text}`}>{topicos.length}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <MessageSquare className="text-pn-accent-text mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Total Temas</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{topicos.length}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <MessageCircle className="text-green-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Respuestas</p>
-          <p className={`text-2xl font-bold ${text}`}>{respuestas.length}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <MessageCircle className="text-pn-ok mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Total Respuestas</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{respuestas.length}</p>
         </div>
-        <div className={`${card} rounded-lg shadow p-4 border ${border}`}>
-          <Star className="text-yellow-500 mb-2" size={32} />
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Temas Destacados</p>
-          <p className={`text-2xl font-bold ${text}`}>{topicos.filter(t => t.estado === 'destacado').length}</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-4 border border-pn-line`}>
+          <Star className="text-pn-warn mb-2" size={32} />
+          <p className={`text-sm text-pn-ink-2`}>Temas Destacados</p>
+          <p className={`text-2xl font-bold text-pn-ink`}>{topicos.filter(t => t.estado === 'destacado').length}</p>
         </div>
       </div>
 
       {/* Búsqueda y Filtros */}
       <div className="space-y-4">
-        <SearchBar value={searchTerm} onChange={setSearchTerm} darkMode={darkMode} border={border} />
+        <SearchBar value={searchTerm} onChange={setSearchTerm} />
         <div className="flex items-center gap-2">
-          <Filter size={20} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+          <Filter size={20} className={'text-pn-ink-2'} />
           <div className="flex flex-wrap gap-2">
             {categorias.map(cat => (
               <button
@@ -315,10 +295,8 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
                 onClick={() => setCategoriaFiltro(cat)}
                 className={`px-4 py-2 rounded-lg transition capitalize ${
                   categoriaFiltro === cat
-                    ? 'bg-blue-500 text-white'
-                    : darkMode
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : 'bg-pn-surface-3 text-pn-ink-2 hover:bg-pn-line'
                 }`}
               >
                 {cat}
@@ -334,18 +312,14 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
           <TopicCard
             key={topico.id}
             topico={topico}
-            darkMode={darkMode}
-            card={card}
-            text={text}
-            border={border}
             onClick={() => setTopicoSeleccionado(topico)}
           />
         ))}
         {topicosFiltrados.length === 0 && (
-          <div className={`${card} rounded-lg shadow p-12 text-center border ${border}`}>
-            <MessageSquare size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <p className={`${text} font-bold mb-2`}>No se encontraron temas</p>
-            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+          <div className={`bg-pn-surface rounded-lg shadow p-12 text-center border border-pn-line`}>
+            <MessageSquare size={64} className={`mx-auto mb-4 text-pn-muted`} />
+            <p className={`text-pn-ink font-bold mb-2`}>No se encontraron temas</p>
+            <p className={'text-pn-ink-2'}>
               Intenta con otros términos de búsqueda
             </p>
           </div>
@@ -355,41 +329,41 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
       {/* Modal Nuevo Tópico */}
       {modalNuevoTopico && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg max-w-2xl w-full p-6`} onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label="Crear Nuevo Tema" className={`bg-pn-surface rounded-lg max-w-2xl w-full p-6`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className={`text-xl font-bold ${text}`}>Crear Nuevo Tema</h3>
-              <button onClick={() => setModalNuevoTopico(false)} className="text-gray-500 hover:text-gray-700">
+              <h3 className={`text-xl font-bold text-pn-ink`}>Crear Nuevo Tema</h3>
+              <button onClick={() => setModalNuevoTopico(false)} className="text-pn-muted hover:text-pn-ink-2">
                 <X size={24} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Título</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Título</label>
                 <input
                   type="text"
                   value={nuevoTopico.titulo}
                   onChange={(e) => setNuevoTopico({ ...nuevoTopico, titulo: e.target.value })}
-                  className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent bg-pn-surface text-pn-ink`}
                   placeholder="Título del tema..."
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium ${text} mb-2`}>Descripción</label>
+                <label className={`block text-sm font-medium text-pn-ink mb-2`}>Descripción</label>
                 <textarea
                   value={nuevoTopico.descripcion}
                   onChange={(e) => setNuevoTopico({ ...nuevoTopico, descripcion: e.target.value })}
-                  className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                  className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent bg-pn-surface text-pn-ink`}
                   rows={4}
                   placeholder="Describe tu tema..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Categoría</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Categoría</label>
                   <select
                     value={nuevoTopico.categoria}
                     onChange={(e) => setNuevoTopico({ ...nuevoTopico, categoria: e.target.value })}
-                    className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent bg-pn-surface text-pn-ink`}
                   >
                     <option value="general">General</option>
                     <option value="academico">Académico</option>
@@ -398,12 +372,12 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`}>Curso</label>
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`}>Curso</label>
                   <input
                     type="text"
                     value={nuevoTopico.curso}
                     onChange={(e) => setNuevoTopico({ ...nuevoTopico, curso: e.target.value })}
-                    className={`w-full p-3 border ${border} rounded-lg focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+                    className={`w-full p-3 border border-pn-line rounded-lg focus:ring-2 focus:ring-pn-accent bg-pn-surface text-pn-ink`}
                     placeholder="Nombre del curso..."
                   />
                 </div>
@@ -411,13 +385,13 @@ export const ForosSection: React.FC<ForosSectionProps> = ({
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleCrearTopico}
-                  className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
+                  className="flex-1 px-6 py-3 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent transition font-semibold"
                 >
                   Crear Tema
                 </button>
                 <button
                   onClick={() => setModalNuevoTopico(false)}
-                  className={`px-6 py-3 border ${border} rounded-lg hover:bg-gray-100 transition ${text}`}
+                  className={`px-6 py-3 border border-pn-line rounded-lg hover:bg-pn-surface-3 transition text-pn-ink`}
                 >
                   Cancelar
                 </button>

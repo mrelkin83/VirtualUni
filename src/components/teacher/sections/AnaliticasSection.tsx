@@ -6,20 +6,12 @@ interface AnaliticasSectionProps {
   estudiantes: any[];
   tareas: any[];
   examenes: any[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
   cursos,
   estudiantes,
   tareas,
-  darkMode,
-  card,
-  text,
-  border
 }) => {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState('mes');
   const [cursoFiltro, setCursoFiltro] = useState('todos');
@@ -67,14 +59,14 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Analíticas y Reportes</h2>
-          <p className="text-gray-500 mt-1">Panel de seguimiento y análisis de desempeño</p>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Analíticas y Reportes</h2>
+          <p className="text-pn-muted mt-1">Panel de seguimiento y análisis de desempeño</p>
         </div>
         <div className="flex gap-3">
           <select
             value={periodoSeleccionado}
             onChange={(e) => setPeriodoSeleccionado(e.target.value)}
-            className={`px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+            className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
           >
             <option value="semana">Última Semana</option>
             <option value="mes">Último Mes</option>
@@ -84,7 +76,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
           <select
             value={cursoFiltro}
             onChange={(e) => setCursoFiltro(e.target.value)}
-            className={`px-4 py-2 border ${border} rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white'}`}
+            className={`px-4 py-2 border border-pn-line rounded-lg bg-pn-surface text-pn-ink`}
           >
             <option value="todos">Todos los Cursos</option>
             {cursos.map(curso => (
@@ -96,57 +88,57 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
 
       {/* Tarjetas de Estadísticas Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <Users className="text-blue-600" size={32} />
-            <span className="text-2xl font-bold text-blue-600">+{estudiantesActivos}</span>
+            <Users className="text-pn-accent-text" size={32} />
+            <span className="text-2xl font-bold text-pn-accent-text">+{estudiantesActivos}</span>
           </div>
-          <h3 className={`font-semibold ${text}`}>Estudiantes Activos</h3>
-          <p className="text-sm text-gray-500 mt-1">De {totalEstudiantes} totales</p>
-          <div className="mt-3 flex items-center text-sm text-green-600">
+          <h3 className={`font-semibold text-pn-ink`}>Estudiantes Activos</h3>
+          <p className="text-sm text-pn-muted mt-1">De {totalEstudiantes} totales</p>
+          <div className="mt-3 flex items-center text-sm text-pn-ok">
             <TrendingUp size={16} className="mr-1" />
             <span>+8% vs mes anterior</span>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <Award className="text-green-600" size={32} />
-            <span className="text-2xl font-bold text-green-600">{promedioGeneral}</span>
+            <Award className="text-pn-ok" size={32} />
+            <span className="text-2xl font-bold text-pn-ok">{promedioGeneral}</span>
           </div>
-          <h3 className={`font-semibold ${text}`}>Promedio General</h3>
-          <p className="text-sm text-gray-500 mt-1">Calificación promedio</p>
-          <div className="mt-3 flex items-center text-sm text-green-600">
+          <h3 className={`font-semibold text-pn-ink`}>Promedio General</h3>
+          <p className="text-sm text-pn-muted mt-1">Calificación promedio</p>
+          <div className="mt-3 flex items-center text-sm text-pn-ok">
             <TrendingUp size={16} className="mr-1" />
             <span>+0.3 vs mes anterior</span>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <ClipboardCheck className="text-orange-600" size={32} />
-            <span className="text-2xl font-bold text-orange-600">{tareasPendientes}</span>
+            <ClipboardCheck className="text-pn-warn" size={32} />
+            <span className="text-2xl font-bold text-pn-warn">{tareasPendientes}</span>
           </div>
-          <h3 className={`font-semibold ${text}`}>Tareas por Revisar</h3>
-          <p className="text-sm text-gray-500 mt-1">De {tareas.length} totales</p>
+          <h3 className={`font-semibold text-pn-ink`}>Tareas por Revisar</h3>
+          <p className="text-sm text-pn-muted mt-1">De {tareas.length} totales</p>
           <div className="mt-3">
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-pn-surface-3 rounded-full h-2">
               <div
-                className="bg-orange-600 h-2 rounded-full"
+                className="bg-pn-warn h-2 rounded-full"
                 style={{ width: `${(tareasRevisadas / tareas.length) * 100}%` }}
               ></div>
             </div>
           </div>
         </div>
 
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <BookOpen className="text-purple-600" size={32} />
-            <span className="text-2xl font-bold text-purple-600">{cursos.length}</span>
+            <BookOpen className="text-pn-accent-2-text" size={32} />
+            <span className="text-2xl font-bold text-pn-accent-2-text">{cursos.length}</span>
           </div>
-          <h3 className={`font-semibold ${text}`}>Cursos Activos</h3>
-          <p className="text-sm text-gray-500 mt-1">En este periodo</p>
-          <div className="mt-3 text-sm text-gray-600">
+          <h3 className={`font-semibold text-pn-ink`}>Cursos Activos</h3>
+          <p className="text-sm text-pn-muted mt-1">En este periodo</p>
+          <div className="mt-3 text-sm text-pn-ink-2">
             {estudiantes.length} estudiantes totales
           </div>
         </div>
@@ -155,25 +147,25 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rendimiento Académico */}
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <BarChart3 className="text-blue-600" size={24} />
-              <h3 className={`text-lg font-bold ${text}`}>Rendimiento Académico</h3>
+              <BarChart3 className="text-pn-accent-text" size={24} />
+              <h3 className={`text-lg font-bold text-pn-ink`}>Rendimiento Académico</h3>
             </div>
-            <span className="text-sm text-gray-500">Últimos 6 meses</span>
+            <span className="text-sm text-pn-muted">Últimos 6 meses</span>
           </div>
 
           <div className="space-y-4">
             {datosRendimiento.map((dato, index) => (
               <div key={index}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className={text}>{dato.mes}</span>
-                  <span className="font-semibold text-blue-600">{dato.promedio}</span>
+                  <span className="text-pn-ink">{dato.mes}</span>
+                  <span className="font-semibold text-pn-accent-text">{dato.promedio}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-pn-surface-3 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    className="bg-pn-accent h-2 rounded-full transition-all"
                     style={{ width: `${(dato.promedio / 5) * 100}%` }}
                   ></div>
                 </div>
@@ -183,11 +175,11 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         {/* Distribución de Calificaciones */}
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <PieChart className="text-purple-600" size={24} />
-              <h3 className={`text-lg font-bold ${text}`}>Distribución de Calificaciones</h3>
+              <PieChart className="text-pn-accent-2-text" size={24} />
+              <h3 className={`text-lg font-bold text-pn-ink`}>Distribución de Calificaciones</h3>
             </div>
           </div>
 
@@ -196,14 +188,14 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
               <div key={index} className="flex items-center gap-3">
                 <div className="w-20 text-sm font-medium">{dist.rango}</div>
                 <div className="flex-1">
-                  <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                  <div className="w-full bg-pn-surface-3 rounded-full h-6 overflow-hidden">
                     <div
-                      className={`h-6 flex items-center justify-center text-xs text-white font-semibold transition-all ${
-                        index === 0 ? 'bg-green-600' :
-                        index === 1 ? 'bg-blue-600' :
-                        index === 2 ? 'bg-yellow-600' :
-                        index === 3 ? 'bg-orange-600' :
-                        'bg-red-600'
+                      className={`h-6 flex items-center justify-center text-xs text-pn-accent-ink font-semibold transition-all ${
+                        index === 0 ? 'bg-pn-ok' :
+                        index === 1 ? 'bg-pn-accent' :
+                        index === 2 ? 'bg-pn-warn' :
+                        index === 3 ? 'bg-pn-warn' :
+                        'bg-pn-danger'
                       }`}
                       style={{ width: `${dist.porcentaje}%` }}
                     >
@@ -211,7 +203,7 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className="w-16 text-sm text-gray-500 text-right">
+                <div className="w-16 text-sm text-pn-muted text-right">
                   {dist.porcentaje}%
                 </div>
               </div>
@@ -220,27 +212,27 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         {/* Asistencia */}
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Activity className="text-green-600" size={24} />
-              <h3 className={`text-lg font-bold ${text}`}>Asistencia</h3>
+              <Activity className="text-pn-ok" size={24} />
+              <h3 className={`text-lg font-bold text-pn-ink`}>Asistencia</h3>
             </div>
-            <span className="text-sm text-gray-500">Último mes</span>
+            <span className="text-sm text-pn-muted">Último mes</span>
           </div>
 
           <div className="space-y-4">
             {datosAsistencia.map((dato, index) => (
               <div key={index}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className={text}>{dato.semana}</span>
-                  <span className={`font-semibold ${dato.asistencia >= 90 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <span className="text-pn-ink">{dato.semana}</span>
+                  <span className={`font-semibold ${dato.asistencia >= 90 ? 'text-pn-ok' : 'text-pn-warn'}`}>
                     {dato.asistencia}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-pn-surface-3 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full transition-all ${dato.asistencia >= 90 ? 'bg-green-600' : 'bg-orange-600'}`}
+                    className={`h-2 rounded-full transition-all ${dato.asistencia >= 90 ? 'bg-pn-ok' : 'bg-pn-warn'}`}
                     style={{ width: `${dato.asistencia}%` }}
                   ></div>
                 </div>
@@ -250,44 +242,44 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
         </div>
 
         {/* Próximas Actividades */}
-        <div className={`${card} rounded-lg shadow p-6`}>
+        <div className={`bg-pn-surface rounded-lg shadow p-6`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Calendar className="text-orange-600" size={24} />
-              <h3 className={`text-lg font-bold ${text}`}>Actividad Reciente</h3>
+              <Calendar className="text-pn-warn" size={24} />
+              <h3 className={`text-lg font-bold text-pn-ink`}>Actividad Reciente</h3>
             </div>
           </div>
 
           <div className="space-y-3">
-            <div className={`p-3 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'} rounded`}>
+            <div className={`p-3 bg-pn-accent-soft rounded`}>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-pn-accent rounded-full mt-2"></div>
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${text}`}>15 nuevas entregas</p>
-                  <p className="text-xs text-gray-500">Tarea: Proyecto Final IA</p>
-                  <p className="text-xs text-gray-400">Hace 2 horas</p>
+                  <p className={`text-sm font-medium text-pn-ink`}>15 nuevas entregas</p>
+                  <p className="text-xs text-pn-muted">Tarea: Proyecto Final IA</p>
+                  <p className="text-xs text-pn-muted">Hace 2 horas</p>
                 </div>
               </div>
             </div>
 
-            <div className={`p-3 ${darkMode ? 'bg-gray-700' : 'bg-green-50'} rounded`}>
+            <div className={`p-3 bg-pn-ok-soft rounded`}>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-pn-ok rounded-full mt-2"></div>
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${text}`}>23 estudiantes completaron el módulo</p>
-                  <p className="text-xs text-gray-500">Programación Avanzada</p>
-                  <p className="text-xs text-gray-400">Hoy</p>
+                  <p className={`text-sm font-medium text-pn-ink`}>23 estudiantes completaron el módulo</p>
+                  <p className="text-xs text-pn-muted">Programación Avanzada</p>
+                  <p className="text-xs text-pn-muted">Hoy</p>
                 </div>
               </div>
             </div>
 
-            <div className={`p-3 ${darkMode ? 'bg-gray-700' : 'bg-purple-50'} rounded`}>
+            <div className={`p-3 bg-pn-info-soft rounded`}>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-pn-accent-2 rounded-full mt-2"></div>
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${text}`}>Nuevo mensaje en foro</p>
-                  <p className="text-xs text-gray-500">Dudas sobre patrones de diseño</p>
-                  <p className="text-xs text-gray-400">Hace 1 hora</p>
+                  <p className={`text-sm font-medium text-pn-ink`}>Nuevo mensaje en foro</p>
+                  <p className="text-xs text-pn-muted">Dudas sobre patrones de diseño</p>
+                  <p className="text-xs text-pn-muted">Hace 1 hora</p>
                 </div>
               </div>
             </div>
@@ -296,57 +288,57 @@ export const AnaliticasSection: React.FC<AnaliticasSectionProps> = ({
       </div>
 
       {/* Tabla de Top Estudiantes */}
-      <div className={`${card} rounded-lg shadow`}>
-        <div className="p-6 border-b ${border}">
-          <h3 className={`text-lg font-bold ${text}`}>Top Estudiantes</h3>
-          <p className="text-sm text-gray-500 mt-1">Mejor desempeño del periodo</p>
+      <div className={`bg-pn-surface rounded-lg shadow`}>
+        <div className="p-6 border-b border-pn-line">
+          <h3 className={`text-lg font-bold text-pn-ink`}>Top Estudiantes</h3>
+          <p className="text-sm text-pn-muted mt-1">Mejor desempeño del periodo</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+            <thead className={'bg-pn-surface-2'}>
               <tr>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>#</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Estudiante</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Curso</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Promedio</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Progreso</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${text} uppercase tracking-wider`}>Asistencia</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>#</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Estudiante</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Curso</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Promedio</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Progreso</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-pn-ink uppercase tracking-wider`}>Asistencia</th>
               </tr>
             </thead>
-            <tbody className="divide-y ${border}">
+            <tbody className="divide-y border-pn-line">
               {estudiantes
                 .sort((a, b) => b.calificacionActual - a.calificacionActual)
                 .slice(0, 10)
                 .map((estudiante, index) => (
-                  <tr key={estudiante.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr key={estudiante.id} className="hover:bg-pn-surface-2">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
-                        index < 3 ? 'bg-yellow-400 text-yellow-900 font-bold' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'} ${text}`
+                        index < 3 ? 'bg-pn-warn text-pn-warn font-bold' : `bg-pn-surface-3 text-pn-ink`
                       }`}>
                         {index + 1}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium">{estudiante.nombre}</div>
-                      <div className="text-sm text-gray-500">{estudiante.email}</div>
+                      <div className="text-sm text-pn-muted">{estudiante.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{estudiante.curso}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-semibold text-green-600">{estudiante.calificacionActual.toFixed(1)}</span>
+                      <span className="font-semibold text-pn-ok">{estudiante.calificacionActual.toFixed(1)}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="w-24 bg-pn-surface-3 rounded-full h-2">
                           <div
-                            className="bg-blue-600 h-2 rounded-full"
+                            className="bg-pn-accent h-2 rounded-full"
                             style={{ width: `${estudiante.progreso}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm text-gray-600">{estudiante.progreso}%</span>
+                        <span className="text-sm text-pn-ink-2">{estudiante.progreso}%</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-pn-ok-soft text-pn-ok">
                         95%
                       </span>
                     </td>

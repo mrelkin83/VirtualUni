@@ -24,6 +24,7 @@ import {
   tipoDeMaterialPorMime,
 } from '../../../utils/materiales';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { avisar, confirmar } from '../../ui';
 
 interface MaterialDelTema {
   id: string;
@@ -42,28 +43,24 @@ interface GestionMaterialesModalProps {
   courseId: string;
   isOpen: boolean;
   onClose: () => void;
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
 }
 
 const iconoDe = (tipo: MaterialType) => {
   switch (tipo) {
     case 'VIDEO':
-      return <Video className="text-purple-600" size={20} />;
+      return <Video className="text-pn-accent-2-text" size={20} />;
     case 'IMAGEN':
-      return <ImageIcon className="text-green-600" size={20} />;
+      return <ImageIcon className="text-pn-ok" size={20} />;
     case 'ENLACE':
-      return <LinkIcon className="text-orange-600" size={20} />;
+      return <LinkIcon className="text-pn-warn" size={20} />;
     case 'AUDIO':
-      return <Music className="text-pink-600" size={20} />;
+      return <Music className="text-pn-accent-2-text" size={20} />;
     case 'PRESENTACION':
-      return <FileText className="text-orange-600" size={20} />;
+      return <FileText className="text-pn-warn" size={20} />;
     case 'DOCUMENTO':
-      return <FileText className="text-blue-600" size={20} />;
+      return <FileText className="text-pn-accent-text" size={20} />;
     default:
-      return <File className="text-gray-600" size={20} />;
+      return <File className="text-pn-ink-2" size={20} />;
   }
 };
 
@@ -78,10 +75,6 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
   courseId,
   isOpen,
   onClose,
-  darkMode,
-  card,
-  text,
-  border,
 }) => {
   const queryClient = useQueryClient();
   const dialogRef = useModalA11y(isOpen, onClose);
@@ -150,7 +143,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
       invalidar();
     },
     onError: (e: any) =>
-      alert(
+      avisar.error(
         'No se pudo agregar el material: ' +
           (e?.response?.data?.message || e?.message || 'error de conexión'),
       ),
@@ -160,7 +153,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
     mutationFn: (id: string) => materialsApi.delete(id),
     onSuccess: invalidar,
     onError: (e: any) =>
-      alert(
+      avisar.error(
         'No se pudo eliminar: ' +
           (e?.response?.data?.message || e?.message || 'error de conexión'),
       ),
@@ -173,7 +166,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
     if (!file) return;
 
     if (file.size > TAMANIO_MAXIMO_MB * 1024 * 1024) {
-      alert(
+      avisar.error(
         `"${file.name}" pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo es ` +
           `${TAMANIO_MAXIMO_MB} MB. Para un video grande, súbelo a un hosting y agrégalo como enlace.`,
       );
@@ -188,8 +181,8 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
   };
 
   const puedeAgregar = !!nombre.trim() && (!!archivo || !!url.trim()) && !agregar.isPending;
-  const campo = `w-full px-4 py-2 border ${border} rounded-lg ${
-    darkMode ? 'bg-gray-700 text-white' : 'bg-white'
+  const campo = `w-full px-4 py-2 border border-pn-line rounded-lg ${
+    'bg-pn-surface text-pn-ink'
   }`;
 
   return (
@@ -200,20 +193,20 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
         aria-modal="true"
         aria-labelledby="titulo-gestion-materiales"
         tabIndex={-1}
-        className={`${card} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
+        className={`bg-pn-surface rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
       >
         <div
-          className={`sticky top-0 bg-inherit p-6 border-b ${border} flex justify-between items-center`}
+          className={`sticky top-0 bg-inherit p-6 border-b border-pn-line flex justify-between items-center`}
         >
           <div>
-            <h2 id="titulo-gestion-materiales" className={`text-2xl font-bold ${text}`}>
+            <h2 id="titulo-gestion-materiales" className={`text-2xl font-bold text-pn-ink`}>
               Gestión de Materiales
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Tema: {tema.titulo}</p>
+            <p className="text-sm text-pn-muted mt-1">Tema: {tema.titulo}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-pn-muted hover:text-pn-ink-2"
             aria-label="Cerrar"
           >
             <X size={24} />
@@ -222,13 +215,13 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
 
         <div className="p-6 space-y-6">
           {/* Formulario para agregar material */}
-          <section className={`border ${border} rounded-lg p-4`}>
-            <h3 className={`text-lg font-bold ${text} mb-4`}>Agregar Nuevo Material</h3>
+          <section className={`border border-pn-line rounded-lg p-4`}>
+            <h3 className={`text-lg font-bold text-pn-ink mb-4`}>Agregar Nuevo Material</h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`} htmlFor="gm-tipo">
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`} htmlFor="gm-tipo">
                     Tipo de Material
                   </label>
                   <select
@@ -246,7 +239,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`} htmlFor="gm-nombre">
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`} htmlFor="gm-nombre">
                     Nombre del Material
                   </label>
                   <input
@@ -262,7 +255,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`} htmlFor="gm-archivo">
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`} htmlFor="gm-archivo">
                     Archivo
                   </label>
                   <input
@@ -273,7 +266,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                     onChange={elegirArchivo}
                     className={campo}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-pn-muted mt-1">
                     {archivo
                       ? `${archivo.name} · ${(archivo.size / 1024 / 1024).toFixed(2)} MB`
                       : `PDF, Word, Excel, PowerPoint, imagen, video o audio. Hasta ${TAMANIO_MAXIMO_MB} MB.`}
@@ -281,7 +274,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${text} mb-2`} htmlFor="gm-url">
+                  <label className={`block text-sm font-medium text-pn-ink mb-2`} htmlFor="gm-url">
                     ...o enlace externo
                   </label>
                   <input
@@ -293,7 +286,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                     className={`${campo} disabled:opacity-50`}
                     placeholder="https://..."
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-pn-muted mt-1">
                     YouTube, Drive o cualquier recurso ya publicado fuera.
                   </p>
                 </div>
@@ -303,7 +296,7 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                 <button
                   onClick={() => agregar.mutate()}
                   disabled={!puedeAgregar}
-                  className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg flex items-center gap-2"
+                  className="bg-pn-ok hover:bg-pn-ok disabled:opacity-50 text-pn-surface px-6 py-3 rounded-lg flex items-center gap-2"
                 >
                   <Upload size={18} />
                   {agregar.isPending ? 'Subiendo...' : 'Agregar'}
@@ -314,22 +307,22 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
 
           {/* Lista de materiales */}
           <section>
-            <h3 className={`text-lg font-bold ${text} mb-4`}>
+            <h3 className={`text-lg font-bold text-pn-ink mb-4`}>
               Materiales del Tema ({materiales.length})
             </h3>
 
-            {isLoading && <p className="text-sm text-gray-500">Cargando materiales...</p>}
+            {isLoading && <p className="text-sm text-pn-muted">Cargando materiales...</p>}
             {error != null && (
-              <p className="text-sm text-red-600">No se pudieron cargar los materiales.</p>
+              <p className="text-sm text-pn-danger">No se pudieron cargar los materiales.</p>
             )}
 
             {!isLoading && materiales.length === 0 ? (
               <div
-                className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-8 text-center`}
+                className={`bg-pn-surface-2 rounded-lg p-8 text-center`}
               >
-                <Upload className="mx-auto text-gray-400 mb-3" size={48} />
-                <p className="text-gray-500">No hay materiales agregados</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <Upload className="mx-auto text-pn-muted mb-3" size={48} />
+                <p className="text-pn-muted">No hay materiales agregados</p>
+                <p className="text-sm text-pn-muted mt-1">
                   Agrega archivos, videos o enlaces para este tema
                 </p>
               </div>
@@ -342,18 +335,18 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                   return (
                     <div
                       key={material.id}
-                      className={`flex items-center justify-between p-4 border ${border} rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition`}
+                      className={`flex items-center justify-between p-4 border border-pn-line rounded-lg hover:bg-pn-surface-2 transition`}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         {iconoDe(material.tipo)}
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium ${text} truncate`}>{material.nombre}</p>
-                          <div className="flex gap-3 text-xs text-gray-500 mt-1 flex-wrap">
+                          <p className={`font-medium text-pn-ink truncate`}>{material.nombre}</p>
+                          <div className="flex gap-3 text-xs text-pn-muted mt-1 flex-wrap">
                             <span>{ETIQUETA_TIPO[material.tipo]}</span>
                             <span>• {formatearKb(material.tamanioKb)}</span>
                             <span>• {material.descargas} descarga(s)</span>
                             {heredado && (
-                              <span className="text-emerald-600">• Heredado de la asignatura</span>
+                              <span className="text-pn-ok">• Heredado de la asignatura</span>
                             )}
                           </div>
                         </div>
@@ -363,28 +356,28 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
                           onClick={() =>
                             uploadsApi
                               .abrir(material.url)
-                              .catch(() => alert('No se pudo abrir el material.'))
+                              .catch(() => avisar.error('No se pudo abrir el material.'))
                           }
-                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                          className="p-2 hover:bg-pn-surface-3 rounded"
                           title="Abrir"
                         >
                           <Eye size={16} />
                         </button>
                         {heredado ? (
                           <span
-                            className="p-2 text-gray-400"
+                            className="p-2 text-pn-muted"
                             title="Se gestiona en la asignatura: cambiarlo aquí afectaría a todos sus grupos"
                           >
                             <Lock size={16} />
                           </span>
                         ) : (
                           <button
-                            onClick={() => {
-                              if (confirm(`¿Eliminar "${material.nombre}"?`)) {
+                            onClick={async () => {
+                              if (await confirmar(`¿Eliminar "${material.nombre}"?`)) {
                                 eliminar.mutate(material.id);
                               }
                             }}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-red-600"
+                            className="p-2 hover:bg-pn-surface-3 rounded text-pn-danger"
                             title="Eliminar"
                           >
                             <Trash2 size={16} />
@@ -399,11 +392,11 @@ export const GestionMaterialesModal: React.FC<GestionMaterialesModalProps> = ({
           </section>
         </div>
 
-        <div className={`sticky bottom-0 bg-inherit border-t ${border} p-6 flex justify-end`}>
+        <div className={`sticky bottom-0 bg-inherit border-t border-pn-line p-6 flex justify-end`}>
           <button
             onClick={onClose}
             className={`px-6 py-2 rounded-lg ${
-              darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+              'bg-pn-surface-3 hover:bg-pn-line'
             }`}
           >
             Cerrar

@@ -29,7 +29,7 @@ export const studentCursos: StudentCourse[] = [
     id: 1,
     nombre: 'Programación Avanzada',
     progreso: 75,
-    color: 'bg-blue-500',
+    color: 'bg-pn-accent',
     tareasPendientes: 2,
     proximaClase: 'Hoy 14:00',
     profesor: 'Prof. García',
@@ -97,7 +97,7 @@ export const studentCursos: StudentCourse[] = [
     id: 2,
     nombre: 'Diseño de Interfaces',
     progreso: 60,
-    color: 'bg-purple-500',
+    color: 'bg-pn-accent-2',
     tareasPendientes: 1,
     proximaClase: 'Mañana 10:00',
     profesor: 'Prof. López',
@@ -110,7 +110,7 @@ export const studentCursos: StudentCourse[] = [
     id: 3,
     nombre: 'Base de Datos',
     progreso: 100,
-    color: 'bg-green-500',
+    color: 'bg-pn-ok',
     tareasPendientes: 0,
     proximaClase: 'Curso Completado',
     profesor: 'Prof. Rodríguez',
@@ -120,7 +120,7 @@ export const studentCursos: StudentCourse[] = [
     id: 4,
     nombre: 'Inteligencia Artificial',
     progreso: 45,
-    color: 'bg-orange-500',
+    color: 'bg-pn-warn',
     tareasPendientes: 3,
     proximaClase: 'Hoy 18:00',
     profesor: 'Prof. Martínez',
@@ -349,7 +349,7 @@ export const anuncios = [
     contenido: 'Queridos estudiantes, les informamos que el proceso de inscripciones para el próximo semestre estará abierto desde el 15 hasta el 30 de octubre. Durante este período podrán inscribir sus materias a través del portal estudiantil. Recuerden revisar los prerequisitos de cada materia y consultar con su asesor académico en caso de dudas. ¡No dejen las inscripciones para el último día!',
     fecha: '2025-10-01',
     icono: '📢',
-    color: 'border-red-500'
+    color: 'border-pn-danger'
   },
   {
     id: 2,
@@ -358,7 +358,7 @@ export const anuncios = [
     contenido: 'La universidad convoca al Hackathon 2025, un evento de 48 horas donde equipos de estudiantes competirán para desarrollar soluciones innovadoras a problemas reales. Los mejores proyectos recibirán premios de hasta $5,000 USD. Las inscripciones están abiertas para equipos de 3 a 5 personas. Fecha del evento: 15-17 de noviembre. ¡No te pierdas esta oportunidad de demostrar tus habilidades!',
     fecha: '2025-10-02',
     icono: '🏆',
-    color: 'border-orange-500'
+    color: 'border-pn-warn'
   },
   {
     id: 3,
@@ -367,7 +367,7 @@ export const anuncios = [
     contenido: 'Nos complace anunciar el lanzamiento de nuestra nueva biblioteca digital con más de 10,000 recursos académicos incluyendo libros electrónicos, revistas científicas, bases de datos especializadas y contenido multimedia. Todos los estudiantes tienen acceso gratuito mediante sus credenciales institucionales. Explora recursos en múltiples idiomas y disciplinas. Accede ahora desde el portal de la biblioteca.',
     fecha: '2025-10-03',
     icono: '📚',
-    color: 'border-blue-500'
+    color: 'border-pn-accent-line'
   }
 ];
 
@@ -539,7 +539,7 @@ export const horarioClases: ScheduleClass[] = [
     horaFin: '16:00',
     aula: 'Aula 302',
     tipo: 'presencial',
-    color: 'bg-blue-500'
+    color: 'bg-pn-accent'
   },
   {
     id: 2,
@@ -550,7 +550,7 @@ export const horarioClases: ScheduleClass[] = [
     horaFin: '16:00',
     aula: 'Aula 302',
     tipo: 'presencial',
-    color: 'bg-blue-500'
+    color: 'bg-pn-accent'
   },
   {
     id: 3,
@@ -562,7 +562,7 @@ export const horarioClases: ScheduleClass[] = [
     aula: 'Virtual',
     tipo: 'virtual',
     enlaceVirtual: 'https://zoom.us/j/123456789',
-    color: 'bg-orange-500'
+    color: 'bg-pn-warn'
   },
   {
     id: 4,
@@ -574,7 +574,7 @@ export const horarioClases: ScheduleClass[] = [
     aula: 'Virtual',
     tipo: 'virtual',
     enlaceVirtual: 'https://zoom.us/j/123456789',
-    color: 'bg-orange-500'
+    color: 'bg-pn-warn'
   },
   {
     id: 5,
@@ -586,7 +586,7 @@ export const horarioClases: ScheduleClass[] = [
     aula: 'Lab 101',
     tipo: 'hibrido',
     enlaceVirtual: 'https://meet.google.com/abc-defg-hij',
-    color: 'bg-purple-500'
+    color: 'bg-pn-accent-2'
   },
   {
     id: 6,
@@ -597,7 +597,7 @@ export const horarioClases: ScheduleClass[] = [
     horaFin: '18:00',
     aula: 'Aula 205',
     tipo: 'presencial',
-    color: 'bg-green-500'
+    color: 'bg-pn-ok'
   }
 ];
 

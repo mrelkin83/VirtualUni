@@ -13,6 +13,7 @@ import { MODALIDADES } from './etiquetas';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { comoArreglo } from '../../../../utils/respuestaApi';
 import { mensajeDeError } from './errores';
+import { avisar, confirmar } from '../../../ui';
 
 interface GrupoFila {
   id: string;
@@ -49,7 +50,7 @@ export function GruposTab() {
   const eliminar = useMutation({
     mutationFn: (id: string) => coursesAdminApi.remove(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['grupos'] }),
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const grupos: GrupoFila[] = comoArreglo((data as any)?.data?.data ?? (data as any)?.data);
@@ -58,24 +59,24 @@ export function GruposTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-56">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-pn-muted" />
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar grupo por código o nombre..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full pl-9 pr-3 py-2 border border-pn-line rounded-lg text-sm"
           />
         </div>
         <button
           onClick={() => setModalAbierto(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm"
+          className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg hover:bg-pn-accent-hover flex items-center gap-2 text-sm"
         >
           <Plus size={16} /> Crear grupo
         </button>
       </div>
 
-      {isLoading && <p className="text-gray-500 text-sm">Cargando grupos...</p>}
-      {error != null && <p className="text-red-600 text-sm">{mensajeDeError(error)}</p>}
+      {isLoading && <p className="text-pn-muted text-sm">Cargando grupos...</p>}
+      {error != null && <p className="text-pn-danger text-sm">{mensajeDeError(error)}</p>}
 
       <div className="grid grid-cols-1 gap-3">
         {grupos.map((grupo) => {
@@ -83,27 +84,27 @@ export function GruposTab() {
             .filter(Boolean)
             .join(' ');
           return (
-            <div key={grupo.id} className="bg-white rounded-lg shadow p-4 border border-gray-100">
+            <div key={grupo.id} className="bg-pn-surface rounded-lg shadow p-4 border border-pn-line">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h4 className="font-bold text-gray-900">{grupo.name}</h4>
+                    <h4 className="font-bold text-pn-ink">{grupo.name}</h4>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         grupo.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-pn-ok-soft text-pn-ok'
+                          : 'bg-pn-surface-3 text-pn-ink-2'
                       }`}
                     >
                       {grupo.status === 'active' ? 'Activo' : 'Inactivo'}
                     </span>
                     {!grupo.subject && (
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-pn-warn-soft text-pn-warn">
                         Sin asignatura de catálogo
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-pn-ink-2">
                     {grupo.code}
                     {docente ? ` · Docente: ${docente}` : ''}
                     {grupo.semester ? ` · Periodo: ${grupo.semester}` : ''}
@@ -113,7 +114,7 @@ export function GruposTab() {
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => setMaterialesDe(grupo)}
-                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
+                    className="p-2 text-pn-ok hover:bg-pn-ok-soft rounded"
                     title="Materiales del grupo: videos, PDF, Word, Excel, guías y enlaces"
                     aria-label={`Materiales de ${grupo.name}`}
                   >
@@ -124,7 +125,7 @@ export function GruposTab() {
                   {grupo.subject && (
                     <button
                       onClick={() => setCierreDeNotas(grupo.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-2 text-pn-accent-text hover:bg-pn-accent-soft rounded"
                       title="Cerrar o reabrir notas del grupo"
                       aria-label={`Cierre de notas de ${grupo.name}`}
                     >
@@ -132,12 +133,12 @@ export function GruposTab() {
                     </button>
                   )}
                   <button
-                    onClick={() => {
-                      if (confirm(`¿Eliminar el grupo "${grupo.name}"?`)) {
+                    onClick={async () => {
+                      if (await confirmar(`¿Eliminar el grupo "${grupo.name}"?`)) {
                         eliminar.mutate(grupo.id);
                       }
                     }}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    className="p-2 text-pn-danger hover:bg-pn-danger-soft rounded"
                     title="Eliminar grupo"
                   >
                     <Trash2 size={17} />
@@ -148,7 +149,7 @@ export function GruposTab() {
           );
         })}
         {!isLoading && grupos.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-pn-muted">
             <p className="font-medium">No hay grupos</p>
             <p className="text-sm">Cree uno eligiendo periodo, asignatura y docente.</p>
           </div>
@@ -214,12 +215,12 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
       onClose();
     },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const listaDocentes = comoArreglo((docentes as any)?.data?.data ?? (docentes as any)?.data);
-  const campo = 'w-full p-2 border border-gray-300 rounded-lg text-sm';
-  const etiqueta = 'block text-sm font-semibold mb-1 text-gray-700';
+  const campo = 'w-full p-2 border border-pn-line rounded-lg text-sm';
+  const etiqueta = 'block text-sm font-semibold mb-1 text-pn-ink-2';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -229,11 +230,11 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-label="Crear grupo"
         tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
+        className="bg-pn-surface rounded-lg p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">Crear grupo</h3>
+          <h3 className="text-lg font-bold text-pn-ink">Crear grupo</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
 
@@ -242,7 +243,7 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
           onSubmit={(e) => {
             e.preventDefault();
             if (!subjectId || !academicPeriodId || !teacherId) {
-              alert('Asignatura, periodo y docente son obligatorios');
+              avisar.error('Asignatura, periodo y docente son obligatorios');
               return;
             }
             crear.mutate();
@@ -277,7 +278,7 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className={etiqueta}>Código de grupo</label>
               <input value={groupCode} onChange={(e) => setGroupCode(e.target.value)} placeholder="A" className={campo} />
@@ -296,7 +297,7 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-pn-muted">
             El nombre del grupo se genera solo: “Asignatura – Grupo {groupCode || 'A'} – periodo”.
           </p>
 
@@ -304,7 +305,7 @@ function CrearGrupoModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={crear.isPending}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-60"
+              className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg text-sm hover:bg-pn-accent-hover disabled:opacity-60"
             >
               Crear grupo
             </button>

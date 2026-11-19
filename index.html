@@ -4,7 +4,49 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Plataforma educativa virtual: cursos, materiales, calificaciones y trámites académicos."
+    />
+    <meta name="theme-color" content="#f4f6f8" />
     <title>Univirtual - Plataforma Educativa Virtual</title>
+
+    <!-- Tipografías de Pensum. Archivo para títulos, IBM Plex Sans para
+         interfaz y IBM Plex Mono para todo dato numérico. `display=swap` evita
+         el texto invisible mientras cargan. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    />
+
+    <!--
+      Tema antes del primer pintado: sin esto, React monta con el tema por
+      defecto y el navegador repinta, que es el destello blanco clásico al
+      entrar en oscuro. Tiene que ser síncrono y estar aquí, no en main.tsx.
+      La lógica equivalente vive en src/theme/ThemeProvider.tsx; si cambia una,
+      cambia la otra.
+    -->
+    <script>
+      (function () {
+        try {
+          var guardado = localStorage.getItem('virtualuni_tema');
+          var tema =
+            guardado === 'light' || guardado === 'dark' || guardado === 'system'
+              ? guardado
+              : 'system';
+          if (tema === 'system') {
+            tema = window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -15,10 +15,6 @@ interface NotificacionesDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   notificaciones: Notificacion[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   marcarComoLeida: (id: number) => void;
   marcarTodasComoLeidas: () => void;
   eliminarNotificacion: (id: number) => void;
@@ -28,10 +24,6 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
   isOpen,
   onClose,
   notificaciones,
-  darkMode,
-  card,
-  text,
-  border,
   marcarComoLeida,
   marcarTodasComoLeidas,
   eliminarNotificacion
@@ -49,20 +41,20 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
 
   const getTipoColor = (tipo: string) => {
     const colores = {
-      info: 'border-blue-500 bg-blue-50 dark:bg-blue-900/20',
-      warning: 'border-orange-500 bg-orange-50 dark:bg-orange-900/20',
-      success: 'border-green-500 bg-green-50 dark:bg-green-900/20',
-      error: 'border-red-500 bg-red-50 dark:bg-red-900/20'
+      info: 'border-pn-accent-line bg-pn-accent-soft',
+      warning: 'border-pn-warn bg-pn-warn-soft',
+      success: 'border-pn-ok bg-pn-ok-soft',
+      error: 'border-pn-danger bg-pn-danger-soft'
     };
     return colores[tipo as keyof typeof colores] || colores.info;
   };
 
   const getTipoIconColor = (tipo: string) => {
     const colores = {
-      info: 'text-blue-600',
-      warning: 'text-orange-600',
-      success: 'text-green-600',
-      error: 'text-red-600'
+      info: 'text-pn-accent-text',
+      warning: 'text-pn-warn',
+      success: 'text-pn-ok',
+      error: 'text-pn-danger'
     };
     return colores[tipo as keyof typeof colores] || colores.info;
   };
@@ -79,17 +71,17 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
 
       {/* Dropdown */}
       <div
-        className={`fixed top-20 right-4 w-96 max-w-[calc(100vw-2rem)] ${card} rounded-lg shadow-2xl z-50 max-h-[80vh] flex flex-col`}
+        className={`fixed top-20 right-4 w-96 max-w-[calc(100vw-2rem)] bg-pn-surface rounded-lg shadow-2xl z-50 max-h-[80vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`p-4 border-b ${border} flex justify-between items-center`}>
+        <div className={`p-4 border-b border-pn-line flex justify-between items-center`}>
           <div className="flex items-center gap-2">
-            <Bell className="text-blue-600" size={20} />
-            <h3 className={`font-bold ${text}`}>
+            <Bell className="text-pn-accent-text" size={20} />
+            <h3 className={`font-bold text-pn-ink`}>
               Notificaciones
               {notificacionesNoLeidas > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                <span className="ml-2 px-2 py-0.5 bg-pn-danger text-pn-surface text-xs rounded-full">
                   {notificacionesNoLeidas}
                 </span>
               )}
@@ -97,7 +89,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="text-pn-muted hover:text-pn-ink-2 p-1 rounded hover:bg-pn-surface-3"
           >
             <X size={20} />
           </button>
@@ -105,10 +97,10 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
 
         {/* Acciones rápidas */}
         {notificacionesNoLeidas > 0 && (
-          <div className={`px-4 py-2 border-b ${border} flex justify-end`}>
+          <div className={`px-4 py-2 border-b border-pn-line flex justify-end`}>
             <button
               onClick={marcarTodasComoLeidas}
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold"
+              className="text-sm text-pn-accent-text hover:text-pn-accent-text flex items-center gap-1 font-semibold"
             >
               <CheckCheck size={16} />
               Marcar todas como leídas
@@ -119,11 +111,11 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
         {/* Lista de notificaciones */}
         <div className="flex-1 overflow-y-auto">
           {notificacionesPaginadas.length > 0 ? (
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div className="divide-y divide-pn-line">
               {notificacionesPaginadas.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition ${
+                  className={`p-4 hover:bg-pn-surface-2 transition ${
                     !notif.leida ? 'border-l-4 ' + getTipoColor(notif.tipo) : ''
                   }`}
                 >
@@ -133,23 +125,23 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className={`font-semibold text-sm ${text} ${!notif.leida ? 'font-bold' : ''}`}>
+                        <h4 className={`font-semibold text-sm text-pn-ink ${!notif.leida ? 'font-bold' : ''}`}>
                           {notif.titulo}
                         </h4>
                         {!notif.leida && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1"></div>
+                          <div className="w-2 h-2 bg-pn-accent rounded-full flex-shrink-0 mt-1"></div>
                         )}
                       </div>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 line-clamp-2`}>
+                      <p className={`text-sm text-pn-ink-2 mb-2 line-clamp-2`}>
                         {notif.mensaje}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{notif.fecha}</span>
+                        <span className="text-xs text-pn-muted">{notif.fecha}</span>
                         <div className="flex gap-1">
                           {!notif.leida && (
                             <button
                               onClick={() => marcarComoLeida(notif.id)}
-                              className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded transition"
+                              className="p-1 text-pn-accent-text hover:bg-pn-accent-soft rounded transition"
                               title="Marcar como leída"
                             >
                               <Check size={16} />
@@ -157,7 +149,7 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                           )}
                           <button
                             onClick={() => eliminarNotificacion(notif.id)}
-                            className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition"
+                            className="p-1 text-pn-danger hover:bg-pn-danger-soft rounded transition"
                             title="Eliminar"
                           >
                             <Trash2 size={16} />
@@ -171,17 +163,17 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
             </div>
           ) : (
             <div className="p-8 text-center">
-              <Bell size={48} className={`mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-              <p className={`font-semibold ${text} mb-1`}>No hay notificaciones</p>
-              <p className="text-sm text-gray-500">Estás al día con tus notificaciones</p>
+              <Bell size={48} className={`mx-auto mb-3 text-pn-muted`} />
+              <p className={`font-semibold text-pn-ink mb-1`}>No hay notificaciones</p>
+              <p className="text-sm text-pn-muted">Estás al día con tus notificaciones</p>
             </div>
           )}
         </div>
 
         {/* Paginación */}
         {totalPaginas > 1 && (
-          <div className={`p-3 border-t ${border} flex items-center justify-between`}>
-            <p className="text-sm text-gray-500">
+          <div className={`p-3 border-t border-pn-line flex items-center justify-between`}>
+            <p className="text-sm text-pn-muted">
               Página {paginaActual} de {totalPaginas}
             </p>
             <div className="flex gap-2">
@@ -190,8 +182,8 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                 disabled={paginaActual === 1}
                 className={`p-2 rounded transition ${
                   paginaActual === 1
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20'
+                    ? 'text-pn-muted cursor-not-allowed'
+                    : 'text-pn-accent-text hover:bg-pn-accent-soft'
                 }`}
               >
                 <ChevronLeft size={18} />
@@ -201,8 +193,8 @@ export const NotificacionesDropdown: React.FC<NotificacionesDropdownProps> = ({
                 disabled={paginaActual === totalPaginas}
                 className={`p-2 rounded transition ${
                   paginaActual === totalPaginas
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20'
+                    ? 'text-pn-muted cursor-not-allowed'
+                    : 'text-pn-accent-text hover:bg-pn-accent-soft'
                 }`}
               >
                 <ChevronRight size={18} />

@@ -12,6 +12,7 @@ import { ESTADOS_INSCRIPCION, NIVELES, defaultsPorNivel } from './etiquetas';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from './errores';
 import { formatearFecha } from '../../../../utils/formato';
+import { avisar } from '../../../ui';
 
 /**
  * Inscripción de estudiantes a PROGRAMAS. Reemplaza los inputs de texto libre
@@ -38,26 +39,26 @@ export function InscripcionesProgramaSection() {
     mutationFn: ({ id, status }: { id: string; status: ProgramEnrollmentStatus }) =>
       inscripcionesApi.update(id, { status }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['inscripciones'] }),
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   const inscripciones = data?.data ?? [];
 
   const colorEstado = (estado: ProgramEnrollmentStatus) =>
-    estado === 'ACTIVO' ? 'bg-green-100 text-green-700'
-    : estado === 'GRADUADO' ? 'bg-blue-100 text-blue-700'
-    : estado === 'APLAZADO' ? 'bg-amber-100 text-amber-700'
-    : 'bg-gray-100 text-gray-600';
+    estado === 'ACTIVO' ? 'bg-pn-ok-soft text-pn-ok'
+    : estado === 'GRADUADO' ? 'bg-pn-accent-soft text-pn-accent-text'
+    : estado === 'APLAZADO' ? 'bg-pn-warn-soft text-pn-warn'
+    : 'bg-pn-surface-3 text-pn-ink-2';
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-3">
-        <h2 className="text-2xl font-bold text-gray-900">Inscripción a programas</h2>
+        <h2 className="text-2xl font-bold text-pn-ink">Inscripción a programas</h2>
         <div className="flex items-center gap-3">
           <select
             value={filtroPrograma}
             onChange={(e) => setFiltroPrograma(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="border border-pn-line rounded-lg px-3 py-2 text-sm"
             aria-label="Filtrar por programa"
           >
             <option value="">Todos los programas</option>
@@ -67,20 +68,20 @@ export function InscripcionesProgramaSection() {
           </select>
           <button
             onClick={() => setModalAbierto(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm"
+            className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg hover:bg-pn-accent-hover flex items-center gap-2 text-sm"
           >
             <Plus size={16} /> Inscribir estudiante
           </button>
         </div>
       </div>
 
-      {isLoading && <p className="text-gray-500 text-sm">Cargando inscripciones...</p>}
-      {error != null && <p className="text-red-600 text-sm">{mensajeDeError(error)}</p>}
+      {isLoading && <p className="text-pn-muted text-sm">Cargando inscripciones...</p>}
+      {error != null && <p className="text-pn-danger text-sm">{mensajeDeError(error)}</p>}
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-pn-surface rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left text-gray-500">
+            <tr className="border-b border-pn-line text-left text-pn-muted">
               <th className="px-4 py-3 font-medium">Estudiante</th>
               <th className="px-4 py-3 font-medium">Programa</th>
               <th className="px-4 py-3 font-medium">Pensum</th>
@@ -91,26 +92,26 @@ export function InscripcionesProgramaSection() {
           </thead>
           <tbody>
             {inscripciones.map((inscripcion: Inscripcion) => (
-              <tr key={inscripcion.id} className="border-b border-gray-100 hover:bg-gray-50">
+              <tr key={inscripcion.id} className="border-b border-pn-line hover:bg-pn-surface-2">
                 <td className="px-4 py-2">
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-pn-ink">
                     {inscripcion.student
                       ? `${inscripcion.student.user.firstName} ${inscripcion.student.user.lastName}`
                       : '—'}
                   </p>
-                  <p className="text-xs text-gray-500">{inscripcion.student?.studentCode}</p>
+                  <p className="text-xs text-pn-muted">{inscripcion.student?.studentCode}</p>
                 </td>
                 <td className="px-4 py-2">
-                  <p className="text-gray-900">{inscripcion.program?.name ?? '—'}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-pn-ink">{inscripcion.program?.name ?? '—'}</p>
+                  <p className="text-xs text-pn-muted">
                     {inscripcion.program ? NIVELES[inscripcion.program.educationLevel] : ''}
                   </p>
                 </td>
-                <td className="px-4 py-2 text-gray-600">
+                <td className="px-4 py-2 text-pn-ink-2">
                   {inscripcion.studyPlan ? `v. ${inscripcion.studyPlan.version}` : '—'}
                 </td>
                 <td className="px-4 py-2">{inscripcion.currentLevel}</td>
-                <td className="px-4 py-2 text-gray-600">{formatearFecha(inscripcion.startDate)}</td>
+                <td className="px-4 py-2 text-pn-ink-2">{formatearFecha(inscripcion.startDate)}</td>
                 <td className="px-4 py-2">
                   <select
                     value={inscripcion.status}
@@ -132,7 +133,7 @@ export function InscripcionesProgramaSection() {
             ))}
             {!isLoading && inscripciones.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-pn-muted">
                   No hay inscripciones{filtroPrograma ? ' para este programa' : ''}.
                 </td>
               </tr>
@@ -179,11 +180,11 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
       queryClient.invalidateQueries({ queryKey: ['inscripciones'] });
       onClose();
     },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
-  const campo = 'w-full p-2 border border-gray-300 rounded-lg text-sm';
-  const etiqueta = 'block text-sm font-semibold mb-1 text-gray-700';
+  const campo = 'w-full p-2 border border-pn-line rounded-lg text-sm';
+  const etiqueta = 'block text-sm font-semibold mb-1 text-pn-ink-2';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -193,11 +194,11 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-label="Inscribir estudiante a un programa"
         tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-md w-full"
+        className="bg-pn-surface rounded-lg p-6 max-w-md w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">Inscribir estudiante a un programa</h3>
+          <h3 className="text-lg font-bold text-pn-ink">Inscribir estudiante a un programa</h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </div>
 
@@ -206,7 +207,7 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
           onSubmit={(e) => {
             e.preventDefault();
             if (!studentId || !programId) {
-              alert('Estudiante y programa son obligatorios');
+              avisar.error('Estudiante y programa son obligatorios');
               return;
             }
             inscribir.mutate();
@@ -233,7 +234,7 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-pn-muted mt-1">
               Se usa la versión de pensum vigente del programa.
             </p>
           </div>
@@ -252,7 +253,7 @@ function InscribirModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={inscribir.isPending}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-60"
+              className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg text-sm hover:bg-pn-accent-hover disabled:opacity-60"
             >
               Inscribir
             </button>

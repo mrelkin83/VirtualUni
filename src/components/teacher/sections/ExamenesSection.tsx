@@ -19,14 +19,11 @@ import {
   Paperclip
 } from 'lucide-react';
 import { Exam, Question, ExamDetalle } from '../../../types/teacher.types';
+import { avisar, confirmar } from '../../ui';
 
 interface ExamenesSectionProps {
   examenes: Exam[];
   bancoPreguntas: Question[];
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
   crearExamen: (examenData: Partial<ExamDetalle>) => void;
   editarExamen: (examenId: number, examenData: Partial<ExamDetalle>) => void;
   eliminarExamen: (examenId: number) => void;
@@ -42,9 +39,6 @@ interface ExamenesSectionProps {
 export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
   examenes,
   bancoPreguntas,
-  card,
-  text,
-  border,
   crearExamen,
   editarExamen,
   eliminarExamen,
@@ -154,12 +148,12 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
   const guardarExamen = () => {
     if (!nuevoExamen.titulo || !nuevoExamen.curso || !nuevoExamen.fecha || !nuevoExamen.duracion) {
-      alert('Por favor completa todos los campos obligatorios');
+      avisar.error('Por favor completa todos los campos obligatorios');
       return;
     }
 
     if (nuevoExamen.preguntas && nuevoExamen.preguntas.length === 0) {
-      alert('El examen debe tener al menos una pregunta');
+      avisar.info('El examen debe tener al menos una pregunta');
       return;
     }
 
@@ -202,14 +196,14 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
   const crearNuevaPregunta = () => {
     if (!nuevaPregunta.pregunta.trim()) {
-      alert('La pregunta no puede estar vacía');
+      avisar.info('La pregunta no puede estar vacía');
       return;
     }
 
     if (nuevaPregunta.tipo === 'multiple' && nuevaPregunta.opciones) {
       const opcionesValidas = nuevaPregunta.opciones.filter(o => o.trim());
       if (opcionesValidas.length < 2) {
-        alert('Debes proporcionar al menos 2 opciones');
+        avisar.error('Debes proporcionar al menos 2 opciones');
         return;
       }
     }
@@ -224,10 +218,10 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
     if (preguntaEnEdicion) {
       editarPregunta(preguntaEnEdicion.id, preguntaConArchivo as any);
       setPreguntaEnEdicion(null);
-      alert('Pregunta actualizada exitosamente!');
+      avisar.ok('Pregunta actualizada exitosamente!');
     } else {
       agregarPregunta(preguntaConArchivo as any);
-      alert('Pregunta agregada al banco exitosamente!');
+      avisar.ok('Pregunta agregada al banco exitosamente!');
     }
 
     // Resetear formulario
@@ -261,13 +255,13 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
       case 'programado':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-pn-accent-soft text-pn-accent-text';
       case 'activo':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-pn-ok-soft text-pn-ok';
       case 'finalizado':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+        return 'bg-pn-surface-3 text-pn-ink';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-pn-surface-3 text-pn-ink';
     }
   };
 
@@ -276,14 +270,14 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className={`text-2xl font-bold ${text}`}>Gestión de Exámenes</h2>
-          <p className={`${text} opacity-70 mt-1`}>
+          <h2 className={`text-2xl font-bold text-pn-ink`}>Gestión de Exámenes</h2>
+          <p className={`text-pn-ink opacity-70 mt-1`}>
             Crea, administra y califica exámenes de tus cursos
           </p>
         </div>
         <button
           onClick={abrirModalCrearExamen}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
+          className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-accent-hover transition"
         >
           <Plus size={20} />
           Crear Examen
@@ -292,47 +286,47 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Total Exámenes</p>
-              <p className={`text-2xl font-bold ${text}`}>{examenes.length}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Total Exámenes</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{examenes.length}</p>
             </div>
-            <FileText className="text-blue-500" size={32} />
+            <FileText className="text-pn-accent-text" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Programados</p>
-              <p className={`text-2xl font-bold ${text}`}>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Programados</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>
                 {examenes.filter(e => e.estado === 'programado').length}
               </p>
             </div>
-            <Calendar className="text-yellow-500" size={32} />
+            <Calendar className="text-pn-warn" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Activos</p>
-              <p className={`text-2xl font-bold ${text}`}>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Activos</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>
                 {examenes.filter(e => e.estado === 'activo').length}
               </p>
             </div>
-            <CheckCircle className="text-green-500" size={32} />
+            <CheckCircle className="text-pn-ok" size={32} />
           </div>
         </div>
 
-        <div className={`${card} p-4 rounded-lg ${border} border`}>
+        <div className={`bg-pn-surface p-4 rounded-lg border-pn-line border`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${text} opacity-70 text-sm`}>Banco Preguntas</p>
-              <p className={`text-2xl font-bold ${text}`}>{bancoPreguntas.length}</p>
+              <p className={`text-pn-ink opacity-70 text-sm`}>Banco Preguntas</p>
+              <p className={`text-2xl font-bold text-pn-ink`}>{bancoPreguntas.length}</p>
             </div>
-            <Book className="text-purple-500" size={32} />
+            <Book className="text-pn-accent-2-text" size={32} />
           </div>
         </div>
       </div>
@@ -343,8 +337,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
           onClick={() => setFiltro('todos')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'todos'
-              ? 'bg-blue-600 text-white'
-              : `${card} ${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : `bg-pn-surface text-pn-ink hover:bg-pn-surface-3`
           }`}
         >
           Todos ({examenes.length})
@@ -353,8 +347,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
           onClick={() => setFiltro('programado')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'programado'
-              ? 'bg-blue-600 text-white'
-              : `${card} ${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : `bg-pn-surface text-pn-ink hover:bg-pn-surface-3`
           }`}
         >
           Programados ({examenes.filter(e => e.estado === 'programado').length})
@@ -363,8 +357,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
           onClick={() => setFiltro('activo')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'activo'
-              ? 'bg-blue-600 text-white'
-              : `${card} ${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : `bg-pn-surface text-pn-ink hover:bg-pn-surface-3`
           }`}
         >
           Activos ({examenes.filter(e => e.estado === 'activo').length})
@@ -373,8 +367,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
           onClick={() => setFiltro('finalizado')}
           className={`px-4 py-2 rounded-lg transition ${
             filtro === 'finalizado'
-              ? 'bg-blue-600 text-white'
-              : `${card} ${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+              ? 'bg-pn-accent text-pn-accent-ink'
+              : `bg-pn-surface text-pn-ink hover:bg-pn-surface-3`
           }`}
         >
           Finalizados ({examenes.filter(e => e.estado === 'finalizado').length})
@@ -384,19 +378,19 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Lista de Exámenes */}
       <div className="grid grid-cols-1 gap-4">
         {examenesFiltrados.length === 0 ? (
-          <div className={`${card} p-8 rounded-lg ${border} border text-center`}>
-            <FileText size={48} className={`${text} opacity-30 mx-auto mb-4`} />
-            <p className={`${text} opacity-70`}>
+          <div className={`bg-pn-surface p-8 rounded-lg border-pn-line border text-center`}>
+            <FileText size={48} className={`text-pn-ink opacity-30 mx-auto mb-4`} />
+            <p className={`text-pn-ink opacity-70`}>
               No hay exámenes {filtro !== 'todos' ? filtro + 's' : ''} para mostrar
             </p>
           </div>
         ) : (
           examenesFiltrados.map(examen => (
-            <div key={examen.id} className={`${card} p-6 rounded-lg ${border} border`}>
+            <div key={examen.id} className={`bg-pn-surface p-6 rounded-lg border-pn-line border`}>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className={`text-lg font-semibold ${text}`}>{examen.titulo}</h3>
+                    <h3 className={`text-lg font-semibold text-pn-ink`}>{examen.titulo}</h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoBadge(examen.estado)}`}>
                       {examen.estado.charAt(0).toUpperCase() + examen.estado.slice(1)}
                     </span>
@@ -404,20 +398,20 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                     <div className="flex items-center gap-2">
-                      <Book size={16} className={`${text} opacity-70`} />
-                      <span className={`${text} text-sm`}>{examen.curso}</span>
+                      <Book size={16} className={`text-pn-ink opacity-70`} />
+                      <span className={`text-pn-ink text-sm`}>{examen.curso}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} className={`${text} opacity-70`} />
-                      <span className={`${text} text-sm`}>{examen.fecha}</span>
+                      <Calendar size={16} className={`text-pn-ink opacity-70`} />
+                      <span className={`text-pn-ink text-sm`}>{examen.fecha}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Clock size={16} className={`${text} opacity-70`} />
-                      <span className={`${text} text-sm`}>{examen.duracion}</span>
+                      <Clock size={16} className={`text-pn-ink opacity-70`} />
+                      <span className={`text-pn-ink text-sm`}>{examen.duracion}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Users size={16} className={`${text} opacity-70`} />
-                      <span className={`${text} text-sm`}>{examen.participantes} estudiantes</span>
+                      <Users size={16} className={`text-pn-ink opacity-70`} />
+                      <span className={`text-pn-ink text-sm`}>{examen.participantes} estudiantes</span>
                     </div>
                   </div>
                 </div>
@@ -425,10 +419,10 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => abrirModalEditarExamen(examen)}
-                    className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition"
+                    className="p-2 hover:bg-pn-accent-soft rounded-lg transition"
                     title="Editar"
                   >
-                    <Edit size={18} className="text-blue-600" />
+                    <Edit size={18} className="text-pn-accent-text" />
                   </button>
                   <button
                     onClick={() => {
@@ -437,38 +431,38 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         setExamenParaVistaPrevia(examenDetallado);
                         setModalVistaPrevia(true);
                       } else {
-                        alert('No se pudo cargar el examen detallado');
+                        avisar.error('No se pudo cargar el examen detallado');
                       }
                     }}
-                    className="p-2 hover:bg-green-100 dark:hover:bg-green-900 rounded-lg transition"
+                    className="p-2 hover:bg-pn-ok-soft rounded-lg transition"
                     title="Vista previa"
                   >
-                    <Eye size={18} className="text-green-600" />
+                    <Eye size={18} className="text-pn-ok" />
                   </button>
                   {examen.estado === 'programado' && (
                     <button
                       onClick={() => publicarExamen(examen.id)}
-                      className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-lg transition"
+                      className="p-2 hover:bg-pn-accent-2-soft rounded-lg transition"
                       title="Publicar"
                     >
-                      <Send size={18} className="text-purple-600" />
+                      <Send size={18} className="text-pn-accent-2-text" />
                     </button>
                   )}
                   {examen.estado === 'finalizado' && (
                     <button
                       onClick={() => verResultadosExamen(examen.id)}
-                      className="p-2 hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-lg transition"
+                      className="p-2 hover:bg-pn-accent-2-soft rounded-lg transition"
                       title="Ver resultados"
                     >
-                      <FileText size={18} className="text-indigo-600" />
+                      <FileText size={18} className="text-pn-accent-2-text" />
                     </button>
                   )}
                   <button
                     onClick={() => eliminarExamen(examen.id)}
-                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition"
+                    className="p-2 hover:bg-pn-danger-soft rounded-lg transition"
                     title="Eliminar"
                   >
-                    <Trash2 size={18} className="text-red-600" />
+                    <Trash2 size={18} className="text-pn-danger" />
                   </button>
                 </div>
               </div>
@@ -480,10 +474,10 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Modal Crear/Editar Examen */}
       {modalCrearExamen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
+          <div role="dialog" aria-modal="true" aria-label="{examenEnEdicion ? 'Editar Examen' : 'Crear Nuevo Examen'}" className={`bg-pn-surface rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
             {/* Header del Modal */}
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>
                 {examenEnEdicion ? 'Editar Examen' : 'Crear Nuevo Examen'}
               </h3>
               <button
@@ -491,20 +485,20 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   setModalCrearExamen(false);
                   setExamenEnEdicion(null);
                 }}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Tabs */}
-            <div className={`flex gap-1 px-6 pt-4 ${border} border-b`}>
+            <div className={`flex gap-1 px-6 pt-4 border-pn-line border-b`}>
               <button
                 onClick={() => setTabActiva('info')}
                 className={`px-4 py-2 rounded-t-lg transition ${
                   tabActiva === 'info'
-                    ? 'bg-blue-600 text-white'
-                    : `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : `text-pn-ink hover:bg-pn-surface-3`
                 }`}
               >
                 Información Básica
@@ -513,8 +507,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 onClick={() => setTabActiva('preguntas')}
                 className={`px-4 py-2 rounded-t-lg transition ${
                   tabActiva === 'preguntas'
-                    ? 'bg-blue-600 text-white'
-                    : `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : `text-pn-ink hover:bg-pn-surface-3`
                 }`}
               >
                 Preguntas ({nuevoExamen.preguntas?.length || 0})
@@ -523,8 +517,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 onClick={() => setTabActiva('config')}
                 className={`px-4 py-2 rounded-t-lg transition ${
                   tabActiva === 'config'
-                    ? 'bg-blue-600 text-white'
-                    : `${text} hover:bg-gray-200 dark:hover:bg-gray-700`
+                    ? 'bg-pn-accent text-pn-accent-ink'
+                    : `text-pn-ink hover:bg-pn-surface-3`
                 }`}
               >
                 Configuración
@@ -536,27 +530,27 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
               {tabActiva === 'info' && (
                 <div className="space-y-4">
                   <div>
-                    <label className={`block ${text} mb-2 font-medium`}>
+                    <label className={`block text-pn-ink mb-2 font-medium`}>
                       Título del Examen *
                     </label>
                     <input
                       type="text"
                       value={nuevoExamen.titulo || ''}
                       onChange={(e) => setNuevoExamen({ ...nuevoExamen, titulo: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                      className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       placeholder="Ej: Examen Parcial 1 - Programación"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Curso *
                       </label>
                       <select
                         value={nuevoExamen.curso || ''}
                         onChange={(e) => setNuevoExamen({ ...nuevoExamen, curso: e.target.value })}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       >
                         <option value="">Seleccionar curso</option>
                         {cursos.map((curso) => (
@@ -568,40 +562,40 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                     </div>
 
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Fecha del Examen *
                       </label>
                       <input
                         type="date"
                         value={nuevoExamen.fecha || ''}
                         onChange={(e) => setNuevoExamen({ ...nuevoExamen, fecha: e.target.value })}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block ${text} mb-2 font-medium`}>
+                    <label className={`block text-pn-ink mb-2 font-medium`}>
                       Duración *
                     </label>
                     <input
                       type="text"
                       value={nuevoExamen.duracion || ''}
                       onChange={(e) => setNuevoExamen({ ...nuevoExamen, duracion: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                      className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       placeholder="Ej: 2h o 90 minutos"
                     />
                   </div>
 
                   <div>
-                    <label className={`block ${text} mb-2 font-medium`}>
+                    <label className={`block text-pn-ink mb-2 font-medium`}>
                       Instrucciones del Examen
                     </label>
                     <textarea
                       value={nuevoExamen.instrucciones || ''}
                       onChange={(e) => setNuevoExamen({ ...nuevoExamen, instrucciones: e.target.value })}
                       rows={4}
-                      className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                      className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       placeholder="Instrucciones generales para los estudiantes..."
                     />
                   </div>
@@ -612,24 +606,24 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-4">
                     <div>
-                      <p className={`${text} font-medium`}>
+                      <p className={`text-pn-ink font-medium`}>
                         Preguntas del Examen: {nuevoExamen.preguntas?.length || 0}
                       </p>
-                      <p className={`${text} opacity-70 text-sm`}>
+                      <p className={`text-pn-ink opacity-70 text-sm`}>
                         Puntaje total: {nuevoExamen.preguntas?.reduce((sum, p) => sum + p.puntos, 0) || 0} puntos
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setModalNuevaPregunta(true)}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition"
+                        className="bg-pn-ok text-pn-surface px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-ok transition"
                       >
                         <Plus size={18} />
                         Crear Pregunta
                       </button>
                       <button
                         onClick={() => setModalBancoPreguntas(true)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
+                        className="bg-pn-accent text-pn-accent-ink px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-pn-accent-hover transition"
                       >
                         <Book size={18} />
                         Banco de Preguntas
@@ -640,26 +634,26 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   {nuevoExamen.preguntas && nuevoExamen.preguntas.length > 0 ? (
                     <div className="space-y-3">
                       {nuevoExamen.preguntas.map((pregunta, index) => (
-                        <div key={index} className={`${border} border rounded-lg p-4`}>
+                        <div key={index} className={`border-pn-line border rounded-lg p-4`}>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`${text} font-medium`}>#{index + 1}</span>
-                                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">
+                                <span className={`text-pn-ink font-medium`}>#{index + 1}</span>
+                                <span className="px-2 py-1 bg-pn-accent-soft text-pn-accent-text text-xs rounded">
                                   {pregunta.tipo}
                                 </span>
-                                <span className={`${text} opacity-70 text-sm`}>
+                                <span className={`text-pn-ink opacity-70 text-sm`}>
                                   {pregunta.puntos} {pregunta.puntos === 1 ? 'punto' : 'puntos'}
                                 </span>
                               </div>
-                              <p className={`${text} mb-2`}>{pregunta.pregunta}</p>
+                              <p className={`text-pn-ink mb-2`}>{pregunta.pregunta}</p>
 
                               {pregunta.tipo === 'multiple' && pregunta.opciones && (
                                 <div className="ml-4 space-y-1">
                                   {pregunta.opciones.map((opcion, i) => (
-                                    <div key={i} className={`${text} opacity-70 text-sm flex items-center gap-2`}>
+                                    <div key={i} className={`text-pn-ink opacity-70 text-sm flex items-center gap-2`}>
                                       {i === pregunta.respuestaCorrecta && (
-                                        <CheckCircle size={14} className="text-green-500" />
+                                        <CheckCircle size={14} className="text-pn-ok" />
                                       )}
                                       {String.fromCharCode(65 + i)}. {opcion}
                                     </div>
@@ -668,7 +662,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                               )}
 
                               {pregunta.tipo === 'verdadero-falso' && (
-                                <p className={`${text} opacity-70 text-sm ml-4`}>
+                                <p className={`text-pn-ink opacity-70 text-sm ml-4`}>
                                   Respuesta correcta: {pregunta.respuestaCorrecta ? 'Verdadero' : 'Falso'}
                                 </p>
                               )}
@@ -676,9 +670,9 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
                             <button
                               onClick={() => eliminarPreguntaDelExamen(index)}
-                              className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition"
+                              className="p-2 hover:bg-pn-danger-soft rounded-lg transition"
                             >
-                              <Trash2 size={16} className="text-red-600" />
+                              <Trash2 size={16} className="text-pn-danger" />
                             </button>
                           </div>
                         </div>
@@ -686,13 +680,13 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <FileText size={48} className={`${text} opacity-30 mx-auto mb-4`} />
-                      <p className={`${text} opacity-70 mb-4`}>
+                      <FileText size={48} className={`text-pn-ink opacity-30 mx-auto mb-4`} />
+                      <p className={`text-pn-ink opacity-70 mb-4`}>
                         No hay preguntas agregadas al examen
                       </p>
                       <button
                         onClick={() => setModalBancoPreguntas(true)}
-                        className="text-blue-600 hover:underline"
+                        className="text-pn-accent-text hover:underline"
                       >
                         Agregar preguntas desde el banco
                       </button>
@@ -705,7 +699,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Nota Mínima Aprobatoria
                       </label>
                       <input
@@ -715,12 +709,12 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         step="0.1"
                         value={nuevoExamen.notaMinima || 60}
                         onChange={(e) => setNuevoExamen({ ...nuevoExamen, notaMinima: parseFloat(e.target.value) })}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       />
                     </div>
 
                     <div>
-                      <label className={`block ${text} mb-2 font-medium`}>
+                      <label className={`block text-pn-ink mb-2 font-medium`}>
                         Intentos Permitidos
                       </label>
                       <input
@@ -729,7 +723,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         max="10"
                         value={nuevoExamen.intentosPermitidos || 1}
                         onChange={(e) => setNuevoExamen({ ...nuevoExamen, intentosPermitidos: parseInt(e.target.value) })}
-                        className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                        className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                       />
                     </div>
                   </div>
@@ -743,8 +737,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         className="w-5 h-5"
                       />
                       <div>
-                        <p className={`${text} font-medium`}>Mostrar resultados inmediatos</p>
-                        <p className={`${text} opacity-70 text-sm`}>
+                        <p className={`text-pn-ink font-medium`}>Mostrar resultados inmediatos</p>
+                        <p className={`text-pn-ink opacity-70 text-sm`}>
                           Los estudiantes verán su calificación al finalizar
                         </p>
                       </div>
@@ -758,8 +752,8 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         className="w-5 h-5"
                       />
                       <div>
-                        <p className={`${text} font-medium`}>Mezclar preguntas</p>
-                        <p className={`${text} opacity-70 text-sm`}>
+                        <p className={`text-pn-ink font-medium`}>Mezclar preguntas</p>
+                        <p className={`text-pn-ink opacity-70 text-sm`}>
                           Las preguntas aparecerán en orden aleatorio para cada estudiante
                         </p>
                       </div>
@@ -770,19 +764,19 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             </div>
 
             {/* Footer del Modal */}
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => {
                   setModalCrearExamen(false);
                   setExamenEnEdicion(null);
                 }}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
               <button
                 onClick={guardarExamen}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition flex items-center gap-2"
               >
                 <Save size={18} />
                 {examenEnEdicion ? 'Guardar Cambios' : 'Crear Examen'}
@@ -795,29 +789,29 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Modal Banco de Preguntas */}
       {modalBancoPreguntas && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>
+          <div role="dialog" aria-modal="true" aria-label="Banco de Preguntas ({preguntasSeleccionadas.length} seleccionadas)" className={`bg-pn-surface rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>
                 Banco de Preguntas ({preguntasSeleccionadas.length} seleccionadas)
               </h3>
               <button
                 onClick={() => setModalBancoPreguntas(false)}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Filtros y Búsqueda */}
-            <div className={`p-4 ${border} border-b space-y-3`}>
+            <div className={`p-4 border-pn-line border-b space-y-3`}>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pn-muted" size={20} />
                 <input
                   type="text"
                   value={busquedaPregunta}
                   onChange={(e) => setBusquedaPregunta(e.target.value)}
                   placeholder="Buscar preguntas..."
-                  className={`w-full pl-10 pr-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full pl-10 pr-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 />
               </div>
 
@@ -825,7 +819,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 <select
                   value={filtroCategoriaPreguntas}
                   onChange={(e) => setFiltroCategoriaPreguntas(e.target.value)}
-                  className={`px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 >
                   <option value="todas">Todas las categorías</option>
                   {categorias.map(cat => (
@@ -836,7 +830,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 <select
                   value={filtroTipoPregunta}
                   onChange={(e) => setFiltroTipoPregunta(e.target.value)}
-                  className={`px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                 >
                   <option value="todos">Todos los tipos</option>
                   <option value="multiple">Opción Múltiple</option>
@@ -850,15 +844,15 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             <div className="flex-1 overflow-y-auto p-6 space-y-3">
               {preguntasFiltradas.length === 0 ? (
                 <div className="text-center py-8">
-                  <Book size={48} className={`${text} opacity-30 mx-auto mb-4`} />
-                  <p className={`${text} opacity-70`}>No se encontraron preguntas</p>
+                  <Book size={48} className={`text-pn-ink opacity-30 mx-auto mb-4`} />
+                  <p className={`text-pn-ink opacity-70`}>No se encontraron preguntas</p>
                 </div>
               ) : (
                 preguntasFiltradas.map(pregunta => (
                   <div
                     key={pregunta.id}
-                    className={`${border} border rounded-lg p-4 ${
-                      preguntasSeleccionadas.includes(pregunta.id) ? 'bg-blue-50 dark:bg-blue-900 border-blue-500' : ''
+                    className={`border-pn-line border rounded-lg p-4 ${
+                      preguntasSeleccionadas.includes(pregunta.id) ? 'bg-pn-accent-soft border-pn-accent-line' : ''
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -871,26 +865,26 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">
+                          <span className="px-2 py-1 bg-pn-accent-2-soft text-pn-accent-2-text text-xs rounded">
                             {pregunta.categoria}
                           </span>
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">
+                          <span className="px-2 py-1 bg-pn-accent-soft text-pn-accent-text text-xs rounded">
                             {pregunta.tipo}
                           </span>
-                          <span className={`${text} opacity-70 text-xs`}>
+                          <span className={`text-pn-ink opacity-70 text-xs`}>
                             {pregunta.puntos} pts
                           </span>
                         </div>
-                        <p className={`${text} font-medium mb-2`}>{pregunta.pregunta}</p>
+                        <p className={`text-pn-ink font-medium mb-2`}>{pregunta.pregunta}</p>
                         {pregunta.tipo === 'multiple' && pregunta.opciones && (
                           <div className="ml-4 space-y-1">
                             {pregunta.opciones.slice(0, 2).map((opcion, i) => (
-                              <p key={i} className={`${text} opacity-70 text-sm`}>
+                              <p key={i} className={`text-pn-ink opacity-70 text-sm`}>
                                 {String.fromCharCode(65 + i)}. {opcion}
                               </p>
                             ))}
                             {pregunta.opciones.length > 2 && (
-                              <p className={`${text} opacity-50 text-xs`}>
+                              <p className={`text-pn-ink opacity-50 text-xs`}>
                                 ... y {pregunta.opciones.length - 2} opciones más
                               </p>
                             )}
@@ -913,22 +907,22 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                             });
                             setModalNuevaPregunta(true);
                           }}
-                          className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition"
+                          className="p-2 hover:bg-pn-accent-soft rounded-lg transition"
                           title="Editar pregunta"
                         >
-                          <Edit size={16} className="text-blue-600" />
+                          <Edit size={16} className="text-pn-accent-text" />
                         </button>
                         <button
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            if (window.confirm(`¿Estás seguro de que deseas eliminar esta pregunta del banco?\n\n"${pregunta.pregunta}"`)) {
+                            if (await confirmar(`¿Estás seguro de que deseas eliminar esta pregunta del banco?\n\n"${pregunta.pregunta}"`)) {
                               eliminarPregunta(pregunta.id, false);
                             }
                           }}
-                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition"
+                          className="p-2 hover:bg-pn-danger-soft rounded-lg transition"
                           title="Eliminar pregunta"
                         >
-                          <Trash2 size={16} className="text-red-600" />
+                          <Trash2 size={16} className="text-pn-danger" />
                         </button>
                       </div>
                     </div>
@@ -938,21 +932,21 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             </div>
 
             {/* Footer */}
-            <div className={`p-6 ${border} border-t flex justify-between items-center`}>
-              <p className={`${text} opacity-70`}>
+            <div className={`p-6 border-pn-line border-t flex justify-between items-center`}>
+              <p className={`text-pn-ink opacity-70`}>
                 {preguntasSeleccionadas.length} {preguntasSeleccionadas.length === 1 ? 'pregunta seleccionada' : 'preguntas seleccionadas'}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalBancoPreguntas(false)}
-                  className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                  className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={agregarPreguntasDesdebanco}
                   disabled={preguntasSeleccionadas.length === 0}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Plus size={18} />
                   Agregar Preguntas
@@ -966,9 +960,9 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Modal Nueva Pregunta */}
       {modalNuevaPregunta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
-              <h3 className={`text-xl font-bold ${text}`}>
+          <div role="dialog" aria-modal="true" aria-label="{preguntaEnEdicion ? 'Editar Pregunta' : 'Crear Nueva Pregunta'}" className={`bg-pn-surface rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
+              <h3 className={`text-xl font-bold text-pn-ink`}>
                 {preguntaEnEdicion ? 'Editar Pregunta' : 'Crear Nueva Pregunta'}
               </h3>
               <button
@@ -976,7 +970,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   setModalNuevaPregunta(false);
                   setPreguntaEnEdicion(null);
                 }}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -985,11 +979,11 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Tipo de Pregunta</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Tipo de Pregunta</label>
                   <select
                     value={nuevaPregunta.tipo}
                     onChange={(e) => setNuevaPregunta({ ...nuevaPregunta, tipo: e.target.value as any })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   >
                     <option value="multiple">Opción Múltiple</option>
                     <option value="verdadero-falso">Verdadero/Falso</option>
@@ -998,24 +992,24 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Categoría</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Categoría</label>
                   <input
                     type="text"
                     value={nuevaPregunta.categoria}
                     onChange={(e) => setNuevaPregunta({ ...nuevaPregunta, categoria: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                     placeholder="Ej: Conceptos básicos"
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Pregunta *</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Pregunta *</label>
                 <textarea
                   value={nuevaPregunta.pregunta}
                   onChange={(e) => setNuevaPregunta({ ...nuevaPregunta, pregunta: e.target.value })}
                   rows={3}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Escribe la pregunta..."
                 />
               </div>
@@ -1023,10 +1017,10 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
               {nuevaPregunta.tipo === 'multiple' && (
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className={`${text} font-medium`}>Opciones de Respuesta</label>
+                    <label className={`text-pn-ink font-medium`}>Opciones de Respuesta</label>
                     <button
                       onClick={agregarOpcionNuevaPregunta}
-                      className="text-blue-600 text-sm hover:underline"
+                      className="text-pn-accent-text text-sm hover:underline"
                     >
                       + Agregar opción
                     </button>
@@ -1044,13 +1038,13 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                           type="text"
                           value={opcion}
                           onChange={(e) => actualizarOpcionNuevaPregunta(index, e.target.value)}
-                          className={`flex-1 px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                          className={`flex-1 px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                           placeholder={`Opción ${String.fromCharCode(65 + index)}`}
                         />
                       </div>
                     ))}
                   </div>
-                  <p className={`${text} opacity-70 text-sm mt-2`}>
+                  <p className={`text-pn-ink opacity-70 text-sm mt-2`}>
                     Marca la opción correcta
                   </p>
                 </div>
@@ -1058,7 +1052,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
               {nuevaPregunta.tipo === 'verdadero-falso' && (
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Respuesta Correcta</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Respuesta Correcta</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1066,7 +1060,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         checked={nuevaPregunta.respuestaCorrecta === true}
                         onChange={() => setNuevaPregunta({ ...nuevaPregunta, respuestaCorrecta: true })}
                       />
-                      <span className={text}>Verdadero</span>
+                      <span className="text-pn-ink">Verdadero</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1074,7 +1068,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                         checked={nuevaPregunta.respuestaCorrecta === false}
                         onChange={() => setNuevaPregunta({ ...nuevaPregunta, respuestaCorrecta: false })}
                       />
-                      <span className={text}>Falso</span>
+                      <span className="text-pn-ink">Falso</span>
                     </label>
                   </div>
                 </div>
@@ -1082,18 +1076,18 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Puntos</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Puntos</label>
                   <input
                     type="number"
                     min="1"
                     value={nuevaPregunta.puntos}
                     onChange={(e) => setNuevaPregunta({ ...nuevaPregunta, puntos: parseInt(e.target.value) || 1 })}
-                    className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                    className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block ${text} mb-2 font-medium`}>Adjuntar Archivo</label>
+                  <label className={`block text-pn-ink mb-2 font-medium`}>Adjuntar Archivo</label>
                   <div className="relative">
                     <input
                       type="file"
@@ -1108,7 +1102,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                     />
                     <label
                       htmlFor="archivo-pregunta"
-                      className={`flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg ${border} border ${card} ${text} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition`}
+                      className={`flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink cursor-pointer hover:bg-pn-surface-3 transition`}
                     >
                       <Paperclip size={18} />
                       {archivoAdjuntoPregunta ? (
@@ -1121,7 +1115,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   {archivoAdjuntoPregunta && (
                     <button
                       onClick={() => setArchivoAdjuntoPregunta(null)}
-                      className="text-red-500 text-xs mt-1 hover:underline"
+                      className="text-pn-danger text-xs mt-1 hover:underline"
                     >
                       Eliminar archivo
                     </button>
@@ -1130,30 +1124,30 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
               </div>
 
               <div>
-                <label className={`block ${text} mb-2 font-medium`}>Explicación (opcional)</label>
+                <label className={`block text-pn-ink mb-2 font-medium`}>Explicación (opcional)</label>
                 <textarea
                   value={nuevaPregunta.explicacion || ''}
                   onChange={(e) => setNuevaPregunta({ ...nuevaPregunta, explicacion: e.target.value })}
                   rows={2}
-                  className={`w-full px-4 py-2 rounded-lg ${border} border ${card} ${text}`}
+                  className={`w-full px-4 py-2 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                   placeholder="Explicación de la respuesta correcta..."
                 />
               </div>
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end gap-3`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end gap-3`}>
               <button
                 onClick={() => {
                   setModalNuevaPregunta(false);
                   setPreguntaEnEdicion(null);
                 }}
-                className={`px-4 py-2 rounded-lg ${text} hover:bg-gray-200 dark:hover:bg-gray-700 transition`}
+                className={`px-4 py-2 rounded-lg text-pn-ink hover:bg-pn-surface-3 transition`}
               >
                 Cancelar
               </button>
               <button
                 onClick={crearNuevaPregunta}
-                className={`${preguntaEnEdicion ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white px-6 py-2 rounded-lg transition flex items-center gap-2`}
+                className={`${preguntaEnEdicion ? 'bg-pn-accent hover:bg-pn-accent-hover' : 'bg-pn-ok hover:bg-pn-ok'} text-pn-accent-ink px-6 py-2 rounded-lg transition flex items-center gap-2`}
               >
                 {preguntaEnEdicion ? (
                   <>
@@ -1175,11 +1169,11 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
       {/* Modal Vista Previa */}
       {modalVistaPrevia && examenParaVistaPrevia && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`${card} rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
-            <div className={`p-6 ${border} border-b flex justify-between items-center`}>
+          <div role="dialog" aria-modal="true" aria-label="Vista Previa del Examen" className={`bg-pn-surface rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-pn-line border-b flex justify-between items-center`}>
               <div>
-                <h3 className={`text-xl font-bold ${text}`}>Vista Previa del Examen</h3>
-                <p className={`${text} opacity-70 text-sm mt-1`}>
+                <h3 className={`text-xl font-bold text-pn-ink`}>Vista Previa del Examen</h3>
+                <p className={`text-pn-ink opacity-70 text-sm mt-1`}>
                   Así verán el examen los estudiantes
                 </p>
               </div>
@@ -1188,7 +1182,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                   setModalVistaPrevia(false);
                   setExamenParaVistaPrevia(null);
                 }}
-                className={`${text} hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg transition`}
+                className={`text-pn-ink hover:bg-pn-surface-3 p-2 rounded-lg transition`}
               >
                 <X size={20} />
               </button>
@@ -1196,34 +1190,34 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
             <div className="flex-1 overflow-y-auto p-6">
               {/* Header del Examen */}
-              <div className={`${border} border rounded-lg p-6 mb-6`}>
-                <h2 className={`text-2xl font-bold ${text} mb-2`}>{examenParaVistaPrevia.titulo}</h2>
+              <div className={`border-pn-line border rounded-lg p-6 mb-6`}>
+                <h2 className={`text-2xl font-bold text-pn-ink mb-2`}>{examenParaVistaPrevia.titulo}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                   <div>
-                    <p className={`${text} opacity-70 text-sm`}>Curso</p>
-                    <p className={`${text} font-medium`}>{examenParaVistaPrevia.curso}</p>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>Curso</p>
+                    <p className={`text-pn-ink font-medium`}>{examenParaVistaPrevia.curso}</p>
                   </div>
                   <div>
-                    <p className={`${text} opacity-70 text-sm`}>Duración</p>
-                    <p className={`${text} font-medium`}>{examenParaVistaPrevia.duracion}</p>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>Duración</p>
+                    <p className={`text-pn-ink font-medium`}>{examenParaVistaPrevia.duracion}</p>
                   </div>
                   <div>
-                    <p className={`${text} opacity-70 text-sm`}>Puntaje Total</p>
-                    <p className={`${text} font-medium`}>{examenParaVistaPrevia.puntajeTotal || 0} puntos</p>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>Puntaje Total</p>
+                    <p className={`text-pn-ink font-medium`}>{examenParaVistaPrevia.puntajeTotal || 0} puntos</p>
                   </div>
                   <div>
-                    <p className={`${text} opacity-70 text-sm`}>Nota Mínima</p>
-                    <p className={`${text} font-medium`}>{examenParaVistaPrevia.notaMinima || 6}</p>
+                    <p className={`text-pn-ink opacity-70 text-sm`}>Nota Mínima</p>
+                    <p className={`text-pn-ink font-medium`}>{examenParaVistaPrevia.notaMinima || 6}</p>
                   </div>
                 </div>
 
                 {examenParaVistaPrevia.instrucciones && (
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="mt-4 p-4 bg-pn-accent-soft rounded-lg">
                     <div className="flex items-start gap-2">
-                      <AlertCircle size={20} className="text-blue-600 mt-0.5" />
+                      <AlertCircle size={20} className="text-pn-accent-text mt-0.5" />
                       <div>
-                        <p className={`${text} font-medium mb-1`}>Instrucciones:</p>
-                        <p className={`${text} opacity-80 text-sm whitespace-pre-line`}>
+                        <p className={`text-pn-ink font-medium mb-1`}>Instrucciones:</p>
+                        <p className={`text-pn-ink opacity-80 text-sm whitespace-pre-line`}>
                           {examenParaVistaPrevia.instrucciones}
                         </p>
                       </div>
@@ -1236,14 +1230,14 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
               {examenParaVistaPrevia.preguntas && examenParaVistaPrevia.preguntas.length > 0 ? (
                 <div className="space-y-6">
                   {examenParaVistaPrevia.preguntas.map((pregunta, index) => (
-                    <div key={index} className={`${border} border rounded-lg p-6`}>
+                    <div key={index} className={`border-pn-line border rounded-lg p-6`}>
                       <div className="flex items-start gap-3 mb-4">
-                        <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                        <span className="flex-shrink-0 w-8 h-8 bg-pn-accent text-pn-accent-ink rounded-full flex items-center justify-center font-bold">
                           {index + 1}
                         </span>
                         <div className="flex-1">
-                          <p className={`${text} text-lg font-medium mb-2`}>{pregunta.pregunta}</p>
-                          <span className={`${text} opacity-70 text-sm`}>
+                          <p className={`text-pn-ink text-lg font-medium mb-2`}>{pregunta.pregunta}</p>
+                          <span className={`text-pn-ink opacity-70 text-sm`}>
                             {pregunta.puntos} {pregunta.puntos === 1 ? 'punto' : 'puntos'}
                           </span>
                         </div>
@@ -1251,9 +1245,9 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
                       {pregunta.imagenUrl && (
                         <div className="mb-4">
-                          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-center">
-                            <ImageIcon size={48} className={`${text} opacity-30`} />
-                            <span className={`${text} opacity-70 ml-2 text-sm`}>Imagen: {pregunta.imagenUrl}</span>
+                          <div className="bg-pn-surface-3 rounded-lg p-4 flex items-center justify-center">
+                            <ImageIcon size={48} className={`text-pn-ink opacity-30`} />
+                            <span className={`text-pn-ink opacity-70 ml-2 text-sm`}>Imagen: {pregunta.imagenUrl}</span>
                           </div>
                         </div>
                       )}
@@ -1261,9 +1255,9 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                       {pregunta.tipo === 'multiple' && pregunta.opciones && (
                         <div className="space-y-2 ml-11">
                           {pregunta.opciones.map((opcion, i) => (
-                            <label key={i} className={`flex items-center gap-3 p-3 ${border} border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition`}>
+                            <label key={i} className={`flex items-center gap-3 p-3 border-pn-line border rounded-lg cursor-pointer hover:bg-pn-surface-2 transition`}>
                               <input type="radio" name={`pregunta-${index}`} />
-                              <span className={text}>{String.fromCharCode(65 + i)}. {opcion}</span>
+                              <span className="text-pn-ink">{String.fromCharCode(65 + i)}. {opcion}</span>
                             </label>
                           ))}
                         </div>
@@ -1271,13 +1265,13 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
 
                       {pregunta.tipo === 'verdadero-falso' && (
                         <div className="space-y-2 ml-11">
-                          <label className={`flex items-center gap-3 p-3 ${border} border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition`}>
+                          <label className={`flex items-center gap-3 p-3 border-pn-line border rounded-lg cursor-pointer hover:bg-pn-surface-2 transition`}>
                             <input type="radio" name={`pregunta-${index}`} />
-                            <span className={text}>Verdadero</span>
+                            <span className="text-pn-ink">Verdadero</span>
                           </label>
-                          <label className={`flex items-center gap-3 p-3 ${border} border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition`}>
+                          <label className={`flex items-center gap-3 p-3 border-pn-line border rounded-lg cursor-pointer hover:bg-pn-surface-2 transition`}>
                             <input type="radio" name={`pregunta-${index}`} />
-                            <span className={text}>Falso</span>
+                            <span className="text-pn-ink">Falso</span>
                           </label>
                         </div>
                       )}
@@ -1287,7 +1281,7 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                           <textarea
                             rows={4}
                             placeholder="Escribe tu respuesta aquí..."
-                            className={`w-full px-4 py-3 rounded-lg ${border} border ${card} ${text}`}
+                            className={`w-full px-4 py-3 rounded-lg border-pn-line border bg-pn-surface text-pn-ink`}
                           />
                         </div>
                       )}
@@ -1296,21 +1290,21 @@ export const ExamenesSection: React.FC<ExamenesSectionProps> = ({
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <FileText size={64} className={`${text} opacity-20 mx-auto mb-4`} />
-                  <p className={`${text} opacity-70`}>
+                  <FileText size={64} className={`text-pn-ink opacity-20 mx-auto mb-4`} />
+                  <p className={`text-pn-ink opacity-70`}>
                     No hay preguntas para previsualizar
                   </p>
                 </div>
               )}
             </div>
 
-            <div className={`p-6 ${border} border-t flex justify-end`}>
+            <div className={`p-6 border-pn-line border-t flex justify-end`}>
               <button
                 onClick={() => {
                   setModalVistaPrevia(false);
                   setExamenParaVistaPrevia(null);
                 }}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-pn-accent text-pn-accent-ink px-6 py-2 rounded-lg hover:bg-pn-accent-hover transition"
               >
                 Cerrar Vista Previa
               </button>

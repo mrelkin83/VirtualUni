@@ -39,7 +39,7 @@ export function ArticulacionTab() {
         <div className="flex-1 min-w-[260px]">
           <label
             htmlFor="programa-origen"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-pn-ink-2 mb-1"
           >
             Programa de origen
           </label>
@@ -50,7 +50,7 @@ export function ArticulacionTab() {
               setProgramId(e.target.value);
               setExpandido(null);
             }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            className="w-full border border-pn-line rounded-lg px-3 py-2"
           >
             <option value="">Seleccione un programa…</option>
             {lista.map((p) => (
@@ -64,7 +64,7 @@ export function ArticulacionTab() {
         {matriz && matriz.destinos.length > 0 && (
           <button
             onClick={() => generateArticulationPDF(matriz)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-pn-accent text-pn-accent-ink rounded-lg hover:bg-pn-accent-hover"
           >
             <Download size={16} />
             Exportar a PDF
@@ -73,23 +73,23 @@ export function ArticulacionTab() {
       </div>
 
       {!programId && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-pn-muted">
           Elija un programa para ver a qué otros programas se articula y cuánto
           se le reconocería a un egresado suyo.
         </p>
       )}
 
-      {isLoading && <p className="text-sm text-gray-500">Calculando…</p>}
+      {isLoading && <p className="text-sm text-pn-muted">Calculando…</p>}
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-4 bg-pn-danger-soft border border-pn-danger rounded-lg text-sm text-pn-danger">
           {mensajeDeError(error)}
         </div>
       )}
 
       {matriz && (
         <>
-          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          <div className="flex items-start gap-2 p-3 bg-pn-accent-soft border border-pn-accent-line rounded-lg text-sm text-pn-accent-text">
             <Info size={16} className="mt-0.5 shrink-0" />
             <span>
               {matriz.nota} El egresado de{' '}
@@ -100,25 +100,25 @@ export function ArticulacionTab() {
           </div>
 
           {matriz.destinos.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-pn-muted">
               No hay otros programas ACTIVO con pensum VIGENTE para comparar.
             </p>
           ) : (
             <div className="space-y-3">
               {/* Diagrama sencillo origen → destinos */}
-              <div className="flex flex-wrap items-center gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium">
+              <div className="flex flex-wrap items-center gap-2 p-4 bg-pn-surface-2 border border-pn-line rounded-lg">
+                <span className="px-3 py-1.5 bg-pn-accent text-pn-accent-ink rounded-lg text-sm font-medium">
                   {matriz.origen.programCode}
                 </span>
-                <ArrowRight size={18} className="text-gray-400" />
+                <ArrowRight size={18} className="text-pn-muted" />
                 <div className="flex flex-wrap gap-2">
                   {matriz.destinos.map((d) => (
                     <span
                       key={d.programId}
-                      className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm"
+                      className="px-3 py-1.5 bg-pn-surface border border-pn-line rounded-lg text-sm"
                     >
                       {d.programCode}
-                      <span className="ml-2 text-blue-600 font-semibold">
+                      <span className="ml-2 text-pn-accent-text font-semibold">
                         {d.porcentajeAvance} %
                       </span>
                     </span>
@@ -126,9 +126,9 @@ export function ArticulacionTab() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <div className="overflow-x-auto border border-pn-line rounded-lg">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-600">
+                  <thead className="bg-pn-surface-2 text-pn-ink-2">
                     <tr>
                       <th className="text-left px-4 py-2 font-medium">
                         Programa destino
@@ -143,19 +143,19 @@ export function ArticulacionTab() {
                       <th className="px-4 py-2" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-pn-line">
                     {matriz.destinos.map((d) => (
                       <React.Fragment key={d.programId}>
-                        <tr className="hover:bg-gray-50">
+                        <tr className="hover:bg-pn-surface-2">
                           <td className="px-4 py-2">
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-pn-ink">
                               {d.programName}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-pn-muted">
                               {d.programCode} · pensum {d.studyPlanVersion}
                             </div>
                           </td>
-                          <td className="px-4 py-2 text-gray-600">
+                          <td className="px-4 py-2 text-pn-ink-2">
                             {NIVELES[d.educationLevel] ?? d.educationLevel}
                           </td>
                           <td className="px-4 py-2 text-right">
@@ -167,7 +167,7 @@ export function ArticulacionTab() {
                           <td className="px-4 py-2 text-right">
                             {d.horasReconocidas} de {d.horasTotales}
                           </td>
-                          <td className="px-4 py-2 text-right font-semibold text-blue-600">
+                          <td className="px-4 py-2 text-right font-semibold text-pn-accent-text">
                             {d.porcentajeAvance} %
                           </td>
                           <td className="px-4 py-2 text-right">
@@ -177,7 +177,7 @@ export function ArticulacionTab() {
                                   expandido === d.programId ? null : d.programId,
                                 )
                               }
-                              className="text-sm text-blue-600 hover:underline"
+                              className="text-sm text-pn-accent-text hover:underline"
                               aria-expanded={expandido === d.programId}
                             >
                               {expandido === d.programId ? 'Ocultar' : 'Detalle'}
@@ -186,41 +186,41 @@ export function ArticulacionTab() {
                         </tr>
 
                         {expandido === d.programId && (
-                          <tr className="bg-gray-50">
+                          <tr className="bg-pn-surface-2">
                             <td colSpan={7} className="px-4 py-3">
                               <div className="grid gap-4 md:grid-cols-2">
                                 <div>
-                                  <h4 className="text-sm font-semibold text-green-700 mb-1">
+                                  <h4 className="text-sm font-semibold text-pn-ok mb-1">
                                     Se le reconocen ({d.reconocidas.length})
                                   </h4>
-                                  <ul className="text-sm text-gray-700 space-y-0.5">
+                                  <ul className="text-sm text-pn-ink-2 space-y-0.5">
                                     {d.reconocidas.map((a) => (
                                       <li key={a.subjectId}>
                                         {a.code} — {a.name}
                                         {a.viaSubjectId && (
-                                          <span className="ml-1 text-xs text-amber-700">
+                                          <span className="ml-1 text-xs text-pn-warn">
                                             (por equivalencia)
                                           </span>
                                         )}
                                       </li>
                                     ))}
                                     {d.reconocidas.length === 0 && (
-                                      <li className="text-gray-500">Ninguna</li>
+                                      <li className="text-pn-muted">Ninguna</li>
                                     )}
                                   </ul>
                                 </div>
                                 <div>
-                                  <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                                  <h4 className="text-sm font-semibold text-pn-ink-2 mb-1">
                                     Le faltaría cursar ({d.faltantes.length})
                                   </h4>
-                                  <ul className="text-sm text-gray-700 space-y-0.5">
+                                  <ul className="text-sm text-pn-ink-2 space-y-0.5">
                                     {d.faltantes.map((a) => (
                                       <li key={a.subjectId}>
                                         {a.code} — {a.name}
                                       </li>
                                     ))}
                                     {d.faltantes.length === 0 && (
-                                      <li className="text-gray-500">
+                                      <li className="text-pn-muted">
                                         Nada: el pensum queda cubierto
                                       </li>
                                     )}

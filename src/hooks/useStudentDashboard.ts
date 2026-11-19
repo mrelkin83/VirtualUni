@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { avisar, confirmar } from '../components/ui';
 import { useAuthStore } from '../store/authStore';
 import { notificationsService } from '../services/notifications.service';
 import {
@@ -178,7 +179,6 @@ export const useStudentDashboard = () => {
   // Navigation and UI State
   const [activeSection, setActiveSection] = useState<StudentSectionType>('inicio');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Messaging State
   const [conversacionActiva, setConversacionActiva] = useState<any>(null);
@@ -299,10 +299,6 @@ export const useStudentDashboard = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Theme Classes
-  const bg = darkMode ? 'bg-gray-900' : 'bg-gray-100';
-  const card = darkMode ? 'bg-gray-800' : 'bg-white';
-  const text = darkMode ? 'text-gray-100' : 'text-gray-800';
-  const border = darkMode ? 'border-gray-700' : 'border-gray-200';
 
   // ---- Mapeadores API -> forma que consumen los componentes ----
 
@@ -462,7 +458,7 @@ export const useStudentDashboard = () => {
       horaFin: e.horaFin,
       aula: e.aula ?? '',
       tipo: 'presencial',
-      color: e.color ?? 'bg-blue-500',
+      color: e.color ?? 'bg-pn-accent',
     };
   }
 
@@ -725,7 +721,7 @@ export const useStudentDashboard = () => {
                 contenido: a.contenido ?? a.content ?? '',
                 fecha: String(a.fechaPublicacion ?? a.createdAt ?? '').split('T')[0],
                 icono: '📢',
-                color: 'border-blue-500',
+                color: 'border-pn-accent-line',
               })) as any,
           );
         }
@@ -781,10 +777,10 @@ export const useStudentDashboard = () => {
         setExamenes(prev => actualizar(prev));
         setExamenesDataState(prev => actualizar(prev));
 
-        alert(`Examen enviado y calificado!\nCalificación: ${calificacion}\nRespuestas correctas: ${correctas}/${total}`);
+        avisar.ok(`Examen enviado y calificado!\nCalificación: ${calificacion}\nRespuestas correctas: ${correctas}/${total}`);
       } catch (err: any) {
         console.error('Error enviando examen:', err);
-        alert(`No se pudo enviar el examen al servidor (${err?.message || 'error de conexión'}). Intenta de nuevo.`);
+        avisar.error(`No se pudo enviar el examen al servidor (${err?.message || 'error de conexión'}). Intenta de nuevo.`);
         return;
       }
       setAttemptActivoId(null);
@@ -810,7 +806,7 @@ export const useStudentDashboard = () => {
         : e
     ));
 
-    alert(`Examen finalizado!\nCalificación: ${calificacion}\nRespuestas correctas: ${correctas}/${examenActivo.preguntas.length}`);
+    avisar.ok(`Examen finalizado!\nCalificación: ${calificacion}\nRespuestas correctas: ${correctas}/${examenActivo.preguntas.length}`);
     setExamenActivo(null);
     setRespuestasExamen({});
     setTiempoRestante(null);
@@ -818,7 +814,7 @@ export const useStudentDashboard = () => {
 
   const entregarTarea = async (tareaId: number) => {
     if (!archivoTarea) {
-      alert('Por favor selecciona un archivo');
+      avisar.warn('Por favor selecciona un archivo');
       return;
     }
 
@@ -840,9 +836,9 @@ export const useStudentDashboard = () => {
         t.id === tareaId ? { ...t, estado: 'entregada' } : t
       ));
 
-      alert('Tarea entregada exitosamente!');
+      avisar.ok('Tarea entregada exitosamente!');
     } catch (err: any) {
-      alert('Error al entregar tarea: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al entregar tarea: ' + (err.message || 'Error desconocido'));
     } finally {
       setModalTarea(null);
       setArchivoTarea(null);
@@ -852,7 +848,7 @@ export const useStudentDashboard = () => {
 
   const enviarSolicitud = () => {
     if (!tipoSolicitud) {
-      alert('Por favor selecciona un tipo de solicitud');
+      avisar.warn('Por favor selecciona un tipo de solicitud');
       return;
     }
 
@@ -865,14 +861,14 @@ export const useStudentDashboard = () => {
     };
 
     setSolicitudesData([nuevaSolicitud, ...solicitudesData]);
-    alert('Solicitud enviada exitosamente!');
+    avisar.ok('Solicitud enviada exitosamente!');
     setModalSolicitud(false);
     setTipoSolicitud('');
   };
 
   const enviarTramite = async () => {
     if (!tipoTramite) {
-      alert('Por favor selecciona un tipo de trámite');
+      avisar.warn('Por favor selecciona un tipo de trámite');
       return;
     }
 
@@ -889,17 +885,17 @@ export const useStudentDashboard = () => {
         prioridad: 'MEDIA',
       });
       setTramitesData([adaptarTramite(data), ...tramitesData] as any);
-      alert('Trámite enviado exitosamente!');
+      avisar.ok('Trámite enviado exitosamente!');
       setModalTramite(false);
       setTipoTramite('');
       setObservacionesTramite('');
     } catch (err: any) {
-      alert('No se pudo enviar el trámite: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo enviar el trámite: ' + (err?.message || 'error de conexión'));
     }
   };
 
   const cancelarTramite = async (tramiteId: number | string) => {
-    if (!window.confirm('¿Estás seguro de que deseas cancelar este trámite?')) return;
+    if (!(await confirmar({ titulo: 'Cancelar trámite', mensaje: '¿Estás seguro de que deseas cancelar este trámite?', textoConfirmar: 'Sí, cancelar', textoCancelar: 'Volver', destructiva: true }))) return;
     try {
       await proceduresApi.cancelarPropio(String(tramiteId));
       setTramitesData(
@@ -907,9 +903,9 @@ export const useStudentDashboard = () => {
           t.id === tramiteId ? { ...t, estado: 'Cancelado' } : t,
         ) as any,
       );
-      alert('Trámite cancelado');
+      avisar.ok('Trámite cancelado');
     } catch (err: any) {
-      alert('No se pudo cancelar: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo cancelar: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -926,10 +922,10 @@ export const useStudentDashboard = () => {
           firstName: datosPerfil.nombre,
         });
       }
-      alert('Perfil actualizado!');
+      avisar.ok('Perfil actualizado!');
       setEditandoPerfil(false);
     } catch (err: any) {
-      alert('Error al actualizar perfil: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al actualizar perfil: ' + (err.message || 'Error desconocido'));
     }
   };
 
@@ -954,9 +950,9 @@ export const useStudentDashboard = () => {
       if (userId) await usersApi.update(userId, { avatarUrl: url } as any);
 
       setFotoPerfil(uploadsApi.urlAbsoluta(url));
-      alert('Foto de perfil actualizada');
+      avisar.ok('Foto de perfil actualizada');
     } catch (err: any) {
-      alert('No se pudo guardar la foto: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo guardar la foto: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -966,7 +962,7 @@ export const useStudentDashboard = () => {
     if (!libro) return;
 
     if (!libro.disponible || (libro.copiasDisponibles && libro.copiasDisponibles === 0)) {
-      alert('Este libro no está disponible en este momento.');
+      avisar.warn('Este libro no está disponible en este momento.');
       return;
     }
 
@@ -983,12 +979,12 @@ export const useStudentDashboard = () => {
               }
             : l
         ));
-        alert(
+        avisar.ok(
           `Préstamo solicitado exitosamente!\n\nLibro: ${libro.titulo}\nFecha de devolución: ${soloFecha(data?.fechaVencimiento)}`
         );
         return;
       } catch (err: any) {
-        alert(err?.message || 'No se pudo registrar el préstamo.');
+        avisar.error(err?.message || 'No se pudo registrar el préstamo.');
         return;
       }
     }
@@ -1020,14 +1016,14 @@ export const useStudentDashboard = () => {
       return l;
     }));
 
-    alert(`Préstamo solicitado exitosamente!\n\nLibro: ${libro.titulo}\nFecha de devolución: ${nuevoPrestamo.fechaDevolucion}`);
+    avisar.ok(`Préstamo solicitado exitosamente!\n\nLibro: ${libro.titulo}\nFecha de devolución: ${nuevoPrestamo.fechaDevolucion}`);
   };
 
   const devolverLibro = async (prestamoId: string | number) => {
     const prestamo = prestamosData.find(p => p.id === prestamoId);
     if (!prestamo) return;
 
-    if (!window.confirm(`¿Confirmas la devolución de "${prestamo.libroTitulo}"?`)) {
+    if (!(await confirmar({ titulo: 'Devolver libro', mensaje: `¿Confirmas la devolución de "${prestamo.libroTitulo}"?`, textoConfirmar: 'Devolver' }))) {
       return;
     }
 
@@ -1035,7 +1031,7 @@ export const useStudentDashboard = () => {
       try {
         await libraryApi.returnLoan(prestamoId);
       } catch (err: any) {
-        alert(err?.message || 'No se pudo registrar la devolución.');
+        avisar.error(err?.message || 'No se pudo registrar la devolución.');
         return;
       }
     }
@@ -1058,7 +1054,7 @@ export const useStudentDashboard = () => {
       return l;
     }));
 
-    alert('Libro devuelto exitosamente!');
+    avisar.ok('Libro devuelto exitosamente!');
   };
 
   const reservarLibro = async (libroId: string | number) => {
@@ -1068,7 +1064,7 @@ export const useStudentDashboard = () => {
     // Verificar si ya tiene una reserva activa para este libro
     const reservaExistente = reservasData.find(r => r.libroId === libroId && r.estado === 'pendiente');
     if (reservaExistente) {
-      alert('Ya tienes una reserva activa para este libro.');
+      avisar.warn('Ya tienes una reserva activa para este libro.');
       return;
     }
 
@@ -1076,12 +1072,12 @@ export const useStudentDashboard = () => {
       try {
         const { data } = await libraryApi.createReservation(libroId);
         setReservasData([mapReservaApi(data), ...reservasData]);
-        alert(
+        avisar.ok(
           `Reserva realizada exitosamente!\n\nTe notificaremos cuando "${libro.titulo}" esté disponible.`
         );
         return;
       } catch (err: any) {
-        alert(err?.message || 'No se pudo realizar la reserva.');
+        avisar.error(err?.message || 'No se pudo realizar la reserva.');
         return;
       }
     }
@@ -1095,7 +1091,7 @@ export const useStudentDashboard = () => {
     };
 
     setReservasData([nuevaReserva, ...reservasData]);
-    alert(`Reserva realizada exitosamente!\n\nTe notificaremos cuando "${libro.titulo}" esté disponible.`);
+    avisar.ok(`Reserva realizada exitosamente!\n\nTe notificaremos cuando "${libro.titulo}" esté disponible.`);
   };
 
   // Forum Actions
@@ -1113,11 +1109,11 @@ export const useStudentDashboard = () => {
         courseId: typeof cursoApi?.id === 'string' ? cursoApi.id : undefined,
       });
       setTopicosData([mapTopicoApi(data), ...topicosData]);
-      alert('Tema creado exitosamente!');
+      avisar.ok('Tema creado exitosamente!');
       return;
     } catch (err: any) {
       console.error('Error creando tema en el servidor:', err);
-      alert(
+      avisar.error(
         `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
       );
     }
@@ -1137,7 +1133,7 @@ export const useStudentDashboard = () => {
     };
 
     setTopicosData([nuevoTopico, ...topicosData]);
-    alert('Tema creado exitosamente!');
+    avisar.ok('Tema creado exitosamente!');
   };
 
   const crearRespuesta = async (topicoId: string | number, contenido: string) => {
@@ -1150,10 +1146,10 @@ export const useStudentDashboard = () => {
             ? { ...t, respuestas: t.respuestas + 1, ultimaActividad: new Date().toISOString() }
             : t
         ));
-        alert('Respuesta publicada exitosamente!');
+        avisar.ok('Respuesta publicada exitosamente!');
         return;
       } catch (err: any) {
-        alert(err?.message || 'No se pudo publicar la respuesta.');
+        avisar.error(err?.message || 'No se pudo publicar la respuesta.');
         return;
       }
     }
@@ -1177,7 +1173,7 @@ export const useStudentDashboard = () => {
         : t
     ));
 
-    alert('Respuesta publicada exitosamente!');
+    avisar.ok('Respuesta publicada exitosamente!');
   };
 
   // Certificate Actions
@@ -1195,7 +1191,7 @@ export const useStudentDashboard = () => {
         mapSolicitudCertificadoApi(data),
         ...solicitudesCertificadosData,
       ]);
-      alert(
+      avisar.ok(
         certificado.costo > 0
           ? `Solicitud enviada exitosamente!\n\nCosto: $${certificado.costo.toLocaleString()}\nTiempo estimado: ${certificado.tiempoEstimado}\n\nRecibirás una notificación cuando esté listo.`
           : `Solicitud enviada exitosamente!\n\nTiempo estimado: ${certificado.tiempoEstimado}`
@@ -1203,7 +1199,7 @@ export const useStudentDashboard = () => {
       return;
     } catch (err: any) {
       console.error('Error solicitando certificado en el servidor:', err);
-      alert(
+      avisar.error(
         `No se pudo guardar en el servidor (${err?.message || 'error de conexión'}). Se guardará localmente.`
       );
     }
@@ -1222,9 +1218,9 @@ export const useStudentDashboard = () => {
     setSolicitudesCertificadosData([nuevaSolicitud, ...solicitudesCertificadosData]);
 
     if (certificado.costo > 0) {
-      alert(`Solicitud enviada exitosamente!\n\nCosto: $${certificado.costo.toLocaleString()}\nTiempo estimado: ${certificado.tiempoEstimado}\n\nRecibirás una notificación cuando esté listo.`);
+      avisar.ok(`Solicitud enviada exitosamente!\n\nCosto: $${certificado.costo.toLocaleString()}\nTiempo estimado: ${certificado.tiempoEstimado}\n\nRecibirás una notificación cuando esté listo.`);
     } else {
-      alert(`Solicitud enviada exitosamente!\n\nTiempo estimado: ${certificado.tiempoEstimado}`);
+      avisar.ok(`Solicitud enviada exitosamente!\n\nTiempo estimado: ${certificado.tiempoEstimado}`);
     }
   };
 
@@ -1235,13 +1231,13 @@ export const useStudentDashboard = () => {
   const descargarCertificado = async (solicitudId: number | string) => {
     const solicitud: any = solicitudesCertificadosData.find((s: any) => s.id === solicitudId);
     if (!solicitud?.archivoUrl) {
-      alert('El certificado aún no está disponible para descargar.');
+      avisar.info('El certificado aún no está disponible para descargar.');
       return;
     }
     try {
       await uploadsApi.abrir(solicitud.archivoUrl);
     } catch (err: any) {
-      alert('No se pudo descargar el certificado: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo descargar el certificado: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1264,7 +1260,7 @@ export const useStudentDashboard = () => {
       const lista = comoArreglo(data);
       if (lista.length) setSolicitudesCertificadosData(lista as any);
     } catch (err: any) {
-      alert('No se pudo registrar el certificado: ' + (err?.message || 'error de conexión'));
+      avisar.error('No se pudo registrar el certificado: ' + (err?.message || 'error de conexión'));
     }
   };
 
@@ -1274,17 +1270,17 @@ export const useStudentDashboard = () => {
     if (!clase) return;
 
     if (clase.tipo !== 'en_vivo') {
-      alert('Solo puedes unirte a clases en vivo.');
+      avisar.info('Solo puedes unirte a clases en vivo.');
       return;
     }
 
     if (clase.estado === 'finalizada') {
-      alert('Esta clase ya finalizó.');
+      avisar.info('Esta clase ya finalizó.');
       return;
     }
 
     if (clase.estado === 'programada') {
-      alert('Esta clase aún no ha comenzado. Te avisaremos cuando inicie.');
+      avisar.info('Esta clase aún no ha comenzado. Te avisaremos cuando inicie.');
       return;
     }
 
@@ -1295,10 +1291,10 @@ export const useStudentDashboard = () => {
           window.open(data.enlace, '_blank', 'noopener,noreferrer');
           return;
         }
-        alert('El enlace de la clase no está disponible aún.');
+        avisar.info('El enlace de la clase no está disponible aún.');
         return;
       } catch (err: any) {
-        alert(err?.message || 'No se pudo unir a la clase.');
+        avisar.error(err?.message || 'No se pudo unir a la clase.');
         return;
       }
     }
@@ -1306,7 +1302,7 @@ export const useStudentDashboard = () => {
     if (clase.enlace) {
       window.open(clase.enlace, '_blank', 'noopener,noreferrer');
     } else {
-      alert('El enlace de la clase no está disponible aún.');
+      avisar.info('El enlace de la clase no está disponible aún.');
     }
   };
 
@@ -1315,7 +1311,7 @@ export const useStudentDashboard = () => {
     if (!clase) return;
 
     if (clase.tipo !== 'grabada' && clase.estado !== 'finalizada') {
-      alert('Esta grabación aún no está disponible.');
+      avisar.info('Esta grabación aún no está disponible.');
       return;
     }
 
@@ -1323,10 +1319,10 @@ export const useStudentDashboard = () => {
       // Mostraba un aviso con la URL y el texto "en un caso real se
       // reproduciría el video". Se abre la grabación.
       uploadsApi.abrir(clase.grabacionUrl).catch((err: any) => {
-        alert('No se pudo abrir la grabación: ' + (err?.message || 'error de conexión'));
+        avisar.error('No se pudo abrir la grabación: ' + (err?.message || 'error de conexión'));
       });
     } else {
-      alert('La grabación no está disponible.');
+      avisar.info('La grabación no está disponible.');
     }
   };
 
@@ -1336,17 +1332,17 @@ export const useStudentDashboard = () => {
     if (!examen) return;
 
     if (examen.estado === 'calificado') {
-      alert('Este examen ya fue completado y calificado.');
+      avisar.warn('Este examen ya fue completado y calificado.');
       return;
     }
 
     if (examen.estado === 'en_curso' && examenActivo) {
-      alert(`Continuando con el examen: ${examen.titulo}`);
+      avisar.info(`Continuando con el examen: ${examen.titulo}`);
       setExamenActivo(examen);
       return;
     }
 
-    if (!window.confirm(`¿Deseas iniciar el examen "${examen.titulo}"?\n\nDuración: ${examen.duracion}\nPreguntas: ${examen.preguntas?.length || 'N/A'}`)) {
+    if (!(await confirmar({ titulo: 'Iniciar examen', mensaje: `¿Deseas iniciar el examen "${examen.titulo}"?\n\nDuración: ${examen.duracion}\nPreguntas: ${examen.preguntas?.length || 'N/A'}`, textoConfirmar: 'Iniciar' }))) {
       return;
     }
 
@@ -1370,10 +1366,10 @@ export const useStudentDashboard = () => {
         setTiempoRestante((isNaN(duracionMinutos) ? 60 : duracionMinutos) * 60);
         setRespuestasExamen({});
         setPreguntaActual(0);
-        alert(`Examen iniciado. ¡Buena suerte!`);
+        avisar.ok(`Examen iniciado. ¡Buena suerte!`);
       } catch (err: any) {
         console.error('Error iniciando examen:', err);
-        alert(`No se pudo iniciar el examen (${err?.message || 'error de conexión'}).`);
+        avisar.error(`No se pudo iniciar el examen (${err?.message || 'error de conexión'}).`);
       }
       return;
     }
@@ -1385,7 +1381,7 @@ export const useStudentDashboard = () => {
     setExamenActivo(examen);
     const duracionMinutos = parseInt(examen.duracion);
     setTiempoRestante(duracionMinutos * 60);
-    alert(`Examen iniciado. ¡Buena suerte!`);
+    avisar.ok(`Examen iniciado. ¡Buena suerte!`);
   };
 
   const verResultadosExamen = (examenId: number) => {
@@ -1393,11 +1389,11 @@ export const useStudentDashboard = () => {
     if (!examen) return;
 
     if (examen.estado !== 'calificado') {
-      alert('Este examen aún no ha sido calificado.');
+      avisar.ok('Este examen aún no ha sido calificado.');
       return;
     }
 
-    alert(`Resultados del examen: ${examen.titulo}\n\nCalificación: ${examen.calificacion || 'N/A'}\nEstado: Calificado\nFecha: ${examen.fecha}`);
+    avisar.ok(`Resultados del examen: ${examen.titulo}\n\nCalificación: ${examen.calificacion || 'N/A'}\nEstado: Calificado\nFecha: ${examen.fecha}`);
   };
 
   // Community Actions
@@ -1410,7 +1406,7 @@ export const useStudentDashboard = () => {
         ));
         return;
       } catch (err: any) {
-        alert(err?.message || "No se pudo registrar el like.");
+        avisar.error(err?.message || "No se pudo registrar el like.");
         return;
       }
     }
@@ -1422,7 +1418,7 @@ export const useStudentDashboard = () => {
 
   const comentarPost = async (postId: string | number, contenido: string) => {
     if (!contenido.trim()) {
-      alert('El comentario no puede estar vacío.');
+      avisar.info('El comentario no puede estar vacío.');
       return;
     }
 
@@ -1432,10 +1428,10 @@ export const useStudentDashboard = () => {
         setComunidadPostsData(comunidadPostsData.map(post =>
           post.id === postId ? mapPostApi(data) : post
         ));
-        alert('Comentario publicado exitosamente!');
+        avisar.ok('Comentario publicado exitosamente!');
         return;
       } catch (err: any) {
-        alert(err?.message || 'No se pudo publicar el comentario.');
+        avisar.error(err?.message || 'No se pudo publicar el comentario.');
         return;
       }
     }
@@ -1444,7 +1440,7 @@ export const useStudentDashboard = () => {
       post.id === postId ? { ...post, comentarios: post.comentarios + 1 } : post
     ));
 
-    alert('Comentario publicado exitosamente!');
+    avisar.ok('Comentario publicado exitosamente!');
   };
 
   const compartirPost = (postId: number) => {
@@ -1458,13 +1454,13 @@ export const useStudentDashboard = () => {
     const texto = post.contenido;
     navigator.clipboard
       ?.writeText(texto)
-      .then(() => alert('Publicación copiada al portapapeles.'))
-      .catch(() => alert('No se pudo copiar la publicación.'));
+      .then(() => avisar.ok('Publicación copiada al portapapeles.'))
+      .catch(() => avisar.error('No se pudo copiar la publicación.'));
   };
 
   const crearPostComunidad = (contenido: string) => {
     if (!contenido.trim()) {
-      alert('El contenido del post no puede estar vacío.');
+      avisar.info('El contenido del post no puede estar vacío.');
       return;
     }
 
@@ -1491,10 +1487,10 @@ export const useStudentDashboard = () => {
           { ...nuevoPost, id: (data as any)?.id ?? nuevoPost.id },
           ...comunidadPostsData,
         ] as any);
-        alert('Post publicado exitosamente!');
+        avisar.ok('Post publicado exitosamente!');
       })
       .catch((err: any) =>
-        alert('No se pudo publicar: ' + (err?.message || 'error de conexión')),
+        avisar.error('No se pudo publicar: ' + (err?.message || 'error de conexión')),
       );
   };
 
@@ -1516,11 +1512,11 @@ export const useStudentDashboard = () => {
   const realizarPago = async (deudaId: number | string, _metodoPago: string, _datosPago: any) => {
     const deuda: any = deudasPendientesData.find((d: any) => d.id === deudaId);
     if (!deuda) {
-      alert('Deuda no encontrada.');
+      avisar.info('Deuda no encontrada.');
       return;
     }
 
-    alert(
+    avisar.info(
       'El pago en línea todavía no está habilitado en esta institución.\n\n' +
       `Concepto: ${deuda.concepto}\nImporte: ${deuda.monto}\n\n` +
       'Acércate a la oficina de cartera o solicita los datos de transferencia. ' +
@@ -1536,9 +1532,9 @@ export const useStudentDashboard = () => {
         asunto,
         contenido: mensaje,
       });
-      alert(`Mensaje enviado a ${destinatario}!\n\nAsunto: ${asunto}\nMensaje: ${mensaje.substring(0, 100)}...`);
+      avisar.ok(`Mensaje enviado a ${destinatario}!\n\nAsunto: ${asunto}\nMensaje: ${mensaje.substring(0, 100)}...`);
     } catch (err: any) {
-      alert('Error al enviar mensaje: ' + (err.message || 'Error desconocido'));
+      avisar.error('Error al enviar mensaje: ' + (err.message || 'Error desconocido'));
     }
   };
 
@@ -1598,7 +1594,6 @@ export const useStudentDashboard = () => {
     // State
     activeSection,
     sidebarOpen,
-    darkMode,
     conversacionActiva,
     nuevoMensajeModal,
     mensajes,
@@ -1663,15 +1658,10 @@ export const useStudentDashboard = () => {
     comunidadPosts: comunidadPostsData,
 
     // Theme
-    bg,
-    card,
-    text,
-    border,
 
     // Setters
     setActiveSection,
     setSidebarOpen,
-    setDarkMode,
     setConversacionActiva,
     setNuevoMensajeModal,
     setExamenActivo,

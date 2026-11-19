@@ -15,6 +15,7 @@ import { materialsApi, MaterialType } from '../../../api/endpoints/materials';
 import { uploadsApi } from '../../../api/endpoints/uploads';
 import { COLOR_TIPO, ETIQUETA_TIPO, formatearKb } from '../../../utils/materiales';
 import { comoArreglo } from '../../../utils/respuestaApi';
+import { avisar } from '../../ui';
 
 interface MaterialEstudiante {
   id: string;
@@ -28,29 +29,22 @@ interface MaterialEstudiante {
   subject?: { id: string; name: string; code: string } | null;
 }
 
-interface MaterialesSectionProps {
-  darkMode: boolean;
-  card: string;
-  text: string;
-  border: string;
-}
-
 const iconoDe = (tipo: MaterialType) => {
   switch (tipo) {
     case 'VIDEO':
-      return <Video className="text-purple-500" size={20} />;
+      return <Video className="text-pn-accent-2-text" size={20} />;
     case 'IMAGEN':
-      return <ImageIcon className="text-green-500" size={20} />;
+      return <ImageIcon className="text-pn-ok" size={20} />;
     case 'ENLACE':
-      return <LinkIcon className="text-indigo-500" size={20} />;
+      return <LinkIcon className="text-pn-accent-2-text" size={20} />;
     case 'AUDIO':
-      return <Music className="text-pink-500" size={20} />;
+      return <Music className="text-pn-accent-2-text" size={20} />;
     case 'PRESENTACION':
-      return <FileText className="text-orange-500" size={20} />;
+      return <FileText className="text-pn-warn" size={20} />;
     case 'DOCUMENTO':
-      return <FileText className="text-blue-500" size={20} />;
+      return <FileText className="text-pn-accent-text" size={20} />;
     default:
-      return <File className="text-gray-500" size={20} />;
+      return <File className="text-pn-muted" size={20} />;
   }
 };
 
@@ -64,11 +58,7 @@ const iconoDe = (tipo: MaterialType) => {
  * docente. El endpoint existía desde el principio pero no lo llamaba nadie, así
  * que el alumno nunca veía lo que subían sus profesores.
  */
-export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
-  darkMode,
-  card,
-  text,
-  border,
+export const MaterialesSection: React.FC = ({
 }) => {
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<'todos' | MaterialType>('todos');
@@ -80,7 +70,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   });
 
   const materiales: MaterialEstudiante[] = comoArreglo((data as any)?.data);
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const suave = 'text-pn-ink-2';
 
   const filtrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
@@ -125,7 +115,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       await materialsApi.download(material.id).catch(() => undefined);
       await uploadsApi.abrir(material.url);
     } catch {
-      alert('No se pudo abrir el material. Inténtalo de nuevo.');
+      avisar.error('No se pudo abrir el material. Inténtalo de nuevo.');
     } finally {
       setAbriendo(null);
     }
@@ -134,28 +124,28 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={`text-2xl font-bold ${text}`}>Materiales</h2>
+        <h2 className={`text-2xl font-bold text-pn-ink`}>Materiales</h2>
         <p className={`text-sm ${suave}`}>
           Todo lo que tus profesores publicaron en los cursos en los que estás matriculado.
         </p>
       </div>
 
-      <div className={`${card} rounded-lg shadow p-4 flex flex-wrap gap-3`}>
+      <div className={`bg-pn-surface rounded-lg shadow p-4 flex flex-wrap gap-3`}>
         <div className="relative flex-1 min-w-56">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-pn-muted" />
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre, curso o asignatura..."
             aria-label="Buscar material"
-            className={`w-full pl-9 pr-3 py-2 rounded-lg border ${border} ${card} ${text} text-sm`}
+            className={`w-full pl-9 pr-3 py-2 rounded-lg border border-pn-line bg-pn-surface text-pn-ink text-sm`}
           />
         </div>
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value as 'todos' | MaterialType)}
           aria-label="Filtrar por tipo"
-          className={`px-3 py-2 rounded-lg border ${border} ${card} ${text} text-sm`}
+          className={`px-3 py-2 rounded-lg border border-pn-line bg-pn-surface text-pn-ink text-sm`}
         >
           <option value="todos">Todos los tipos</option>
           {(Object.keys(ETIQUETA_TIPO) as MaterialType[]).map((t) => (
@@ -168,15 +158,15 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
 
       {isLoading && <p className={`text-sm ${suave}`}>Cargando materiales...</p>}
       {error != null && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-pn-danger">
           No se pudieron cargar los materiales. Revisa tu conexión y vuelve a intentarlo.
         </p>
       )}
 
       {!isLoading && materiales.length === 0 && (
-        <div className={`${card} rounded-lg shadow p-10 text-center`}>
-          <BookOpen className="mx-auto mb-3 text-gray-400" size={40} />
-          <p className={`font-medium ${text}`}>Todavía no hay materiales publicados</p>
+        <div className={`bg-pn-surface rounded-lg shadow p-10 text-center`}>
+          <BookOpen className="mx-auto mb-3 text-pn-muted" size={40} />
+          <p className={`font-medium text-pn-ink`}>Todavía no hay materiales publicados</p>
           <p className={`text-sm ${suave} mt-1`}>
             Cuando tus profesores suban guías, videos o lecturas, aparecerán aquí.
           </p>
@@ -188,17 +178,17 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
       )}
 
       {grupos.map((grupo) => (
-        <div key={grupo.titulo} className={`${card} rounded-lg shadow overflow-hidden`}>
-          <div className={`px-4 py-3 border-b ${border} flex items-center justify-between`}>
-            <h3 className={`font-semibold ${text}`}>{grupo.titulo}</h3>
+        <div key={grupo.titulo} className={`bg-pn-surface rounded-lg shadow overflow-hidden`}>
+          <div className={`px-4 py-3 border-b border-pn-line flex items-center justify-between`}>
+            <h3 className={`font-semibold text-pn-ink`}>{grupo.titulo}</h3>
             <span className={`text-xs ${suave}`}>{grupo.items.length} material(es)</span>
           </div>
-          <ul className={`divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
+          <ul className={`divide-y divide-pn-line`}>
             {grupo.items.map((material) => (
               <li key={material.id} className="p-4 flex items-start gap-3">
                 <span className="mt-0.5">{iconoDe(material.tipo)}</span>
                 <div className="flex-1 min-w-0">
-                  <p className={`font-medium ${text} truncate`}>{material.nombre}</p>
+                  <p className={`font-medium text-pn-ink truncate`}>{material.nombre}</p>
                   {material.descripcion && (
                     <p className={`text-sm ${suave} truncate`}>{material.descripcion}</p>
                   )}
@@ -217,7 +207,7 @@ export const MaterialesSection: React.FC<MaterialesSectionProps> = ({
                 <button
                   onClick={() => abrir(material)}
                   disabled={abriendo === material.id}
-                  className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 text-sm shrink-0"
+                  className="bg-pn-accent text-pn-accent-ink px-3 py-2 rounded-lg hover:bg-pn-accent-hover disabled:opacity-50 flex items-center gap-2 text-sm shrink-0"
                 >
                   <ExternalLink size={16} />
                   {abriendo === material.id ? 'Abriendo...' : 'Abrir'}

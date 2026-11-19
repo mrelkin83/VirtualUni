@@ -20,6 +20,7 @@ import {
 } from './etiquetas';
 import { useModalA11y } from '../../../../hooks/useModalA11y';
 import { mensajeDeError } from './errores';
+import { avisar } from '../../../ui';
 
 // Los numéricos viajan como string del <input>; se convierten al enviar.
 const enteroOpcional = z
@@ -103,7 +104,7 @@ export function ProgramaFormModal({
       queryClient.invalidateQueries({ queryKey: ['programas'] });
       onClose();
     },
-    onError: (err) => alert(mensajeDeError(err)),
+    onError: (err) => avisar.error(mensajeDeError(err)),
   });
 
   const enviar = handleSubmit((valores) => {
@@ -134,10 +135,10 @@ export function ProgramaFormModal({
     if (valido) setPaso((p) => Math.min(p + 1, PASOS.length - 1));
   };
 
-  const campo = 'w-full p-2 border border-gray-300 rounded-lg text-sm';
-  const etiqueta = 'block text-sm font-semibold mb-1 text-gray-700';
+  const campo = 'w-full p-2 border border-pn-line rounded-lg text-sm';
+  const etiqueta = 'block text-sm font-semibold mb-1 text-pn-ink-2';
   const errorDe = (nombre: keyof Valores) =>
-    errors[nombre] ? <p className="text-xs text-red-600 mt-1">{String(errors[nombre]?.message)}</p> : null;
+    errors[nombre] ? <p className="text-xs text-pn-danger mt-1">{String(errors[nombre]?.message)}</p> : null;
 
   return (
     <div
@@ -150,11 +151,11 @@ export function ProgramaFormModal({
         aria-modal="true"
         aria-label={programa ? 'Editar programa' : 'Nuevo programa'}
         tabIndex={-1}
-        className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-pn-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-900">
+          <h3 className="text-xl font-bold text-pn-ink">
             {programa ? 'Editar programa' : 'Nuevo programa'}
           </h3>
           <button onClick={onClose} aria-label="Cerrar"><X size={22} /></button>
@@ -166,17 +167,17 @@ export function ProgramaFormModal({
             <li key={nombre} className="flex items-center gap-2">
               <span
                 className={`w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold ${
-                  i === paso ? 'bg-blue-600 text-white'
-                  : i < paso ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-500'
+                  i === paso ? 'bg-pn-accent text-pn-accent-ink'
+                  : i < paso ? 'bg-pn-accent-soft text-pn-accent-text'
+                  : 'bg-pn-surface-3 text-pn-muted'
                 }`}
               >
                 {i + 1}
               </span>
-              <span className={`text-sm ${i === paso ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+              <span className={`text-sm ${i === paso ? 'font-semibold text-pn-ink' : 'text-pn-muted'}`}>
                 {nombre}
               </span>
-              {i < PASOS.length - 1 && <span className="text-gray-300">—</span>}
+              {i < PASOS.length - 1 && <span className="text-pn-muted">—</span>}
             </li>
           ))}
         </ol>
@@ -313,7 +314,7 @@ export function ProgramaFormModal({
               type="button"
               onClick={() => setPaso((p) => Math.max(p - 1, 0))}
               disabled={paso === 0}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40"
+              className="px-4 py-2 rounded-lg border border-pn-line text-sm disabled:opacity-40"
             >
               Atrás
             </button>
@@ -321,7 +322,7 @@ export function ProgramaFormModal({
               <button
                 type="button"
                 onClick={siguiente}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+                className="px-4 py-2 rounded-lg bg-pn-accent text-pn-accent-ink text-sm hover:bg-pn-accent-hover"
               >
                 Siguiente
               </button>
@@ -329,7 +330,7 @@ export function ProgramaFormModal({
               <button
                 type="submit"
                 disabled={isSubmitting || guardar.isPending}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-60"
+                className="px-4 py-2 rounded-lg bg-pn-accent text-pn-accent-ink text-sm hover:bg-pn-accent-hover disabled:opacity-60"
               >
                 {programa ? 'Guardar cambios' : 'Crear programa'}
               </button>

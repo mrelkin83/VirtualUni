@@ -7,6 +7,7 @@ import { materialsApi } from '../../../api/endpoints/materials';
 import { useAuthStore } from '../../../store/authStore';
 import { comoArreglo } from '../../../utils/respuestaApi';
 import { mensajeDeError } from '../../admin/sections/academico/errores';
+import { avisar, confirmar } from '../../ui';
 
 /** Lo que devuelven temario y materiales con el flag de origen de la fase 4. */
 interface ItemDeContenido {
@@ -27,7 +28,7 @@ const nombreDe = (item: ItemDeContenido) => item.title ?? item.nombre ?? '(sin t
  *
  * Autónomo: trae sus propios datos con react-query.
  */
-export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolean }) {
+export function ContenidoDelGrupoPanel() {
   const queryClient = useQueryClient();
   const usuario = useAuthStore((s) => s.user);
   const [courseId, setCourseId] = useState<string | null>(null);
@@ -83,12 +84,12 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
   const promoverTema = useMutation({
     mutationFn: (id: string) => temarioApi.promoverModulo(id),
     onSuccess: invalidar,
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
   const promoverMaterial = useMutation({
     mutationFn: (id: string) => materialsApi.promover(id),
     onSuccess: invalidar,
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
   const copiar = useMutation({
     mutationFn: async (fromCourseId: string) => {
@@ -101,9 +102,9 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
     onSuccess: ({ temas, materiales: mats }) => {
       invalidar();
       setCopiarDesde('');
-      alert(`Se copiaron ${temas} tema(s) y ${mats} material(es) del grupo elegido.`);
+      avisar.error(`Se copiaron ${temas} tema(s) y ${mats} material(es) del grupo elegido.`);
     },
-    onError: (e) => alert(mensajeDeError(e)),
+    onError: (e) => avisar.error(mensajeDeError(e)),
   });
 
   // Otros grupos MÍOS que dictan la misma asignatura (el backend solo permite
@@ -112,20 +113,19 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
     (g) => g.id !== courseId && !!subjectId && g.subject?.id === subjectId,
   );
 
-  const card = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100';
-  const texto = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const texto = 'text-pn-ink';
+  const suave = 'text-pn-ink-2';
 
   if (!grupos || grupos.length === 0) return null;
 
   return (
-    <section className={`${card} border rounded-lg p-4 space-y-4`}>
+    <section className={`bg-pn-surface border rounded-lg p-4 space-y-4`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className={`text-lg font-bold ${texto}`}>Contenido del grupo</h3>
         <select
           value={courseId ?? ''}
           onChange={(e) => { setCourseId(e.target.value); setCopiarDesde(''); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="border border-pn-line rounded-lg px-3 py-2 text-sm"
           aria-label="Elegir grupo"
         >
           {grupos.map((g) => (
@@ -139,7 +139,7 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
       </div>
 
       {!subjectId && (
-        <p className="text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3">
+        <p className="text-sm bg-pn-warn-soft border border-pn-warn text-pn-warn rounded-lg p-3">
           Este grupo no tiene asignatura del catálogo, así que su contenido no se
           puede compartir con otros grupos. Pide a la administración que le asigne
           una asignatura.
@@ -158,18 +158,18 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
       {/* Copiar del grupo anterior */}
       {subjectId && gruposCompatibles.length > 0 && (
         <form
-          className="flex flex-wrap items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3"
+          className="flex flex-wrap items-center gap-2 bg-pn-accent-soft border border-pn-accent-line rounded-lg p-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (!copiarDesde) return;
             copiar.mutate(copiarDesde);
           }}
         >
-          <span className="text-sm text-blue-900">Copiar el contenido propio de</span>
+          <span className="text-sm text-pn-accent-text">Copiar el contenido propio de</span>
           <select
             value={copiarDesde}
             onChange={(e) => setCopiarDesde(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
+            className="border border-pn-line rounded px-2 py-1 text-sm"
             aria-label="Grupo del que copiar"
           >
             <option value="">Seleccionar grupo...</option>
@@ -183,7 +183,7 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
           <button
             type="submit"
             disabled={!copiarDesde || copiar.isPending}
-            className="flex items-center gap-1 text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center gap-1 text-sm bg-pn-accent text-pn-accent-ink px-3 py-1.5 rounded hover:bg-pn-accent-hover disabled:opacity-50"
           >
             <Copy size={14} /> Copiar a este grupo
           </button>
@@ -198,7 +198,6 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
           puedoPromover={puedoEditarMaestro && !!subjectId}
           promoviendo={promoverTema.isPending}
           onPromover={(id) => promoverTema.mutate(id)}
-          darkMode={darkMode}
         />
         <ListaDeContenido
           titulo="Materiales"
@@ -207,7 +206,6 @@ export function ContenidoDelGrupoPanel({ darkMode = false }: { darkMode?: boolea
           puedoPromover={puedoEditarMaestro && !!subjectId}
           promoviendo={promoverMaterial.isPending}
           onPromover={(id) => promoverMaterial.mutate(id)}
-          darkMode={darkMode}
         />
       </div>
     </section>
@@ -221,7 +219,6 @@ function ListaDeContenido({
   puedoPromover,
   promoviendo,
   onPromover,
-  darkMode,
 }: {
   titulo: string;
   icono: React.ElementType;
@@ -229,10 +226,9 @@ function ListaDeContenido({
   puedoPromover: boolean;
   promoviendo: boolean;
   onPromover: (id: string) => void;
-  darkMode: boolean;
 }) {
-  const texto = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const suave = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const texto = 'text-pn-ink';
+  const suave = 'text-pn-ink-2';
   const maestros = items.filter((i) => i.origen === 'asignatura');
   const propios = items.filter((i) => i.origen !== 'asignatura');
 
@@ -253,7 +249,7 @@ function ListaDeContenido({
             {maestros.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-purple-50 text-purple-900"
+                className="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-pn-accent-2-soft text-pn-accent-2-text"
               >
                 <Lock size={13} className="shrink-0" aria-label="Contenido de la asignatura" />
                 <span className="truncate">{nombreDe(item)}</span>
@@ -273,15 +269,15 @@ function ListaDeContenido({
               <li
                 key={item.id}
                 className={`flex items-center gap-2 text-sm px-2 py-1.5 rounded ${
-                  darkMode ? 'bg-gray-900' : 'bg-gray-50'
+                  'bg-pn-surface-2'
                 }`}
               >
                 <span className={`truncate flex-1 ${texto}`}>{nombreDe(item)}</span>
                 {puedoPromover && (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (
-                        confirm(
+                        await confirmar(
                           `¿Promover "${nombreDe(item)}" a contenido de la asignatura? ` +
                             'Lo heredarán todos los grupos que la dictan.',
                         )
@@ -291,7 +287,7 @@ function ListaDeContenido({
                     }}
                     disabled={promoviendo}
                     title="Promover a contenido de la asignatura"
-                    className="shrink-0 flex items-center gap-1 text-xs text-indigo-600 hover:bg-indigo-50 px-1.5 py-0.5 rounded disabled:opacity-50"
+                    className="shrink-0 flex items-center gap-1 text-xs text-pn-accent-2-text hover:bg-pn-accent-2-soft px-1.5 py-0.5 rounded disabled:opacity-50"
                   >
                     <ArrowUpCircle size={13} /> Promover
                   </button>
